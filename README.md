@@ -6,6 +6,17 @@ Interactive tool translating Vancouver's SRA-Designated Room conversion rules in
 
 See [`source/citation.md`](source/citation.md) for document versions and authority notes, and [`source/source_extract.md`](source/source_extract.md) for the annotated passages this tool is built from.
 
+The tests come from three sources: the SRA Guidelines, the Downtown Eastside Plan, and the Single Room Accommodation By-law. Two further documents are recorded but implement nothing — a Council public hearing summary (December 9, 2025) and the engagement handout from the consultation before it.
+
+### A note on currency
+
+All three primary sources were before Council for amendment at that hearing, as one exercise aimed at accelerating SRO replacement. The substance sits in appendices that are not part of the summary, so it establishes *that* the sources moved, not *how*. Two risks follow, and neither is resolved by these documents:
+
+- **Recommendation E is aimed at s.4.8** — the relocation and compensation provisions this tool computes from.
+- **The guideline named is not obviously the one used.** Recommendation H amends the Guidelines for the *Upgrade* of designated rooms; this tool is built on the Guidelines for *Converting* them. The 200 SF and 50% thresholds appear nowhere in the summary.
+
+Both are settled by checking the enacted texts against `sro/rules.py`, where every threshold sits with its citation.
+
 ## Explanation
 
 Vancouver's Single Room Accommodation By-law protects SRO stock by requiring a permit to convert or demolish designated rooms (s.4.1). Merging rooms into self-contained units counts as "conversion" under the by-laws's broad definition (s.1.2(e)), so this is a permitting question, not just a design one. 
@@ -56,11 +67,47 @@ A single floorplate (or floor-equivalent room inventory) of an existing SRA-desi
 
 **Output (planned):** pass/fail on each test with its citation, room-loss count, permanently-displaced estimate, required compensation in months' rent per displaced tenant, and a Rhino before/after floor plan.
 
+## Running the Tool
+
+```
+python3 -m sro.cli --example case1              # the hand-worked cases
+python3 -m sro.cli --example case2 --svg out.svg
+python3 -m sro.cli --input floorplate.json --json
+python3 -m unittest discover -s tests           # 29 tests, the answer key below
+```
+
+Stdlib only, no install. `web/index.html` is the same operation as a browser tool,
+with the floorplate built as a manipulable 3D model (three.js r160 from cdnjs; it
+falls back to the inventory table if WebGL is unavailable). Existing rooms sit on the
+near side of the corridor and are the input: drag one along the corridor to reorder,
+drag the partition between two rooms to shift area from one to the other, and add or
+remove rooms from the inventory panel. Moving a partition conserves the floor's total
+area, which is what moving a partition actually does; the corridor and back walls are
+the envelope and are fixed, the left end wall is the datum, and the right end wall
+moves so the floor can be extended. Shift-dragging any partition does the same thing
+— one room grows and the floor grows with it. A partition inside a merged pair can
+still be moved, and doing so leaves the unit's area unchanged, which is the clearest
+demonstration that the room-count tests turn on unit totals rather than partition
+positions. The
+proposed scheme is derived on the far side, with the bathroom and kitchen pods drawn
+inside each unit. Merges are made by clicking a marker in the corridor *between* two
+rooms, so every scheme the model can express is one of adjacent rooms — the adjacency
+a list of areas cannot record. Because a merge belongs to the boundary rather than to
+the rooms, dragging a room through a boundary clears the joints it crosses.
+
+| File | What it holds |
+|---|---|
+| `sro/rules.py` | the thresholds and the quoted clause behind each one; nothing here is user input |
+| `sro/model.py` | `Room`, `Floorplate`, `Scheme`, `Unit` |
+| `sro/evaluate.py` | the operation: the three tests, displacement, compensation |
+| `sro/plan.py` | before/after floor plan geometry, emitted as SVG |
+| `sro/report.py`, `sro/cli.py` | text and JSON output |
+| `tests/test_hand_worked.py` | the hand-worked example, asserted |
+| `web/index.html` | the interactive version: 3D floorplate input, same tests |
+
 ## Hand-Worked Example
 
-**WIP** 
-
-These three cases were worked by hand from the source documents before any code existed. They are the answer key: when the tool runs, its output is checked against the expected results below, so that correctness does not depend on the model's own answer. The "Tool output" rows are filled in at W3–W4.
+These three cases were worked by hand from the source documents before any code existed. They are the answer key: when the tool runs, its output is checked against the expected results below, so that correctness does not depend on the model's own answer. The "Tool output" rows below record what the code actually returns; each is asserted in `tests/test_hand_worked.py`.
 
 ### The floorplate
 
@@ -96,7 +143,11 @@ Unit E sits exactly at 200 SF and the reduction exactly at 50%; both pass only u
 
 **Why this case matters.** Because every unit needs at least two rooms, five units consume all ten so any scheme satisfying DTES 9.2.7 on this floor must be a full conversion into pairs. Any three-room merge drops the count to four units, a 60% reduction that breaks the Guidelines' cap. **This is the only compliant scheme this floorplate admits,** and it passes with zero margin on both tests.
 
-**Tool output:** *to be recorded at W3.*
+**Tool output:** matches. Units 210 / 286 / 210 / 286 / 200 SF; 10 → 5 rooms;
+size **pass** (average 238.4 SF, fallback not triggered), room count **pass at the cap**
+(50%), replacement **pass at the floor** (50%). The tool labels all three "Pass, at the
+limit" rather than a bare pass, since the scheme has no margin on any of them. A test also
+asserts the three-room-merge variant fails at 60%.
 
 ### Case 2: conflicting partial conversion
 
@@ -121,7 +172,10 @@ After conversion: 3 units + 4 rooms = **7 rooms total.**
 
 It also lands on a second, unrelated boundary: the loss here is exactly **3 designated rooms**, which is the threshold in SRA By-law s.4.3A for the simplified permit route to the General Manager rather than Council. That route is not automatic; it additionally requires the General Manager to find "improved livability or operations" and secured affordability, both discretionary and outside what this tool computes. It confirms that s.4.3A operates on an absolute count, on a different axis from the percentage tests.
 
-**Tool output:** *to be recorded at W3.*
+**Tool output:** matches. 3 units + 4 untouched = 7 rooms; size **pass** (235.3 SF
+average, applied to the converted units only), room count **pass** at 30%, replacement
+**fail** at 30%. The tool additionally flags the s.4.3A route, the 3-room loss being at
+that threshold, and states the two discretionary findings it cannot compute.
 
 ### Case 3: missing information about who is displaced
 
@@ -145,6 +199,12 @@ Were every tenant displaced, the total owed would be **45 months' rent**. But Ca
 
 **Expected output is therefore not a number.** It is the range 20–25 months' rent, plus the statement that the exact figure turns on an allocation decision the sources leave to the permit process. A tool that returned a single total here would be asserting something its sources do not support.
 
+**Tool output:** matches. 20–25 months' rent, returned as a range with the reason
+attached, never a single total. Per-room figures (4, 5, 4, 4, 5, 5, 4, 4, 6, 4) match the
+table above, including the three boundary tenancies. Under the Case 2 scheme the same
+logic narrows the candidate pool to rooms 1–6 — a tenant whose room is left untouched has
+no tenancy terminated by the work — and returns 12–15 months.
+
 **Why this case matters.** The missing information is missing from the *regulation*, not from the user's input supplying more data would not resolve it. The range is narrow on this floor because the tenancies are mostly short; on a building with long-tenured residents the same unresolved question would swing the total far more, since a single tenancy over 40 years carries 24 months on its own. The size of the gap is floorplate-dependent.
 
 
@@ -165,3 +225,5 @@ s.4.8(i) is owed to every **"permanent resident"** whose tenancy is terminated, 
 - How to quantify "tenants permanently displaced" as distinct from "rooms lost outright." The SRA By-law (s.4.8(f)) gives a concrete "comparable accommodation" standard (rent ≤ 30% of income or previous rent, whichever is lower) and its own right-of-first-refusal condition. This can likely replace the placeholder logic from DTES 9.5.3 with something the tool can actually test against.
 - The compensation schedule (s.4.8(i)) is in scope, but it is owed to tenants "whose tenancy is terminated as a result of the work", so which tenants it covers depends on the displacement question above. Compensation can be computed confidently for any individual tenancy length; a project-wide total cannot be stated until "permanently displaced" is defined.
 - The SRA By-law's 3-room exemption (s.4.3A) operates independently of the percentage-based tests. Does a small building's proposal need to check both the percentage tests *and* this absolute-count exemption?
+- **The replacement test counts units, but Policy 9.2.7 counts social housing units.** The engagement handout proposes changing what that term covers, and the tool has no notion of tenure or rent, so every unit it counts is assumed to qualify. **Its replacement percentage is therefore an upper bound.** Resolving this needs the enacted definition and a tenure attribute on each unit, neither of which the current inputs carry.
+- Whether the s.4.8(i) compensation schedule the tool encodes is still the operative one. Recommendation E amends the SRA By-law "to improve tenant protections," and the schedule sits inside that section. The tool's figures are checked against the by-law text in hand, not against the amendment.

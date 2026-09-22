@@ -100,3 +100,35 @@ The same 30-day line separates the two categories used in the "conversion" defin
 This is the definitional basis for the room-count arithmetic the tool performs. Because connecting rooms used as a single unit count as one "room," merging two designated rooms into one self-contained unit genuinely reduces the room count by one: a 10-room floor becomes 5 rooms after pairwise conversion, rather than remaining 10 rooms that happen to be joined. Without this clause the reduction percentages in the SRA Guidelines (passage 1) would have no stable denominator.
 
 Two features worth noting. The definition is permissive ("may include," not "is"), and it turns on *use* rather than geometry: the test is whether the connected spaces are "used, intended to be used, or customarily used as one unit." It also expressly contemplates that a single room includes its own cooking and bathroom facilities, which is consistent with the self-contained unit the SRA Guidelines require at passage 2.
+
+---
+
+# Passages from the Procedural Record
+
+Passages 1–13 are the rules the tool implements. The two below are not rules, and nothing in them changes a number the tool computes. They are recorded because one bears on whether the rules above are current, and the other on what one of them means. See `citation.md` for the authority of each document.
+
+## 14. Public Hearing, December 9, 2025: all three primary sources amended at once
+
+> "E. THAT Council approve, in principle, amendments to the Single Room Accommodation By-law to improve tenant protections, generally as presented in Appendix F of the Report..."
+
+> "G. THAT subject to enactment of the by-laws in Recommendation B, the Downtown Eastside Plan and Downtown Eastside Rezoning Policy be amended generally as presented in Appendix H of the Report."
+
+> "H. THAT subject to enactment of the by-law amendments in Recommendation E, Council approve amendments to the Policies and Guidelines for the Upgrade of Rooms Designated under the Single Room Accommodation By-law, generally as presented in Appendix H of the Report."
+
+Every source this tool is built on was before Council on one date, as one exercise aimed at accelerating SRO replacement. Two consequences:
+
+**Recommendation E touches what the tool computes.** "Tenant protections" in the SRA By-law is the subject matter of s.4.8 — the relocation conditions and the compensation schedule at s.4.8(i), passages 9 and 10 above.
+
+**The guideline named may not be the guideline used.** Recommendation H amends the Guidelines for the *Upgrade* of designated rooms; this project is built on the Guidelines for *Converting* SRA-designated rooms to self-contained units (passage 1). The conversion thresholds — 200 SF, 50% reduction — appear nowhere in the summary.
+
+Neither can be resolved here: every recommendation delegates its wording to an appendix of the Report, and those appendices are not part of the 4-page summary. It records that the sources changed, not how. The engagement handout puts the direction plainly — the exercise includes "relaxing some SRO policies" so replacement can be "delivered at a faster rate."
+
+## 15. Engagement handout: what counts as social housing is itself being changed
+
+> "Adjusting the requirements from a minimum of 33% of units at shelter rate of income assistance, to a minimum of 30% of units at or below Housing Income Limits with at least 20% of units at the shelter rate for income assistance."
+
+*(Transcribed from a graphic handout, quoted only where the text runs whole.)*
+
+DTES Policy 9.2.7 (passage 3) does not require that 50% of rooms be replaced with *units*. It requires replacement with self-contained **social housing** units. The tool counts units produced and divides by the original room count; it has no notion of tenure, rent, or income mix, so every unit it counts is assumed to qualify. If the definition moves, the policy's requirement moves with it while the 50% the tool tests stays where it is.
+
+The tool's replacement figure is therefore an upper bound: the share of rooms replaced by self-contained units, which equals the share replaced by *qualifying* units only if every unit meets the social housing definition then in force. Recorded as a limitation rather than implemented — the handout is a consultation document, and the enacted definition is not in hand.
