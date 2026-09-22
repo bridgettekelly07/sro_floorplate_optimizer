@@ -18,6 +18,7 @@ Neither document below states a rule. Both are evidence about the primary source
 |---|---|---|---|
 | *Public Hearing — Summary and Recommendation*, Item 1: *Downtown Eastside Housing Implementation* | City of Vancouver Council public hearing document | Procedural, not regulatory: the list of resolutions put to Council, not the text of any amendment. Cited only as evidence that all three primary sources were amended together | Public hearing December 9, 2025 (`phea1sr.pdf`) |
 | *Downtown Eastside Housing Implementation* — public engagement handout | City of Vancouver public consultation material | Lowest authority here and the only non-Council document: plain-language proposals put out for consultation, not a draft by-law. Cited for what was proposed, never as a rule | May 12 information session (`dtes-housing-summary.pdf`); superseded by the December 9, 2025 hearing |
+| *2024 SRO Tenant Survey* | City of Vancouver survey report | Empirical, not regulatory: it sets no threshold and grants no right. It is the only source here that measures the stock rather than governing it, and the tool uses it for reference values — average rents, tenancy length, the shelter component — never for a test. Findings are reported in aggregate, but **Appendix B lists every building by name and address** with its room count and survey count — the only building-level SRO inventory this project has found, and the basis of the map | Fieldwork 2024; 133 buildings surveyed of 141 SRA-designated, 908 tenants (`sro-tenant-survey-2024.pdf`) |
 
 ## Note on Currency
 

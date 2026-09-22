@@ -132,3 +132,44 @@ Neither can be resolved here: every recommendation delegates its wording to an a
 DTES Policy 9.2.7 (passage 3) does not require that 50% of rooms be replaced with *units*. It requires replacement with self-contained **social housing** units. The tool counts units produced and divides by the original room count; it has no notion of tenure, rent, or income mix, so every unit it counts is assumed to qualify. If the definition moves, the policy's requirement moves with it while the 50% the tool tests stays where it is.
 
 The tool's replacement figure is therefore an upper bound: the share of rooms replaced by self-contained units, which equals the share replaced by *qualifying* units only if every unit meets the social housing definition then in force. Recorded as a limitation rather than implemented — the handout is a consultation document, and the enacted definition is not in hand.
+
+## 16. 2024 SRO Tenant Survey: what the stock actually rents for
+
+> "reported rents in private SROs increased substantially, from an average of $439 to $640 per month.
+> This amounts to a 46% increase over 11 years. In contrast, the shelter component of income
+> assistance increased from $375 to $500 during the same period, an increase of 33%."
+
+> "19% have a private bathroom, 20% have a private toilet, and 17% have a private shower."
+
+> "This survey was conducted in 76 market SRO buildings that contain 3,083 rooms."
+
+Fieldwork across 133 buildings and 908 tenants. The average length of time at address was 4.6 years.
+
+This is the only source in the project that measures the stock rather than governing it, and it does
+three things for the tool.
+
+**It supplies the reference values section 04 needs.** The affordability test compares a rent against
+the by-law's ceilings; those ceilings are legal, but the rent was a blank field. The survey gives a
+market average of $640 and a non-market average of $426, and gives the shelter component — $500 — a
+City citation rather than a general one.
+
+**It measures the gap the tool argues about.** Market rents rose 46% over eleven years while the
+shelter component rose 33%. The divergence is the affordability problem stated as a rate, and it is
+measured rather than modelled.
+
+**It explains why a converted unit must add pods.** Only 19% of tenants report a private bathroom and
+17% a private shower, so the bathroom and kitchen the Guidelines require (passage 2) are, for four
+tenants in five, new construction inside the merged floor area rather than an upgrade of something
+already there.
+
+**It also names the stock.** The report's *findings* are aggregate, as a tenant survey's findings must
+be. Its **Appendix B** is not: it lists all 143 buildings by name and address, with rooms, surveys
+completed and owner/operator type, split into market, non-market and the ten not surveyed with the
+reason for each. This is the only building-level SRO inventory this project has found — the City's
+open data portal explicitly excludes SROs — and it is what the tool's map plots.
+
+Two cautions on that list. It is published as **table images**, not as text, so it was transcribed
+rather than parsed; each block is checked against the report's own subtotal rows (2,322 / 135 / 613 /
+2,776 / 307 rooms, and 342 / 24 / 99 / 394 / 49 surveys), which all reconcile. And it records a room
+count, never a floorplate area, so the floors and units-per-floor the tool derives from it are an
+assumption the user is expected to correct, not a measurement.
