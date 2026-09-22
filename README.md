@@ -67,7 +67,7 @@ One floor of an SRA-designated SRO building, 10 rooms, listed in corridor order:
 | Area (SF) | 100 | 110 | 165 | 121 | 100 | 110 | 165 | 121 | 100 | 100 |
 | Tenancy | 5 yr | 6 yr | 14 mo | 3 yr | 10 yr | 7 yr | 10 mo | 8 mo | 12 yr | 5 yr |
 
-Total room area 1,192 SF; all rooms occupied. Merges are assumed to combine adjacent rooms only, and a merged unit's area is taken as the sum of its rooms.
+Total room area 1,192 SF; all rooms occupied. Merges are assumed to combine adjacent rooms only, and a merged unit's area is taken as the sum of its rooms. That merging two rooms reduces the room count by one is not an assumption but a definition: under SRA By-law s.1.2 a "room" may include "one or more connecting rooms… used, intended to be used, or customarily used as one unit" (`source/source_extract.md`, passage 13).
 
 **A structural fact about this floor:** no room reaches 200 SF on its own — the largest is 165 — so every converted unit requires at least two rooms. That constraint drives all three cases.
 
@@ -145,9 +145,9 @@ Were every tenant displaced, the total owed would be **45 months' rent**. But Ca
 
 **Tool output:** *to be recorded at W3.*
 
-### Outstanding
+### A note on who qualifies
 
-s.4.8(i) is owed to every **"permanent resident"** whose tenancy is terminated. Rooms 7 and 8 have tenancies of ten and eight months, and the By-law's definition of "permanent resident" (s.1.2) is not yet in `source/source_extract.md`. Both almost certainly qualify, but the definition needs to be added so the claim is supported by a cited passage.
+s.4.8(i) is owed to every **"permanent resident"** whose tenancy is terminated, which the By-law defines as someone who occupies a room as their residence "for at least 30 days" (s.1.2; `source/source_extract.md`, passage 12). All ten tenancies on this floor exceed 30 days, including rooms 7 and 8 at ten and eight months, so every occupant is a permanent resident and the compensation schedule reaches all of them.
 
 ## Interpretive Decisions
 

@@ -82,3 +82,21 @@ A concrete, tenancy-length-indexed compensation schedule — this is a genuinely
 > "...an owner may also apply to the General Manager of Arts, Culture and Community Services for a permit approving the conversion or demolition of designated rooms in a building if the work approved by the permit will result in the loss of no more than 3 designated rooms in the building and the work will, in the opinion of the General Manager, result in improved livability or operations of the building and secure affordability of the converted or demolished rooms."
 
 A de minimis threshold that operates independently of the SRA Guidelines' percentage-based tests: a loss of ≤3 rooms can route through a simpler General Manager approval regardless of what percentage that represents of the building's total room count. This is a useful **boundary case** for the tool — e.g., a 6-room building losing 3 rooms is a 50% reduction (right at the SRA Guidelines cap) but may also qualify for this separate small-building exemption.
+
+## 12. SRA By-law No. 8733: "permanent resident" and "transient guest" (s.1.2)
+
+> "'permanent resident' means an individual who, in return for rent, occupies or usually occupies a room as his or her residence, and does so for at least 30 days;"
+
+> "'transient guest' means a tourist, hosteller, or other individual who, in return for rent, occupies a room on a transient basis for business or pleasure, and not as his or her residence, and does so for fewer than 30 days."
+
+The relocation and compensation conditions at s.4.8 (passages 9–10) are owed to *permanent residents* specifically, so this definition fixes who the tool's displacement and compensation outputs actually cover. The threshold is only 30 days — low enough that any occupied tenancy the tool is likely to encounter qualifies, including the sub-year tenancies (8 and 10 months) in Case 3 of the README's hand-worked example.
+
+The same 30-day line separates the two categories used in the "conversion" definition at passage 7(a): shifting a room from permanent-resident accommodation to transient-guest accommodation is itself a conversion requiring a permit, with no physical alteration involved at all.
+
+## 13. SRA By-law No. 8733: definition of "room" (s.1.2)
+
+> "'room' may include one or more connecting rooms, cooking facilities, or bathroom facilities used, intended to be used, or customarily used as one unit;"
+
+This is the definitional basis for the room-count arithmetic the tool performs. Because connecting rooms used as a single unit count as one "room," merging two designated rooms into one self-contained unit genuinely reduces the room count by one — a 10-room floor becomes 5 rooms after pairwise conversion, rather than remaining 10 rooms that happen to be joined. Without this clause the reduction percentages in the SRA Guidelines (passage 1) would have no stable denominator.
+
+Two features worth noting. The definition is permissive — "may include," not "is" — and it turns on *use* rather than geometry: the test is whether the connected spaces are "used, intended to be used, or customarily used as one unit." It also expressly contemplates that a single room includes its own cooking and bathroom facilities, which is consistent with the self-contained unit the SRA Guidelines require at passage 2.
