@@ -147,7 +147,6 @@ Were every tenant displaced, the total owed would be **45 months' rent**. But Ca
 
 **Why this case matters.** The missing information is missing from the *regulation*, not from the user's input supplying more data would not resolve it. The range is narrow on this floor because the tenancies are mostly short; on a building with long-tenured residents the same unresolved question would swing the total far more, since a single tenancy over 40 years carries 24 months on its own. The size of the gap is floorplate-dependent.
 
-**Tool output:** *to be recorded at W3.*
 
 ### A note on who qualifies
 
@@ -165,4 +164,4 @@ s.4.8(i) is owed to every **"permanent resident"** whose tenancy is terminated, 
 
 - How to quantify "tenants permanently displaced" as distinct from "rooms lost outright." The SRA By-law (s.4.8(f)) gives a concrete "comparable accommodation" standard (rent ≤ 30% of income or previous rent, whichever is lower) and its own right-of-first-refusal condition. This can likely replace the placeholder logic from DTES 9.5.3 with something the tool can actually test against.
 - The compensation schedule (s.4.8(i)) is in scope, but it is owed to tenants "whose tenancy is terminated as a result of the work", so which tenants it covers depends on the displacement question above. Compensation can be computed confidently for any individual tenancy length; a project-wide total cannot be stated until "permanently displaced" is defined.
-- The SRA By-law's 3-room de minimis exemption (s.4.3A) operates independently of the percentage-based tests. Does a small building's proposal need to check both the percentage tests *and* this absolute-count exemption?
+- The SRA By-law's 3-room exemption (s.4.3A) operates independently of the percentage-based tests. Does a small building's proposal need to check both the percentage tests *and* this absolute-count exemption?

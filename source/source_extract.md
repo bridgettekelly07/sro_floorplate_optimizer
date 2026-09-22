@@ -81,7 +81,7 @@ A concrete, tenancy-length-indexed compensation schedule: this is a genuinely co
 
 > "...an owner may also apply to the General Manager of Arts, Culture and Community Services for a permit approving the conversion or demolition of designated rooms in a building if the work approved by the permit will result in the loss of no more than 3 designated rooms in the building and the work will, in the opinion of the General Manager, result in improved livability or operations of the building and secure affordability of the converted or demolished rooms."
 
-A de minimis threshold that operates independently of the SRA Guidelines' percentage-based tests: a loss of ≤3 rooms can route through a simpler General Manager approval regardless of what percentage that represents of the building's total room count. This is a useful **boundary case** for the tool. For example, a 6-room building losing 3 rooms is a 50% reduction (right at the SRA Guidelines cap) but may also qualify for this separate small-building exemption.
+A small-loss threshold that operates independently of the SRA Guidelines' percentage-based tests: a loss of ≤3 rooms can route through a simpler General Manager approval regardless of what percentage that represents of the building's total room count. This is a useful **boundary case** for the tool. For example, a 6-room building losing 3 rooms is a 50% reduction (right at the SRA Guidelines cap) but may also qualify for this separate small-building exemption.
 
 ## 12. SRA By-law No. 8733: "permanent resident" and "transient guest" (s.1.2)
 
