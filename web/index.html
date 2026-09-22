@@ -30,6 +30,13 @@
     --m-wall: #ada79a;
     --m-pod: #9fb3bd;
     --m-select: #2d6a4c;
+    --map-ink: #c3bdb0;
+    --map-arterial: #9c9486;
+    --map-dot: #2d6a4c;
+    --map-dot-sel: #a33a2d;
+    --map-market: #b4553f;
+    --map-nonmarket: #3f7d5c;
+    --map-unsurveyed: #9a948a;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -58,6 +65,13 @@
       --m-wall: #5d635c;
       --m-pod: #48606b;
       --m-select: #7fc59d;
+      --map-ink: #333a36;
+      --map-arterial: #4c5450;
+      --map-dot: #7fc59d;
+      --map-dot-sel: #e08d78;
+      --map-market: #d98b72;
+      --map-nonmarket: #6fae8b;
+      --map-unsurveyed: #6d736c;
     }
   }
   :root[data-theme="dark"] {
@@ -85,7 +99,17 @@
     --m-wall: #5d635c;
     --m-pod: #48606b;
     --m-select: #7fc59d;
+    --map-ink: #333a36;
+    --map-arterial: #4c5450;
+    --map-dot: #7fc59d;
+    --map-dot-sel: #e08d78;
+    --map-market: #d98b72;
+    --map-nonmarket: #6fae8b;
+    --map-unsurveyed: #6d736c;
   }
+
+  /* the publish skeleton supplies this; a bare file served from the repo does not */
+  [hidden] { display: none !important; }
 
   body {
     background: var(--paper);
@@ -170,6 +194,14 @@
   }
   #fallback { padding: 22px; font-size: 14px; color: var(--ink-2); }
 
+  .floor-tab { min-width: 34px; font-variant-numeric: tabular-nums; }
+  .floor-tab .n { font-family: "IBM Plex Sans Condensed", sans-serif; font-weight: 600; }
+  .floor-tab small { display: block; font-size: 9px; letter-spacing: 0.05em; opacity: 0.7; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 11.5px; color: var(--ink-3); }
+  .legend span { display: flex; align-items: center; gap: 5px; }
+  .swatch { width: 10px; height: 10px; flex: none; display: inline-block; }
+
   /* ---- inventory ---- */
   .cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 330px); gap: 22px; align-items: start; }
   @media (max-width: 980px) { .cols { grid-template-columns: minmax(0, 1fr); } }
@@ -243,20 +275,194 @@
   td.gone { color: var(--fail); }
   footer { margin-top: 32px; border-top: 1px solid var(--rule); padding-top: 14px; font-size: 12.5px; color: var(--ink-3); }
   footer p { max-width: 80ch; }
+
+  /* ---- section rhythm ---- */
+  .sec-num {
+    font-family: "IBM Plex Sans Condensed", sans-serif; font-weight: 600;
+    font-size: 11px; letter-spacing: 0.12em; color: var(--ink-3);
+    border: 1px solid var(--rule); padding: 2px 7px; margin-right: 10px;
+  }
+  .sec-head { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap;
+    border-bottom: 2px solid var(--ink); padding-bottom: 8px; margin: 34px 0 16px; }
+  .sec-head h2 { font-size: 18px; letter-spacing: 0.06em; }
+  .sec-head .note { font-size: 12.5px; color: var(--ink-3); margin-left: auto; font-family: "IBM Plex Sans", sans-serif; text-transform: none; letter-spacing: 0; }
+
+  /* ---- map ---- */
+  .map-wrap { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,300px); gap: 0; }
+  @media (max-width: 900px) { .map-wrap { grid-template-columns: minmax(0,1fr); } }
+  .map-stage { position: relative; background: var(--surface); }
+  .map-stage svg { display: block; width: 100%; height: auto; }
+  .map-side { border-left: 1px solid var(--rule); padding: 14px; min-width: 0; }
+  @media (max-width: 900px) { .map-side { border-left: none; border-top: 1px solid var(--rule); } }
+  .map-empty {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 6px; text-align: center;
+    padding: 24px; pointer-events: none;
+  }
+  .map-empty > * {
+    background: var(--surface); padding: 4px 10px;
+    box-shadow: 0 0 0 6px var(--surface);
+  }
+  .map-empty strong { font-family: "IBM Plex Sans Condensed", sans-serif; font-size: 15px; letter-spacing: 0.06em; text-transform: uppercase; }
+  .map-empty span { font-size: 13px; color: var(--ink-3); max-width: 42ch; }
+  .placing .map-stage { cursor: crosshair; }
+  .map-tip {
+    position: absolute; pointer-events: none; background: var(--ink); color: var(--paper);
+    font-size: 11.5px; padding: 5px 8px; white-space: nowrap; transform: translate(-50%, -140%);
+    font-variant-numeric: tabular-nums;
+  }
+  .field { display: grid; gap: 3px; margin-bottom: 9px; }
+  .field label { font-family: "IBM Plex Sans Condensed", sans-serif; font-size: 10px;
+    text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); }
+  .field input, .field select {
+    font: inherit; font-size: 13px; background: var(--sunk); color: var(--ink);
+    border: 1px solid transparent; border-bottom-color: var(--rule); padding: 5px 6px;
+    font-variant-numeric: tabular-nums; width: 100%;
+  }
+  .field input:focus, .field select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .field .hint-s { font-size: 11px; color: var(--ink-3); }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+  .bldg-list { max-height: 260px; overflow-y: auto; margin-top: 10px; }
+  .bldg {
+    display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; align-items: baseline;
+    padding: 7px 0; border-bottom: 1px solid var(--rule-soft); cursor: pointer;
+  }
+  .bldg:hover { background: var(--sunk); }
+  .bldg.sel { background: var(--pass-soft); }
+  .bldg b { font-size: 13.5px; font-weight: 600; }
+  .bldg .meta { grid-column: 1 / -1; font-size: 11.5px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .bldg .rooms { font-family: "IBM Plex Sans Condensed", sans-serif; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /* ---- affordability ---- */
+  .afford { display: grid; grid-template-columns: minmax(0,260px) minmax(0,1fr); gap: 22px; }
+  @media (max-width: 820px) { .afford { grid-template-columns: minmax(0,1fr); } }
+  .bars { display: grid; gap: 14px; }
+  .bar-row { display: grid; grid-template-columns: minmax(0,1fr); gap: 4px; }
+  .bar-label { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 13px; }
+  .bar-label .who { font-weight: 500; }
+  .bar-label .amt { font-variant-numeric: tabular-nums; color: var(--ink-2); }
+  .bar-track { position: relative; height: 22px; background: var(--sunk); }
+  .bar-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 0 3px 3px 0; }
+  .bar-cap { position: absolute; top: -5px; bottom: -5px; border-left: 2px dashed var(--ink); }
+  .bar-cap span {
+    position: absolute; top: -17px; left: 3px; font-size: 10px; white-space: nowrap;
+    font-family: "IBM Plex Sans Condensed", sans-serif; letter-spacing: 0.06em; color: var(--ink);
+  }
+  .verdict-row { display: flex; align-items: center; gap: 8px; font-size: 12.5px; margin-top: 2px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .gap-ok { color: var(--pass); }
+  .gap-bad { color: var(--fail); }
+  .hero {
+    font-family: "IBM Plex Sans Condensed", sans-serif; font-weight: 600;
+    font-size: 30px; font-variant-numeric: tabular-nums; line-height: 1.1;
+  }
+  .hero-sub { font-size: 12px; color: var(--ink-3); }
+  .kv { display: grid; grid-template-columns: 1fr auto; gap: 3px 10px; font-size: 13px;
+    font-variant-numeric: tabular-nums; margin-top: 10px; }
+  .kv dt { color: var(--ink-2); }
+  .kv dd { margin: 0; font-weight: 500; text-align: right; }
+  .src { font-family: "IBM Plex Serif", Georgia, serif; font-size: 11.5px; color: var(--ink-3); margin-top: 3px; }
 </style>
 
 <div class="wrap">
   <header class="masthead">
     <div class="label">Vancouver SRA By-law No. 8733 &middot; SRA Conversion Guidelines &middot; DTES Plan s.9</div>
     <h1>SRA Conversion Evaluator</h1>
-    <p class="lede">Build an SRO floorplate as a working model &mdash; move rooms along the corridor,
-      drag the partitions between them to trade area, add or remove rooms, and knock walls out to
-      merge. The tool tests the resulting
-      scheme against the three numeric thresholds in the sources, each reported with its own citation,
-      and separates rooms lost from tenants permanently displaced.</p>
+    <p class="lede">A study tool for SRO conversion in the Downtown Eastside, in four moves: record the
+      stock building by building, model a typical floorplate, break it into units, and test what those
+      units must rent for. The conversion tests at the end read every threshold from the source
+      documents and report each with its own citation.</p>
   </header>
 
+  <div class="sec-head">
+    <span class="sec-num">01</span><h2>Stock</h2>
+    <span class="note">The surveyed stock, from Appendix B &mdash; add your own on top</span>
+  </div>
+
+  <section class="panel flush" style="margin-bottom:8px">
+    <div class="stage-bar">
+      <div class="btnrow">
+        <button type="button" id="b-add">+ Record a building</button>
+        <button type="button" id="b-place" hidden>Click the map to place</button>
+        <button type="button" id="b-survey" class="on">Survey stock</button>
+        <button type="button" id="b-import">Import CSV</button>
+        <button type="button" id="b-export" disabled>Export</button>
+      </div>
+      <span class="label" id="stock-summary"></span>
+    </div>
+    <div class="map-wrap">
+      <div class="map-stage" id="map-stage">
+        <div class="map-empty" id="map-empty" hidden></div>
+      </div>
+      <div class="map-side">
+        <div class="legend" style="margin:0 0 12px">
+          <span><i class="swatch" style="background:var(--map-market);border-radius:50%"></i>Market</span>
+          <span><i class="swatch" style="background:var(--map-nonmarket);border-radius:50%"></i>Non-market</span>
+          <span><i class="swatch" style="background:var(--map-unsurveyed);border-radius:50%"></i>Not surveyed</span>
+          <span><i class="swatch" style="background:var(--map-dot);border-radius:50%"></i>Yours</span>
+        </div>
+        <form id="b-form" hidden>
+          <div class="field">
+            <label for="f-name">Building name</label>
+            <input type="text" id="f-name" placeholder="e.g. Empress Hotel" required>
+          </div>
+          <div class="field">
+            <label for="f-addr">Address</label>
+            <input type="text" id="f-addr" list="hblocks" placeholder="e.g. 100 E HASTINGS ST" autocomplete="off">
+            <span class="hint-s" id="f-addr-hint">Matched against the hundred-block index</span>
+          </div>
+          <datalist id="hblocks"></datalist>
+          <div class="pair">
+            <div class="field"><label for="f-rooms">Rooms</label>
+              <input type="number" id="f-rooms" min="1" step="1" placeholder="—"></div>
+            <div class="field"><label for="f-floors">Floors</label>
+              <input type="number" id="f-floors" min="1" step="1" placeholder="—"></div>
+          </div>
+          <div class="pair">
+            <div class="field"><label for="f-plate">Floorplate SF</label>
+              <input type="number" id="f-plate" min="0" step="10" placeholder="—"></div>
+            <div class="field"><label for="f-rent">Rent $/mo</label>
+              <input type="number" id="f-rent" min="0" step="5" placeholder="survey avg 640"></div>
+          </div>
+          <div class="field">
+            <label for="f-ten">Typical tenancy (years)</label>
+            <input type="number" id="f-ten" min="0" step="0.5" placeholder="survey avg 4.6">
+          </div>
+          <div class="btnrow" style="margin-top:4px">
+            <button type="submit" id="f-save">Save</button>
+            <button type="button" id="f-cancel">Cancel</button>
+            <button type="button" id="f-delete" hidden style="margin-left:auto">Delete</button>
+          </div>
+          <p class="src">Blank is recorded as unknown, never as zero. Floorplate SF, $/SF and tenancy
+            are not published per building by the City; enter them only where you have measured or
+            surveyed them.</p>
+        </form>
+        <div id="b-list-wrap">
+          <div id="survey-pick"></div>
+          <p class="src" id="survey-ctx"></p>
+          <div class="label">Recorded buildings</div>
+          <div class="bldg-list" id="b-list"></div>
+          <p class="src" id="b-store-note"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="sec-head">
+    <span class="sec-num">02</span><h2>Typical floorplate</h2>
+    <span class="note">Existing rooms in front, proposed scheme behind</span>
+  </div>
+
   <section class="panel flush" style="margin-bottom:18px">
+    <div class="stage-bar">
+      <div class="btnrow" id="floor-strip"></div>
+      <div class="btnrow">
+        <button type="button" id="fl-add">+ Floor</button>
+        <button type="button" id="fl-dup">Duplicate</button>
+        <button type="button" id="fl-del">Remove</button>
+        <button type="button" id="fl-iso" class="on" title="Showing this floor alone">Isolate floor</button>
+      </div>
+    </div>
     <div class="stage-bar">
       <div class="btnrow">
         <button type="button" data-view="axo" class="on">Axonometric</button>
@@ -282,6 +488,80 @@
       <span><b>Drag the background</b> to orbit, scroll to zoom</span>
     </div>
   </section>
+
+  <div class="sec-head">
+    <span class="sec-num">03</span><h2>Unit breakdown</h2>
+    <span class="note">Generates the floorplate above</span>
+  </div>
+
+  <section class="panel" style="margin-bottom:18px">
+    <div class="cols" style="grid-template-columns:minmax(0,300px) minmax(0,1fr)">
+      <div>
+        <div class="pair">
+          <div class="field"><label for="u-count">Units per floorplate</label>
+            <input type="number" id="u-count" min="1" max="60" step="1" value="10"></div>
+          <div class="field"><label for="u-sf">SF per unit</label>
+            <input type="number" id="u-sf" min="60" max="420" step="5" value="100"></div>
+        </div>
+        <div class="field">
+          <label for="u-circ">Circulation and services (% of floorplate)</label>
+          <input type="number" id="u-circ" min="0" max="60" step="1" value="25">
+        </div>
+        <div class="pair">
+          <div class="field"><label for="u-floors">Floors</label>
+            <input type="number" id="u-floors" min="1" max="20" step="1" value="1"></div>
+          <div class="field"><label for="u-ten">Tenancy (years)</label>
+            <input type="number" id="u-ten" min="0" step="0.5" value="5"></div>
+        </div>
+        <div class="btnrow">
+          <button type="button" id="u-apply">Generate floorplate</button>
+        </div>
+        <p class="src">Replaces the rooms in the model above. Each room is then movable
+          individually &mdash; this only sets the starting condition.</p>
+      </div>
+      <div>
+        <div class="tally" id="u-tally"></div>
+        <p class="note" id="u-note"></p>
+      </div>
+    </div>
+  </section>
+
+  <div class="sec-head">
+    <span class="sec-num">04</span><h2>Rent and affordability</h2>
+    <span class="note">Tested against the by-law standard, not against the market</span>
+  </div>
+
+  <section class="panel" style="margin-bottom:18px">
+    <div class="afford">
+      <div>
+        <div class="field">
+          <label for="r-existing">Rent of one existing SRO room, $/month</label>
+          <input type="number" id="r-existing" min="0" step="5" placeholder="you supply this">
+          <span class="hint-s">From your survey, or the City&rsquo;s SRO survey for the building</span>
+        </div>
+        <div class="field">
+          <label for="r-existing-sf">SF of that room</label>
+          <input type="number" id="r-existing-sf" min="40" step="5" value="100">
+        </div>
+        <div class="field">
+          <label for="r-income">Tenant income, $/month</label>
+          <input type="number" id="r-income" min="0" step="10" value="1060">
+          <span class="hint-s">Default is BC income assistance for a single person: $560 support + $500 shelter</span>
+        </div>
+        <div class="field">
+          <label for="r-unit-sf">Converted unit SF</label>
+          <input type="number" id="r-unit-sf" min="60" step="5" value="200">
+          <span class="hint-s" id="r-unit-src"></span>
+        </div>
+      </div>
+      <div id="afford-out"></div>
+    </div>
+  </section>
+
+  <div class="sec-head">
+    <span class="sec-num">05</span><h2>Conversion tests</h2>
+    <span class="note">Every result carries the clause it comes from</span>
+  </div>
 
   <div class="cols">
     <div>
@@ -385,7 +665,59 @@
   var AREAS = [100, 110, 165, 121, 100, 110, 165, 121, 100, 100];
   var TEN = [5, 6, 14 / 12, 3, 10, 7, 10 / 12, 8 / 12, 12, 5];
 
+  // A building is a stack of floors. `rooms` and `joints` always alias the
+  // active floor's arrays so every editing path below keeps working unchanged;
+  // anything that REPLACES either array calls syncFloor() to re-seat it.
+  var floors = [], activeFloor = 0, isolated = true;
   var rooms = [], joints = [], selected = null, nextId = 1;
+
+  function syncFloor() {
+    if (!floors[activeFloor]) floors[activeFloor] = { rooms: rooms, joints: joints };
+    floors[activeFloor].rooms = rooms;
+    floors[activeFloor].joints = joints;
+  }
+
+  function setActiveFloor(i) {
+    if (i < 0 || i >= floors.length) return;
+    syncFloor();
+    activeFloor = i;
+    rooms = floors[i].rooms;
+    joints = floors[i].joints;
+    selected = null;
+    refresh();
+    frameAll(currentView);
+  }
+
+  // Duplicate copies the scheme as well as the rooms: a building is usually
+  // stacked identically, and re-cutting the same merges floor by floor is the
+  // tedium this is here to remove. A plain new floor starts unmerged.
+  function addFloor(copyActive) {
+    syncFloor();
+    var src = floors[activeFloor];
+    floors.splice(activeFloor + 1, 0, {
+      rooms: src.rooms.map(function (r, k) {
+        return {
+          id: String(k + 1), area: r.area, tenancy: r.tenancy,
+          keep: copyActive ? r.keep : false
+        };
+      }),
+      joints: copyActive
+        ? src.joints.slice()
+        : new Array(Math.max(src.rooms.length - 1, 0)).fill(false)
+    });
+    setActiveFloor(activeFloor + 1);
+  }
+
+  function removeFloor() {
+    if (floors.length <= 1) return;
+    floors.splice(activeFloor, 1);
+    activeFloor = Math.min(activeFloor, floors.length - 1);
+    rooms = floors[activeFloor].rooms;
+    joints = floors[activeFloor].joints;
+    selected = null;
+    refresh();
+    frameAll(currentView);
+  }
 
   function resetFloorplate() {
     rooms = AREAS.map(function (a, i) {
@@ -393,11 +725,14 @@
     });
     nextId = rooms.length + 1;
     joints = new Array(rooms.length - 1).fill(false);
+    floors = [{ rooms: rooms, joints: joints }];
+    activeFloor = 0;
   }
 
   function applyPreset(which) {
     rooms.forEach(function (r) { r.keep = false; });
     joints = new Array(Math.max(rooms.length - 1, 0)).fill(false);
+    syncFloor();
     if (which === "case1") {
       for (var i = 0; i < joints.length; i += 2) joints[i] = true;
     } else if (which === "case2") {
@@ -406,13 +741,15 @@
     }
   }
 
-  // Groups: maximal runs of converted rooms linked by joints.
-  function groupsOf() {
+  // Groups: maximal runs of converted rooms linked by joints, within one floor.
+  // Rooms never merge across a floor slab, so grouping is always per floor.
+  function groupsOf(fr, fj) {
+    fr = fr || rooms; fj = fj || joints;
     var out = [], run = [];
-    for (var i = 0; i < rooms.length; i++) {
-      if (rooms[i].keep) { if (run.length) { out.push(run); run = []; } continue; }
+    for (var i = 0; i < fr.length; i++) {
+      if (fr[i].keep) { if (run.length) { out.push(run); run = []; } continue; }
       run.push(i);
-      var linked = i < rooms.length - 1 && joints[i] && !rooms[i + 1].keep;
+      var linked = i < fr.length - 1 && fj[i] && !fr[i + 1].keep;
       if (!linked) { out.push(run); run = []; }
     }
     if (run.length) out.push(run);
@@ -429,17 +766,32 @@
   function fmt(n) { return (Math.round(n * 10) / 10).toLocaleString("en-CA"); }
   function pct(x) { return (Math.round(x * 1000) / 10) + "%"; }
 
-  function evaluate() {
-    var groups = groupsOf();
-    var units = groups.map(function (g, i) {
-      var area = g.reduce(function (s, k) { return s + rooms[k].area; }, 0);
-      return {
-        label: letter(i), idx: g, ids: g.map(function (k) { return rooms[k].id; }),
-        area: area, ok: area >= MIN_UNIT_AREA - EPS
-      };
+  // Evaluate the whole building. The sources count rooms in a BUILDING, not a
+  // floorplate: s.4.3A says "no more than 3 designated rooms in the building",
+  // and the Guidelines' average is taken "across all converted rooms" in the
+  // project. With one floor this is identical to evaluating that floor alone.
+  function evaluate(only) {
+    syncFloor();
+    var list = (only == null) ? floors : [floors[only]];
+    var multi = floors.length > 1 && only == null;
+    var units = [], untouched = [], original = 0;
+
+    list.forEach(function (fl, fi) {
+      var idx = (only == null) ? fi : only;
+      var fr = fl.rooms, fj = fl.joints;
+      original += fr.length;
+      groupsOf(fr, fj).forEach(function (g, i) {
+        var area = g.reduce(function (t, k) { return t + fr[k].area; }, 0);
+        units.push({
+          label: (multi ? (idx + 1) + "\u2013" : "") + letter(i),
+          floor: idx, idx: g,
+          ids: g.map(function (k) { return fr[k].id; }),
+          area: area, ok: area >= MIN_UNIT_AREA - EPS
+        });
+      });
+      fr.forEach(function (r) { if (r.keep) untouched.push(r); });
     });
-    var untouched = rooms.filter(function (r) { return r.keep; });
-    var original = rooms.length;
+
     // s.1.2: connecting rooms used as one unit count as a single "room".
     var surviving = units.length + untouched.length;
     var lost = original - surviving;
@@ -492,7 +844,8 @@
     // permanent displacement is smaller than rooms lost.
     var candidates = [];
     units.forEach(function (u) {
-      u.idx.forEach(function (k) { if (isResident(rooms[k])) candidates.push(rooms[k]); });
+      var fr = floors[u.floor].rooms;
+      u.idx.forEach(function (k) { if (isResident(fr[k])) candidates.push(fr[k]); });
     });
     var rehoused = Math.min(candidates.length, units.length);
     var displaced = Math.max(0, candidates.length - rehoused);
@@ -507,7 +860,19 @@
       lost: lost, size: size, count: count, replace: replace,
       compliant: size.pass && count.pass && replace.pass,
       smallLoss: lost > 0 && lost <= SMALL_LOSS_MAX,
-      residents: rooms.filter(isResident).length,
+      residents: floors.reduce(function (t, fl) {
+        return t + fl.rooms.filter(isResident).length;
+      }, 0),
+      floorCount: floors.length,
+      perFloor: floors.map(function (fl, fi) {
+        var u = units.filter(function (x) { return x.floor === fi; });
+        var keep = fl.rooms.filter(function (r) { return r.keep; }).length;
+        return {
+          floor: fi, original: fl.rooms.length, units: u.length,
+          surviving: u.length + keep, lost: fl.rooms.length - (u.length + keep),
+          short: u.filter(function (x) { return !x.ok; }).length
+        };
+      }),
       candidates: candidates.length, rehoused: rehoused, displaced: displaced,
       low: low, high: high, allMonths: amounts.reduce(add, 0)
     };
@@ -520,6 +885,7 @@
      the merge markers sit in the corridor between them.
      ====================================================================== */
 
+  var FLOOR_H = 11;       // floor-to-floor, for the stack
   var DEPTH = 12;         // assumed room depth
   var CORRIDOR = 9;       // drawn width between the two bands
   var WALL_H = 3.0;       // partitions cut down so the plan reads from above
@@ -537,7 +903,8 @@
   var overlay = document.getElementById("overlay");
   var hintEl = document.getElementById("hint");
   var renderer, scene, camera, raycaster, ground;
-  var groupExist, groupProp, groupMarks, pickables = [], markPickables = [];
+  var groupExist, groupProp, groupMarks, groupStack;
+  var pickables = [], markPickables = [], floorPickables = [];
   var MAT = {}, GEO = null, has3d = false, dirty = true;
 
   // orbit state
@@ -602,7 +969,8 @@
     groupExist = new THREE.Group();
     groupProp = new THREE.Group();
     groupMarks = new THREE.Group();
-    scene.add(groupExist, groupProp, groupMarks);
+    groupStack = new THREE.Group();
+    scene.add(groupExist, groupProp, groupMarks, groupStack);
 
     // invisible plane for pointer projection
     ground = new THREE.Mesh(
@@ -642,12 +1010,16 @@
 
   var tags = [];
   function tag(kind, x, y, z, id, sub) {
+    // Showing the whole stack, room-by-room text collides into noise: the
+    // building view is for reading floors, the isolated view for reading rooms.
+    if (!isolated && floors.length > 1 && kind.indexOf("band") !== 0) return;
     tags.push({ kind: kind, pos: new THREE.Vector3(x, y, z), id: id, sub: sub });
   }
 
   function buildModel(ev) {
     clear(groupExist); clear(groupProp); clear(groupMarks);
     hovered = null;
+    floorPickables = [];
     pickables = []; markPickables = []; tags = [];
 
     var w = widths(), xs = layoutX(), total = xs[rooms.length] || 1;
@@ -685,7 +1057,10 @@
 
     // ---- proposed band: derived, read-only ----
     var items = [];
-    ev.units.forEach(function (u) { items.push({ kind: "unit", u: u, start: u.idx[0] }); });
+    ev.units.forEach(function (u) {
+      if (u.floor !== activeFloor) return;      // this band is the edited floor
+      items.push({ kind: "unit", u: u, start: u.idx[0] });
+    });
     rooms.forEach(function (r, k) { if (r.keep) items.push({ kind: "sra", r: r, i: k }); });
     items.sort(function (a, b) {
       return (a.kind === "unit" ? a.start : a.i) - (b.kind === "unit" ? b.start : b.i);
@@ -736,8 +1111,19 @@
     }
 
     // band captions sit at the head of each run, clear of the room labels
-    tag("band", total / 2, 0.4, Z_EXIST + DEPTH + 7, "", "EXISTING · " + rooms.length + " SRA ROOMS");
-    tag("band", (px || total) / 2, 0.4, Z_PROP - 7, "", "PROPOSED · " + ev.surviving + " ROOMS");
+    tag("band", total / 2, 0.4, Z_EXIST + DEPTH + 7, "",
+      (floors.length > 1 ? "FLOOR " + (activeFloor + 1) + " · " : "EXISTING · ")
+      + rooms.length + " SRA ROOMS");
+    tag("band", (px || total) / 2, 0.4, Z_PROP - 7, "", "PROPOSED · "
+      + (ev.perFloor ? ev.perFloor[activeFloor].surviving : ev.surviving) + " ROOMS");
+
+    // The edited floor sits at its own height; the rest of the building is
+    // drawn around it as context, and clicking one moves the edit there.
+    var lift = isolated ? 0 : activeFloor * FLOOR_H;
+    groupExist.position.y = lift;
+    groupProp.position.y = lift;
+    groupMarks.position.y = lift;
+    drawStack();
 
     if (cam.tx === 0 && cam.tz === 0) { cam.tx = total / 2; }
     dirty = true;
@@ -774,10 +1160,11 @@
   // this against the projected corners keeps it correct at any pane width and
   // at any camera angle, which a radius guessed from the floor length is not.
   function fitView() {
+    if (!has3d) return;
     var total = layoutX()[rooms.length] || 60;
     var minX = -12, maxX = total + 12;
     var minZ = Z_PROP - 10, maxZ = Z_EXIST + DEPTH + 10;
-    var maxY = WALL_H + 3;
+    var maxY = isolated ? WALL_H + 3 : (floors.length - 1) * FLOOR_H + WALL_H + 3;
     cam.tx = (minX + maxX) / 2;
     cam.ty = 0;
     cam.tz = (minZ + maxZ) / 2;
@@ -801,6 +1188,7 @@
   }
 
   function frameAll(view) {
+    if (!has3d) return;
     var total = layoutX()[rooms.length] || 60;
     if (view === "eye") {
       // stand at the end of the corridor and look down it, at eye height
@@ -852,8 +1240,13 @@
       pointers.set(e.pointerId, e);
       if (pointers.size > 1) { drag = null; return; }
 
+      var floorHit = pick(e, floorPickables);
       var markHit = pick(e, markPickables);
       var hit = pick(e, pickables);
+      if (floorHit && (!hit || floorHit.distance < hit.distance)) {
+        setActiveFloor(floorHit.object.userData.f);
+        return;
+      }
       if (markHit && (!hit || markHit.distance <= hit.distance + 0.5)) {
         var j = markHit.object.userData.j;
         joints[j] = !joints[j];
@@ -1141,7 +1534,10 @@
 
   function renderResults(ev) {
     document.getElementById("fp-summary").textContent =
-      ev.original + " rooms · " + fmt(rooms.reduce(function (s, r) { return s + r.area; }, 0)) + " SF";
+      ev.original + " rooms · " + fmt(floors.reduce(function (t, fl) {
+        return t + fl.rooms.reduce(function (u, r) { return u + r.area; }, 0);
+      }, 0)) + " SF"
+      + (floors.length > 1 ? " · " + floors.length + " floors" : "");
 
     document.getElementById("tally").innerHTML =
       tile(ev.original, "Rooms before") + tile(ev.surviving, "Rooms after")
@@ -1239,12 +1635,15 @@
 
     h += '<table class="sched"><thead><tr><th>Room</th><th>Tenancy (yr)</th>'
       + '<th>Months’ rent</th><th>Status</th></tr></thead><tbody>';
-    rooms.forEach(function (r) {
-      if (!isResident(r)) return;
-      var converted = !r.keep;
-      h += '<tr><td>' + r.id + '</td><td>' + (Math.round(r.tenancy * 100) / 100) + '</td><td>'
-        + compensationMonths(r.tenancy) + '</td><td' + (converted ? ' class="gone"' : '') + '>'
-        + (converted ? "at risk" : "stays") + '</td></tr>';
+    floors.forEach(function (fl, fi) {
+      fl.rooms.forEach(function (r) {
+        if (!isResident(r)) return;
+        var converted = !r.keep;
+        var name = (floors.length > 1 ? (fi + 1) + "–" : "") + r.id;
+        h += '<tr><td>' + name + '</td><td>' + (Math.round(r.tenancy * 100) / 100) + '</td><td>'
+          + compensationMonths(r.tenancy) + '</td><td' + (converted ? ' class="gone"' : '') + '>'
+          + (converted ? "at risk" : "stays") + '</td></tr>';
+      });
     });
     h += '</tbody></table>';
     h += '<div class="cite" style="margin-top:8px">' + CITE.comp[0] + ' &mdash; <em>&ldquo;'
@@ -1259,11 +1658,51 @@
      4. WIRING
      ====================================================================== */
 
+  function renderFloors(ev) {
+    var strip = document.getElementById("floor-strip");
+    if (!strip) return;
+    strip.textContent = "";
+    // top floor first, the way a building section reads
+    for (var i = floors.length - 1; i >= 0; i--) {
+      (function (i) {
+        var pf = ev.perFloor ? ev.perFloor[i] : null;
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "floor-tab" + (i === activeFloor ? " on" : "");
+        b.title = "Edit floor " + (i + 1);
+        b.innerHTML = '<span class="n">' + (i + 1) + '</span>'
+          + (pf ? '<small>' + pf.original + "\u2192" + pf.surviving + '</small>' : "");
+        b.addEventListener("click", function () { setActiveFloor(i); });
+        strip.appendChild(b);
+      })(i);
+    }
+    document.getElementById("fl-del").disabled = floors.length <= 1;
+  }
+
   function refresh(light) {
     var ev = evaluate();
     if (!light) renderInventory();
     renderResults(ev);
+    renderFloors(ev);
     if (has3d) buildModel(ev);
+    syncUnitSize(ev);
+  }
+
+  // the largest proposed unit drives section 04, so the rent test follows the
+  // scheme actually drawn rather than a number typed twice
+  var unitTouched = false;
+  function syncUnitSize(ev) {
+    var el = document.getElementById("r-unit-sf");
+    var src = document.getElementById("r-unit-src");
+    if (!el) return;
+    if (!unitTouched && ev.units.length) {
+      var biggest = Math.max.apply(null, ev.units.map(function (u) { return u.area; }));
+      el.value = Math.round(biggest);
+      src.textContent = "Following the largest unit in the scheme below";
+    } else if (unitTouched) {
+      src.textContent = "Set by hand; edit the scheme below to take it back over";
+    }
+    renderAfford();
   }
 
   function addRoom() {
@@ -1287,6 +1726,17 @@
     refresh();
     frameAll(currentView);
   }
+
+  document.getElementById("fl-add").addEventListener("click", function () { addFloor(false); });
+  document.getElementById("fl-dup").addEventListener("click", function () { addFloor(true); });
+  document.getElementById("fl-del").addEventListener("click", removeFloor);
+  document.getElementById("fl-iso").addEventListener("click", function () {
+    isolated = !isolated;
+    this.classList.toggle("on", isolated);
+    this.title = isolated ? "Showing this floor alone" : "Showing every floor";
+    refresh();
+    frameAll(currentView);
+  });
 
   document.getElementById("add").addEventListener("click", addRoom);
   document.getElementById("dup").addEventListener("click", addRoom);
@@ -1320,6 +1770,675 @@
     else if (mq.addListener) mq.addListener(onTheme);
   }
 
+
+  /* ======================================================================
+     5. STOCK — the DTES map and the building record
+     The street grid is City of Vancouver open data. The buildings are the
+     user's own: the City publishes no per-building SRO inventory, so this
+     ships empty and nothing is filled in on their behalf.
+     ====================================================================== */
+
+  var STREETS = null, buildings = [], bSelected = null, bEditing = null, placing = false;
+  // Appendix B of the 2024 SRO Tenant Survey: the surveyed stock, read-only.
+  var SURVEYED = [], surveySel = null, showSurveyed = true;
+  var DB = null, dbReady = false;
+
+  var mapStage = document.getElementById("map-stage");
+  var mapEmpty = document.getElementById("map-empty");
+
+  function num(v) { var n = parseFloat(v); return isFinite(n) ? n : null; }
+  function money(n) { return "$" + Math.round(n).toLocaleString("en-CA"); }
+
+  // equirectangular is exact enough across ~3 km at this latitude
+  var PROJ = null;
+  function setProj(bbox) {
+    var lat0 = (bbox[1] + bbox[3]) / 2, k = Math.cos(lat0 * Math.PI / 180);
+    var w = (bbox[2] - bbox[0]) * k, h = bbox[3] - bbox[1];
+    var W = 1000, H = Math.round(W * h / w);
+    PROJ = {
+      W: W, H: H, k: k, bbox: bbox,
+      x: function (lon) { return (lon - bbox[0]) * k / w * W; },
+      y: function (lat) { return H - (lat - bbox[1]) / h * H; },
+      lon: function (x) { return bbox[0] + x / W * w / k; },
+      lat: function (y) { return bbox[1] + (H - y) / H * h; }
+    };
+  }
+
+  function loadSurveyed() {
+    fetch("data/sro-buildings.json")
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d || !d.buildings) return;
+        SURVEYED = d.buildings;
+        if (STREETS) setProj(mapBbox(STREETS.bbox));
+        drawMap();
+        renderStock();
+      })
+      .catch(function () { /* the map still works with the user's own records */ });
+  }
+
+  // The street extract runs wider than the stock so addresses anywhere in the
+  // downtown will geocode. The drawing is framed on the buildings themselves.
+  function mapBbox(fallback) {
+    var pts = SURVEYED.filter(function (b) { return b.lon != null; });
+    if (pts.length < 2) return fallback;
+    var lons = pts.map(function (b) { return b.lon; }), lats = pts.map(function (b) { return b.lat; });
+    var pad = 0.004;
+    return [Math.min.apply(null, lons) - pad, Math.min.apply(null, lats) - pad,
+            Math.max.apply(null, lons) + pad, Math.max.apply(null, lats) + pad];
+  }
+
+  function loadStreets() {
+    fetch("data/dtes-streets.json")
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d) return;
+        STREETS = d;
+        setProj(mapBbox(d.bbox));
+        var dl = document.getElementById("hblocks");
+        Object.keys(d.hblocks).sort().forEach(function (h) {
+          var o = document.createElement("option");
+          o.value = h;
+          dl.appendChild(o);
+        });
+        drawMap();
+      })
+      .catch(function () { /* map stays empty; every other section still works */ });
+  }
+
+  function geocode(addr) {
+    if (!STREETS || !addr) return null;
+    var key = addr.trim().toUpperCase().replace(/\s+/g, " ");
+    if (STREETS.hblocks[key]) return STREETS.hblocks[key].slice();
+    // round the street number down to its hundred block, then match
+    var m = key.match(/^(\d+)\s+(.*)$/);
+    if (m) {
+      var hb = (Math.floor(parseInt(m[1], 10) / 100) * 100) + " " + m[2];
+      if (STREETS.hblocks[hb]) return STREETS.hblocks[hb].slice();
+    }
+    return null;
+  }
+
+  function drawMap() {
+    if (!STREETS || !PROJ) return;
+    var parts = ['<svg viewBox="0 0 ' + PROJ.W + ' ' + PROJ.H + '" role="img" '
+      + 'aria-label="Schematic street map of the Downtown Eastside with recorded SRO buildings">'];
+    var bb = PROJ.bbox;
+    STREETS.segments.forEach(function (sg) {
+      var inside = sg.c.some(function (c) {
+        return c[0] >= bb[0] && c[0] <= bb[2] && c[1] >= bb[1] && c[1] <= bb[3];
+      });
+      if (!inside) return;
+      var d = sg.c.map(function (c, i) {
+        return (i ? "L" : "M") + PROJ.x(c[0]).toFixed(1) + " " + PROJ.y(c[1]).toFixed(1);
+      }).join("");
+      var w = sg.u === 2 ? 3.4 : (sg.u === 1 ? 2.4 : 1.4);
+      var col = sg.u ? "var(--map-arterial)" : "var(--map-ink)";
+      parts.push('<path d="' + d + '" fill="none" stroke="' + col + '" stroke-width="' + w
+        + '" stroke-linecap="round"/>');
+    });
+    // Label each arterial once, on whichever of its segments sits closest to
+    // the middle of the frame, so labels do not land on the clipped edges.
+    var pick = {};
+    STREETS.segments.forEach(function (sg) {
+      if (sg.u !== 2 || !sg.h || sg.c.length < 2) return;
+      var name = sg.h.replace(/^[\d\u2013-]+\s+/, "");
+      var a = sg.c[0], b = sg.c[sg.c.length - 1];
+      if (a[0] < bb[0] || a[0] > bb[2] || a[1] < bb[1] || a[1] > bb[3]) return;
+      var mx = (PROJ.x(a[0]) + PROJ.x(b[0])) / 2, my = (PROJ.y(a[1]) + PROJ.y(b[1])) / 2;
+      var d = Math.hypot(mx - PROJ.W / 2, my - PROJ.H / 2);
+      var edge = Math.min(mx, PROJ.W - mx, my, PROJ.H - my);
+      if (edge < 60) return;                       // too close to the frame edge
+      if (!pick[name] || d < pick[name].d) pick[name] = { d: d, sg: sg };
+    });
+    Object.keys(pick).forEach(function (name) {
+      var sg = pick[name].sg;
+      var a = sg.c[0], b = sg.c[sg.c.length - 1];
+      var x1 = PROJ.x(a[0]), y1 = PROJ.y(a[1]), x2 = PROJ.x(b[0]), y2 = PROJ.y(b[1]);
+      var ang = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+      if (ang > 90) ang -= 180; if (ang < -90) ang += 180;
+      parts.push('<text x="' + ((x1 + x2) / 2).toFixed(1) + '" y="' + ((y1 + y2) / 2 - 5).toFixed(1)
+        + '" font-size="11" fill="var(--ink-3)" text-anchor="middle" letter-spacing="1.1" '
+        + 'font-family="IBM Plex Sans Condensed, sans-serif" '
+        + 'transform="rotate(' + ang.toFixed(1) + ' ' + ((x1 + x2) / 2).toFixed(1) + ' '
+        + ((y1 + y2) / 2 - 5).toFixed(1) + ')">' + esc(name) + '</text>');
+    });
+    // Appendix B stock, drawn first so the user's own records sit on top
+    if (showSurveyed && SURVEYED.length) {
+      var maxS = Math.max.apply(null, SURVEYED.map(function (b) { return b.rooms || 0 }));
+      SURVEYED.forEach(function (b, i) {
+        if (b.lon == null) return;
+        var x = PROJ.x(b.lon), y = PROJ.y(b.lat);
+        var r = 3.5 + 11 * Math.sqrt((b.rooms || 1) / maxS);
+        var sel = surveySel === i;
+        var fill = !b.surveyed ? "var(--map-unsurveyed)"
+          : (b.tenure === "market" ? "var(--map-market)" : "var(--map-nonmarket)");
+        parts.push('<circle data-s="' + i + '" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1)
+          + '" r="' + r.toFixed(1) + '" fill="' + fill + '" fill-opacity="'
+          + (sel ? "0.95" : "0.6") + '" stroke="' + (sel ? "var(--ink)" : "none")
+          + '" stroke-width="2" style="cursor:pointer"/>');
+      });
+    }
+
+    // the user's own records, sized by room count
+    var maxRooms = Math.max.apply(null, buildings.map(function (b) { return b.rooms || 0 }).concat([1]));
+    buildings.forEach(function (b) {
+      if (b.lon == null || b.lat == null) return;
+      var x = PROJ.x(b.lon), y = PROJ.y(b.lat);
+      var r = 6 + 14 * Math.sqrt((b.rooms || 1) / maxRooms);
+      var sel = bSelected === b.id;
+      parts.push('<circle data-id="' + esc(b.id) + '" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1)
+        + '" r="' + r.toFixed(1) + '" fill="' + (sel ? "var(--map-dot-sel)" : "var(--map-dot)")
+        + '" fill-opacity="0.75" stroke="var(--surface)" stroke-width="2" style="cursor:pointer"/>');
+    });
+    parts.push('<text x="10" y="' + (PROJ.H - 8) + '" font-size="10" fill="var(--ink-3)">'
+      + 'Streets: City of Vancouver open data · circle area ∝ rooms</text>');
+    parts.push("</svg>");
+    mapStage.innerHTML = parts.join("") ;
+    mapStage.appendChild(mapEmpty);
+    mapEmpty.hidden = buildings.length > 0 || SURVEYED.length > 0;
+
+    mapStage.querySelectorAll("circle[data-id]").forEach(function (c) {
+      c.addEventListener("click", function (e) {
+        e.stopPropagation();
+        selectBuilding(c.getAttribute("data-id"));
+      });
+    });
+    mapStage.querySelectorAll("circle[data-s]").forEach(function (c) {
+      c.addEventListener("click", function (e) {
+        e.stopPropagation();
+        selectSurveyed(parseInt(c.getAttribute("data-s"), 10));
+      });
+    });
+  }
+
+  // Other floors: slab and partitions only, ghosted, pickable as a whole.
+  function drawStack() {
+    clear(groupStack);
+    floorPickables = [];
+    if (isolated || floors.length < 2) return;
+    floors.forEach(function (fl, fi) {
+      if (fi === activeFloor) return;
+      var y = fi * FLOOR_H, x = 0;
+      var w = fl.rooms.map(function (r) { return r.area / DEPTH; });
+      var total = w.reduce(add, 0) || 1;
+      box(groupStack, 0, y, Z_EXIST, total, SLAB_H, DEPTH, MAT.ghost);
+      fl.rooms.forEach(function (r, i) {
+        box(groupStack, x - WALL_T / 2, y, Z_EXIST, WALL_T, WALL_H * 0.8, DEPTH, MAT.ghost);
+        x += w[i];
+      });
+      box(groupStack, x - WALL_T / 2, y, Z_EXIST, WALL_T, WALL_H * 0.8, DEPTH, MAT.ghost);
+      box(groupStack, 0, y, Z_EXIST + DEPTH, total, WALL_H * 0.8, WALL_T, MAT.ghost);
+      box(groupStack, 0, y, Z_EXIST - WALL_T, total, WALL_H * 0.8, WALL_T, MAT.ghost);
+      // one flat target per floor, so a click anywhere on the slab selects it
+      var hit = box(groupStack, 0, y, Z_EXIST, total, WALL_H * 0.8, DEPTH,
+        MAT.ghost, { type: "floor", f: fi });
+      hit.material = new THREE.MeshBasicMaterial({ visible: false });
+      floorPickables.push(hit);
+      tag("band", -9, y + 1.2, Z_EXIST + DEPTH / 2, "", "FLOOR " + (fi + 1));
+    });
+  }
+
+  function esc(v) {
+    return String(v == null ? "" : v).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  mapStage.addEventListener("click", function (e) {
+    if (!placing || !PROJ) return;
+    var rect = mapStage.getBoundingClientRect();
+    var svg = mapStage.querySelector("svg");
+    if (!svg) return;
+    var sx = (e.clientX - rect.left) / rect.width * PROJ.W;
+    var sy = (e.clientY - rect.top) / rect.width * PROJ.W;   // uniform scale
+    document.getElementById("f-addr-hint").textContent =
+      "Placed on the map at " + PROJ.lat(sy).toFixed(5) + ", " + PROJ.lon(sx).toFixed(5);
+    formCoords = [PROJ.lon(sx), PROJ.lat(sy)];
+    setPlacing(false);
+  });
+
+  var formCoords = null;
+
+  function setPlacing(on) {
+    placing = on;
+    document.body.classList.toggle("placing", on);
+    document.getElementById("b-place").hidden = !on;
+  }
+
+  /* ---- store: db when the viewer has it, memory otherwise ---- */
+
+  function storeNote(txt) { document.getElementById("b-store-note").textContent = txt; }
+
+  function initStore() {
+    if (!window.claude || !window.claude.use) { storeNote(memoryNote()); renderStock(); return; }
+    window.claude.use("db").then(function (db) {
+      if (!db) { storeNote(memoryNote()); renderStock(); return; }
+      DB = db; dbReady = true;
+      storeNote("Saved for everyone who can open this page.");
+      db.collection("buildings").onSnapshot(function (snap) {
+        buildings = (snap.docs || []).map(function (d) {
+          var v = d.data ? d.data() : d;
+          v.id = d.id || v.id;
+          return v;
+        });
+        renderStock();
+      }, function () { storeNote(memoryNote()); renderStock(); });
+    }).catch(function () { storeNote(memoryNote()); renderStock(); });
+  }
+
+  function memoryNote() {
+    return "Not saved: this view has no store, so buildings last only until the page is reloaded. "
+      + "Use Export to keep them.";
+  }
+
+  function saveBuilding(b) {
+    if (DB) {
+      DB.doc("buildings/" + b.id).set(b).catch(function () {});
+      return;
+    }
+    var i = buildings.findIndex(function (x) { return x.id === b.id; });
+    if (i >= 0) buildings[i] = b; else buildings.push(b);
+    renderStock();
+  }
+
+  function deleteBuilding(id) {
+    if (DB) { DB.doc("buildings/" + id).delete().catch(function () {}); }
+    buildings = buildings.filter(function (b) { return b.id !== id; });
+    if (bSelected === id) bSelected = null;
+    renderStock();
+  }
+
+  function renderStock() {
+    var list = document.getElementById("b-list");
+    list.textContent = "";
+    buildings.slice().sort(function (a, b) {
+      return (a.name || "").localeCompare(b.name || "");
+    }).forEach(function (b) {
+      var el = document.createElement("div");
+      el.className = "bldg" + (bSelected === b.id ? " sel" : "");
+      var sfPer = (b.plate && b.rooms) ? b.plate / b.rooms : null;
+      var perSf = (b.rent && sfPer) ? b.rent / sfPer : null;
+      el.innerHTML = '<b>' + esc(b.name || "Untitled") + '</b>'
+        + '<span class="rooms">' + (b.rooms != null ? b.rooms + " rm" : "—") + '</span>'
+        + '<span class="meta">' + esc(b.addr || "no address")
+        + (sfPer ? " · " + Math.round(sfPer) + " SF/room" : "")
+        + (perSf ? " · $" + perSf.toFixed(2) + "/SF" : "")
+        + (b.tenancy != null ? " · " + b.tenancy + " yr" : "") + '</span>';
+      el.addEventListener("click", function () { selectBuilding(b.id); });
+      list.appendChild(el);
+    });
+
+    var pick = document.getElementById("survey-pick");
+    if (pick) {
+      if (surveySel !== null && SURVEYED[surveySel]) {
+        var sb = SURVEYED[surveySel];
+        pick.innerHTML = '<div class="label">From Appendix B</div>'
+          + '<div class="bldg sel" style="cursor:default"><b>' + esc(sb.name) + '</b>'
+          + '<span class="rooms">' + sb.rooms + ' rm</span>'
+          + '<span class="meta">' + esc(sb.addr) + ' \u00b7 ' + esc(sb.tenure)
+          + (sb.surveyed ? " \u00b7 " + sb.surveys + " surveys" : "")
+          + (sb.approx ? " \u00b7 placed approximately" : "")
+          + (sb.note ? '</span><span class="meta">' + esc(sb.note) : "")
+          + '</span></div>';
+      } else { pick.innerHTML = ""; }
+    }
+    var ctx = document.getElementById("survey-ctx");
+    if (ctx) {
+      var placed = SURVEYED.length;
+      ctx.textContent = placed
+        ? "Coloured points: the " + placed + " SRO buildings listed in Appendix B of the 2024 SRO "
+          + "Tenant Survey, placed from their addresses on the City street grid. Market red, "
+          + "non-market green, not surveyed grey; area \u221d rooms. Click one to load it below."
+        : "2024 SRO Tenant Survey: " + SURVEY.buildings + " buildings and " + SURVEY.respondents
+          + " tenants surveyed.";
+    }
+    var rooms = buildings.reduce(function (s, b) { return s + (b.rooms || 0); }, 0);
+    var sTotal = SURVEYED.length, sRooms = SURVEYED.reduce(function (t, b) { return t + (b.rooms || 0); }, 0);
+    document.getElementById("stock-summary").textContent = buildings.length
+      ? buildings.length + " of your own \u00b7 " + sTotal + " from Appendix B"
+      : (sTotal ? sTotal + " buildings \u00b7 " + sRooms.toLocaleString("en-CA") + " rooms" : "");
+    document.getElementById("b-export").disabled = !buildings.length;
+    drawMap();
+  }
+
+  function selectSurveyed(i) {
+    surveySel = (surveySel === i) ? null : i;
+    bSelected = null;
+    var b = SURVEYED[i];
+    if (surveySel !== null && b && b.rooms) {
+      // The survey gives rooms per building, never the floorplate. Rooms are
+      // spread over an assumed number of floors so the model starts somewhere
+      // sensible; both figures stay editable.
+      var fl = Math.max(1, Math.min(12, Math.round(b.rooms / 22))) || 1;
+      document.getElementById("u-floors").value = fl;
+      document.getElementById("u-count").value = Math.max(1, Math.round(b.rooms / fl));
+      document.getElementById("r-existing").value =
+        b.tenure === "market" ? SURVEY.rentMarket : SURVEY.rentNonMarket;
+      document.getElementById("u-ten").value = SURVEY.tenancyYears;
+      renderBreakdown();
+      renderAfford();
+    }
+    renderStock();
+  }
+
+  function selectBuilding(id) {
+    surveySel = null;
+    bSelected = (bSelected === id) ? null : id;
+    var b = buildings.filter(function (x) { return x.id === id; })[0];
+    if (bSelected && b) {
+      // a selected building sets the starting condition for sections 02-04
+      if (b.rooms) document.getElementById("u-count").value = b.rooms;
+      if (b.plate && b.rooms) document.getElementById("u-sf").value = Math.round(b.plate / b.rooms);
+      if (b.tenancy != null) document.getElementById("u-ten").value = b.tenancy;
+      if (b.rent) document.getElementById("r-existing").value = b.rent;
+      if (b.plate && b.rooms) document.getElementById("r-existing-sf").value = Math.round(b.plate / b.rooms);
+      renderBreakdown();
+      renderAfford();
+    }
+    renderStock();
+  }
+
+  /* ---- the record form ---- */
+
+  var form = document.getElementById("b-form");
+
+  function openForm(b) {
+    bEditing = b || null;
+    formCoords = b && b.lon != null ? [b.lon, b.lat] : null;
+    document.getElementById("b-list-wrap").hidden = true;
+    form.hidden = false;
+    document.getElementById("f-name").value = b ? (b.name || "") : "";
+    document.getElementById("f-addr").value = b ? (b.addr || "") : "";
+    document.getElementById("f-rooms").value = b && b.rooms != null ? b.rooms : "";
+    document.getElementById("f-floors").value = b && b.floors != null ? b.floors : "";
+    document.getElementById("f-plate").value = b && b.plate != null ? b.plate : "";
+    document.getElementById("f-rent").value = b && b.rent != null ? b.rent : "";
+    document.getElementById("f-ten").value = b && b.tenancy != null ? b.tenancy : "";
+    document.getElementById("f-delete").hidden = !b;
+    document.getElementById("f-addr-hint").textContent =
+      "Matched against the hundred-block index, or click the map to place";
+    setPlacing(!b);
+    document.getElementById("f-name").focus();
+  }
+
+  function closeForm() {
+    form.hidden = true;
+    document.getElementById("b-list-wrap").hidden = false;
+    setPlacing(false);
+    bEditing = null;
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var addr = document.getElementById("f-addr").value.trim();
+    var coords = formCoords || geocode(addr);
+    var b = {
+      id: bEditing ? bEditing.id : ("b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)),
+      name: document.getElementById("f-name").value.trim() || "Untitled",
+      addr: addr,
+      rooms: num(document.getElementById("f-rooms").value),
+      floors: num(document.getElementById("f-floors").value),
+      plate: num(document.getElementById("f-plate").value),
+      rent: num(document.getElementById("f-rent").value),
+      tenancy: num(document.getElementById("f-ten").value),
+      lon: coords ? coords[0] : null,
+      lat: coords ? coords[1] : null
+    };
+    saveBuilding(b);
+    closeForm();
+  });
+
+  document.getElementById("f-cancel").addEventListener("click", closeForm);
+  document.getElementById("f-delete").addEventListener("click", function () {
+    if (bEditing) deleteBuilding(bEditing.id);
+    closeForm();
+  });
+  document.getElementById("b-add").addEventListener("click", function () { openForm(null); });
+  document.getElementById("f-addr").addEventListener("change", function () {
+    var c = geocode(this.value);
+    var h = document.getElementById("f-addr-hint");
+    if (c) { formCoords = c; h.textContent = "Matched to a hundred block on the City street grid."; }
+    else { h.textContent = "No matching hundred block — click the map to place it instead."; }
+  });
+
+  document.getElementById("b-export").addEventListener("click", function () {
+    var cols = ["name", "addr", "rooms", "floors", "plate", "rent", "tenancy", "lon", "lat"];
+    var rows = [cols.join(",")].concat(buildings.map(function (b) {
+      return cols.map(function (c) {
+        var v = b[c];
+        if (v == null) return "";
+        return /[",]/.test(String(v)) ? '"' + String(v).replace(/"/g, '""') + '"' : v;
+      }).join(",");
+    }));
+    var out = rows.join("\n");
+    navigator.clipboard && navigator.clipboard.writeText(out).then(function () {
+      document.getElementById("b-store-note").textContent = "CSV copied to the clipboard.";
+    }, function () { showImport(out); });
+  });
+
+  document.getElementById("b-survey").addEventListener("click", function () {
+    showSurveyed = !showSurveyed;
+    this.classList.toggle("on", showSurveyed);
+    if (!showSurveyed) surveySel = null;
+    renderStock();
+  });
+
+  document.getElementById("b-import").addEventListener("click", function () { showImport(""); });
+
+  function showImport(prefill) {
+    var ta = document.createElement("textarea");
+    ta.style.cssText = "width:100%;height:120px;font:12px/1.4 ui-monospace,monospace;margin-top:8px";
+    ta.placeholder = "name,addr,rooms,floors,plate,rent,tenancy\nEmpress Hotel,235 E HASTINGS ST,90,4,,,";
+    ta.value = prefill;
+    var go = document.createElement("button");
+    go.type = "button"; go.textContent = "Import these rows"; go.style.marginTop = "6px";
+    var wrap = document.getElementById("b-list-wrap");
+    var old = document.getElementById("import-box");
+    if (old) old.remove();
+    var box = document.createElement("div");
+    box.id = "import-box";
+    box.appendChild(ta); box.appendChild(go);
+    wrap.appendChild(box);
+    go.addEventListener("click", function () {
+      var lines = ta.value.trim().split(/\r?\n/);
+      if (lines.length < 2) { box.remove(); return; }
+      var head = lines[0].split(",").map(function (h) { return h.trim().toLowerCase(); });
+      lines.slice(1).forEach(function (ln) {
+        var cells = ln.split(","), o = {};
+        head.forEach(function (h, i) { o[h] = (cells[i] || "").trim(); });
+        if (!o.name && !o.addr) return;
+        var coords = (o.lon && o.lat) ? [parseFloat(o.lon), parseFloat(o.lat)] : geocode(o.addr);
+        saveBuilding({
+          id: "b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+          name: o.name || "Untitled", addr: o.addr || "",
+          rooms: num(o.rooms), floors: num(o.floors), plate: num(o.plate),
+          rent: num(o.rent), tenancy: num(o.tenancy),
+          lon: coords ? coords[0] : null, lat: coords ? coords[1] : null
+        });
+      });
+      box.remove();
+    });
+  }
+
+  /* ======================================================================
+     6. UNIT BREAKDOWN — generates the floorplate in section 02
+     ====================================================================== */
+
+  function renderBreakdown() {
+    var n = num(document.getElementById("u-count").value) || 0;
+    var sf = num(document.getElementById("u-sf").value) || 0;
+    var circ = Math.min(60, Math.max(0, num(document.getElementById("u-circ").value) || 0));
+    var net = n * sf;
+    var gross = circ < 100 ? net / (1 - circ / 100) : net;
+    var nf = Math.max(1, num(document.getElementById("u-floors").value) || 1);
+    document.getElementById("u-tally").innerHTML =
+      tile(n, "Units per floor") + tile(fmt(sf) + " SF", "Each")
+      + tile(fmt(Math.round(gross)) + " SF", "Gross floorplate")
+      + tile(n * nf, "Rooms in building");
+    var short = sf < MIN_UNIT_AREA;
+    document.getElementById("u-note").innerHTML = short
+      ? "At " + fmt(sf) + " SF a unit is below the 200 SF the Guidelines ask of a <em>converted</em> "
+        + "unit, which is the ordinary condition of existing SRO stock — it is why conversion "
+        + "means merging."
+      : "At " + fmt(sf) + " SF each unit already meets the 200 SF conversion standard on its own, so "
+        + "no merging would be needed. Existing SRO rooms are rarely this large.";
+  }
+
+  function applyBreakdown() {
+    var n = Math.max(1, Math.min(60, Math.round(num(document.getElementById("u-count").value) || 1)));
+    var sf = Math.max(MIN_AREA, Math.min(MAX_AREA, num(document.getElementById("u-sf").value) || 100));
+    var ten = Math.max(0, num(document.getElementById("u-ten").value) || 0);
+    var nf = Math.max(1, Math.min(20, Math.round(num(document.getElementById("u-floors").value) || 1)));
+    floors = [];
+    for (var f = 0; f < nf; f++) {
+      var fr = [];
+      for (var i = 0; i < n; i++) fr.push({ id: String(i + 1), area: sf, tenancy: ten, keep: false });
+      floors.push({ rooms: fr, joints: new Array(Math.max(n - 1, 0)).fill(false) });
+    }
+    activeFloor = 0;
+    rooms = floors[0].rooms;
+    joints = floors[0].joints;
+    nextId = n + 1;
+    selected = null;
+    refresh();
+    frameAll(currentView);
+  }
+
+  /* ======================================================================
+     7. RENT AND AFFORDABILITY
+     Tested against the standard the by-law itself sets (s.4.8(f)) and the
+     published income figures, never against a market rent this tool invents.
+     ====================================================================== */
+
+  // 2024 SRO Tenant Survey, City of Vancouver. Aggregate figures only: the survey
+  // reports no building names or addresses, so none of this places a point on the
+  // map. It is the reference layer behind the points the user records.
+  var SURVEY = {
+    year: 2024,
+    buildings: 133,          // buildings surveyed
+    respondents: 908,
+    marketBuildings: 76,
+    marketRooms: 3083,       // rooms in those buildings
+    rentMarket: 640,         // average monthly rent, market SROs
+    rentNonMarket: 426,      // average monthly rent, non-market SROs
+    rent2013Market: 439,
+    tenancyYears: 4.6,       // average length of time at address
+    privateBathroom: 0.19,
+    bands: [                 // market rooms by rent band, projected over 3,083
+      { label: "$500 and under", rooms: 1162 },
+      { label: "$501 to $1,000", rooms: 1628 },
+      { label: "$1,001 and over", rooms: 294 }
+    ]
+  };
+  var SHELTER_RATE = 500;     // shelter component of BC income assistance, single
+                              // person: $375 in 2013, $500 in 2024 (2024 survey)
+
+  function renderAfford() {
+    var rent = num(document.getElementById("r-existing").value);
+    var rsf = num(document.getElementById("r-existing-sf").value) || 100;
+    var income = num(document.getElementById("r-income").value) || 0;
+    var usf = num(document.getElementById("r-unit-sf").value) || 200;
+    var out = document.getElementById("afford-out");
+
+    if (!rent) {
+      out.innerHTML = '<p class="note">Enter the rent of one existing SRO room, or start from a '
+        + 'survey average. The City reports SRO rents in aggregate, never per building, so a '
+        + 'building-specific figure is yours to supply.</p>'
+        + '<div class="btnrow"><button type="button" data-rent="' + SURVEY.rentMarket + '">'
+        + 'Use market average, ' + money(SURVEY.rentMarket) + '</button>'
+        + '<button type="button" data-rent="' + SURVEY.rentNonMarket + '">'
+        + 'Use non-market average, ' + money(SURVEY.rentNonMarket) + '</button></div>'
+        + '<div class="kv"><dt>Shelter component, BC income assistance (single person)</dt><dd>'
+        + money(SHELTER_RATE) + '/mo</dd>'
+        + '<dt>30% of the income entered</dt><dd>' + money(income * 0.3) + '/mo</dd></div>'
+        + '<p class="src">The 30% figure is the by-law’s own test at s.4.8(f): comparable '
+        + 'accommodation is rent no higher than 30% of the tenant’s income, or their previous '
+        + 'rent, whichever is lower. Averages and the shelter component: 2024 SRO Tenant Survey, '
+        + 'City of Vancouver.</p>';
+      Array.prototype.forEach.call(out.querySelectorAll("[data-rent]"), function (b) {
+        b.addEventListener("click", function () {
+          document.getElementById("r-existing").value = b.getAttribute("data-rent");
+          renderAfford();
+        });
+      });
+      return;
+    }
+
+    var perSf = rent / rsf;                 // $/SF/month of the existing room
+    var projected = perSf * usf;            // the converted unit at the same $/SF
+    var ceilings = [
+      { who: "30% of income (s.4.8(f))", amt: income * 0.3,
+        src: "SRA By-law s.4.8(f) — the by-law’s own comparable-accommodation test" },
+      { who: "Previous rent (s.4.8(f))", amt: rent,
+        src: "The same clause caps at the previous rent when that is lower" },
+      { who: "Shelter component alone", amt: SHELTER_RATE,
+        src: "BC income assistance, shelter portion for a single person" }
+    ];
+    var ceiling = Math.min.apply(null, ceilings.slice(0, 2).map(function (c) { return c.amt; }));
+    var scale = Math.max(projected, rent, ceilings[0].amt, SHELTER_RATE) * 1.12;
+
+    var h = '<div class="hero">' + money(projected) + '<span style="font-size:15px">/mo</span></div>'
+      + '<div class="hero-sub">what a ' + fmt(usf) + ' SF converted unit rents for at this '
+      + 'building’s existing rate of $' + perSf.toFixed(2) + '/SF</div>';
+
+    h += '<div class="bars" style="margin-top:18px">';
+    ceilings.forEach(function (c) {
+      var pass = projected <= c.amt + 0.5;
+      var w = Math.max(1, Math.min(100, c.amt / scale * 100));
+      h += '<div class="bar-row">'
+        + '<div class="bar-label"><span class="who">' + c.who + '</span>'
+        + '<span class="amt">' + money(c.amt) + '/mo</span></div>'
+        + '<div class="bar-track">'
+        + '<div class="bar-fill" style="width:' + w.toFixed(1) + '%;background:var(--'
+        + (pass ? 'pass-soft' : 'fail-soft') + ')"></div>'
+        + '<div class="bar-cap" style="left:' + Math.min(100, projected / scale * 100).toFixed(1) + '%">'
+        + '</div></div>'
+        + '<div class="verdict-row"><span class="dot" style="background:var(--'
+        + (pass ? 'pass' : 'fail') + ')"></span>'
+        + '<span class="' + (pass ? 'gap-ok' : 'gap-bad') + '">'
+        + (pass ? "Within this ceiling" : money(projected - c.amt) + "/mo above this ceiling")
+        + '</span></div>'
+        + '<div class="src">' + c.src + '</div>'
+        + '</div>';
+    });
+    h += '</div>';
+    h += '<p class="src" style="margin-top:12px">The dashed line on each bar is the converted unit’s '
+      + 'rent, ' + money(projected) + '/mo. Bars are one measure on one scale: dollars per month.</p>';
+
+    h += '<div class="kv"><dt>Existing room</dt><dd>' + money(rent) + '/mo · ' + fmt(rsf) + ' SF</dd>'
+      + '<dt>Rate</dt><dd>$' + perSf.toFixed(2) + '/SF/mo</dd>'
+      + '<dt>Converted unit</dt><dd>' + fmt(usf) + ' SF</dd>'
+      + '<dt>Rent ceiling that binds</dt><dd>' + money(ceiling) + '/mo</dd>'
+      + '<dt>Rate the unit must hit to stay under it</dt><dd>$' + (ceiling / usf).toFixed(2) + '/SF/mo</dd>'
+      + '</div>';
+
+    var drop = 1 - (ceiling / usf) / perSf;
+    h += '<p class="src" style="margin-top:14px">For scale, the 2024 SRO Tenant Survey found an '
+      + 'average rent of ' + money(SURVEY.rentMarket) + '/mo in market SROs and '
+      + money(SURVEY.rentNonMarket) + '/mo in non-market, against a shelter component of '
+      + money(SHELTER_RATE) + ' \u2014 market rents rose 46% between 2013 and 2024 while that '
+      + 'component rose 33%. Only ' + Math.round(SURVEY.privateBathroom * 100) + '% of tenants '
+      + 'reported a private bathroom, which is why a converted unit has to add the pods drawn '
+      + 'in section 02.</p>';
+    h += '<p class="note">' + (drop > 0
+      ? "Holding this tenant at the by-law’s ceiling in a " + fmt(usf) + " SF unit means letting the "
+        + "rate fall " + Math.round(drop * 100) + "% below what the room earns today. That gap is what a "
+        + "subsidy, a grant or an inclusionary requirement has to cover — conversion does not close "
+        + "it by itself."
+      : "At this rate the converted unit stays within the binding ceiling without further subsidy.")
+      + '</p>';
+    out.innerHTML = h;
+  }
+
+  ["r-existing", "r-existing-sf", "r-income", "r-unit-sf"].forEach(function (id) {
+    document.getElementById(id).addEventListener("input", renderAfford);
+  });
+  ["u-count", "u-sf", "u-circ", "u-floors"].forEach(function (id) {
+    document.getElementById(id).addEventListener("input", renderBreakdown);
+  });
+  document.getElementById("u-apply").addEventListener("click", applyBreakdown);
+
   resetFloorplate();
   applyPreset("case1");
 
@@ -1333,6 +2452,11 @@
     fb.textContent = "This browser could not start WebGL, so the 3D model is unavailable. "
       + "The inventory table on the right still drives every test below.";
   }
+  document.getElementById("r-unit-sf").addEventListener("input", function () { unitTouched = true; });
+  loadStreets();
+  loadSurveyed();
+  initStore();
+  renderBreakdown();
   refresh();
 })();
 </script>

@@ -29,7 +29,10 @@ Two caveats matter. Meeting both tests doesn't guarantee approval. The Guideline
 
 ## Scope
 
-A single floorplate (or floor-equivalent room inventory) of an existing SRA-designated SRO building. The tool is an **evaluator**: the user proposes one combination scheme and the tool tests it against the source thresholds. It does not search for the best scheme (see Out of Scope). Given the room count, the individual room areas, and a proposed scheme, the tool computes:
+A building of one or more floors of an existing SRA-designated SRO. The browser tool models the
+building as a stack of floorplates: a floor can be isolated and edited room by room, and the
+remaining floors are drawn around it as context. The Python evaluator still takes one floorplate
+at a time; the building-wide arithmetic lives in the browser tool. The tool is an **evaluator**: the user proposes one combination scheme and the tool tests it against the source thresholds. It does not search for the best scheme (see Out of Scope). Given the room count, the individual room areas, and a proposed scheme, the tool computes:
 
 - Whether the proposed scheme satisfies the 200 SF test, including the average fallback where individual units fall short (SRA Guidelines, p.4)
 - Whether the resulting room-count reduction is ≤ 50% (SRA Guidelines, p.4)
@@ -213,6 +216,17 @@ no tenancy terminated by the work — and returns 12–15 months.
 s.4.8(i) is owed to every **"permanent resident"** whose tenancy is terminated, which the By-law defines as someone who occupies a room as their residence "for at least 30 days" (s.1.2; `source/source_extract.md`, passage 12). All ten tenancies on this floor exceed 30 days, including rooms 7 and 8 at ten and eight months, so every occupant is a permanent resident and the compensation schedule reaches all of them.
 
 ## Interpretive Decisions
+
+- **The numeric tests are applied to the building, not to one floorplate.** The sources count
+  rooms in a building: s.4.3A speaks of "the loss of no more than 3 designated rooms **in the
+  building**," and the Guidelines' fallback is an average "across all converted rooms" in the
+  project, not on one floor. So the browser tool sums rooms, units and losses across every floor
+  and tests once. Two consequences worth seeing: a building can pass while an individual floor
+  would fail, because a generous floor carries a mean one; and the 200 SF average is a
+  building-wide mean, so leaving one floor unconverted can drag the whole project's average below
+  the threshold even though every merged unit on the other floors clears it. On a single-floor
+  building this reading is identical to the per-floorplate one, which is why the hand-worked
+  example below is unaffected.
 
 - **"A minimum of 50% of rooms are replaced" (DTES 9.2.7) counts the self-contained units produced, not the original rooms consumed.** Policy 9.2.7 sits in a passage about replacing SRO stock with self-contained *social housing units*, so the quantity being counted is what the project ends up with. The test is therefore `units ÷ original rooms ≥ 50%`.
 
