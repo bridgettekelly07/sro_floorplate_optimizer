@@ -20,6 +20,23 @@ Neither document below states a rule. Both are evidence about the primary source
 | *Downtown Eastside Housing Implementation* — public engagement handout | City of Vancouver public consultation material | Lowest authority here and the only non-Council document: plain-language proposals put out for consultation, not a draft by-law. Cited for what was proposed, never as a rule | May 12 information session (`dtes-housing-summary.pdf`); superseded by the December 9, 2025 hearing |
 | *2024 SRO Tenant Survey* | City of Vancouver survey report | Empirical, not regulatory: it sets no threshold and grants no right. It is the only source here that measures the stock rather than governing it, and the tool uses it for reference values — average rents, tenancy length, the shelter component — never for a test. Findings are reported in aggregate, but **Appendix B lists every building by name and address** with its room count and survey count — the only building-level SRO inventory this project has found, and the basis of the map | Fieldwork 2024; 133 buildings surveyed of 141 SRA-designated, 908 tenants (`sro-tenant-survey-2024.pdf`) |
 
+## Base Data
+
+The map's geometry is City of Vancouver open data, used as drawing and matching material rather than
+as authority. None of it states a rule, and none of it is specific to SROs.
+
+| Dataset | Used for |
+|---|---|
+| *Public streets* (`public-streets`) | the street grid, and the hundred-block centroids that place an address without an external geocoder |
+| *Property parcel polygons* (`property-parcel-polygons`) | the lot outline and area for each SRO building, matched by exact civic address — 136 of 143 |
+| *Building Footprints 2015* (`building-footprints-2015`) | the figure-ground the map is drawn on |
+
+Two cautions. A **parcel is the lot, not the building**: an area taken from it is the site, and the
+floorplate derived from it in the tool is an assumption the user is expected to correct. And the
+City's non-market housing dataset, the obvious place to look for this stock, **explicitly excludes**
+single room accommodation — which is why the building list had to come from Appendix B of the survey
+rather than from open data.
+
 ## Note on Currency
 
 All three primary sources were put to Council for amendment at the December 9, 2025 public hearing, as one exercise aimed at accelerating SRO replacement: the SRA By-law "to improve tenant protections" (Recommendation E), the DTES Plan (G), and the Guidelines for the *Upgrade* of designated rooms (H). The substance of each sits in appendices to the Report that are not part of the summary, so it establishes that the sources moved, not how.
