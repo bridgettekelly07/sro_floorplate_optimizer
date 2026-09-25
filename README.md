@@ -26,12 +26,17 @@ or right-drag to orbit, scroll to zoom; hovering names a building and clicking l
 exactly as on the flat map.
 
 Each SRO is drawn from the City's LiDAR-measured footprint parts at their own heights, so a rear wing or a lower
-annex stands at its measured height rather than being averaged into one block. On every edge that fronts a street the
-tool then generates an elevation from the type the stock shares: a tall retail ground floor under a storefront, a
-regular bay of punched windows above, a belt course and a cornice, sized from that building's frontage, height and
-storey count. The massing is measured; the elevation is a typological assumption and the callout says so. Where the
-building is on the Vancouver Heritage Register the callout gives its evaluation group, the register's own name for it
-and any designation.
+annex stands at its measured height rather than being averaged into one block. The masses are plain; a faint line
+around each part at every floor level marks the storeys, spaced from that part's own height at the 3.4 m floor to
+floor the tool assumes throughout. (An earlier version generated street elevations from the type the stock shares;
+that code is kept behind a flag but no longer drawn.) Where the building is on the Vancouver Heritage Register the
+record gives its evaluation group, the register's own name for it and any designation.
+
+The ground under the buildings is the City's 2002 shoreline, joined into a land polygon and clipped to the map, with
+the water as the plane beneath it; the City's parks as flat polygons; and the streets and lanes as surfaces drawn
+from their centrelines at a pavement width by street use (13, 11 and 8.5 m for arterial, secondary and residential,
+5 m for lanes) with a 2.5 m sidewalk band either side. The centrelines, shoreline, parks and lanes are measured; the
+widths are a drawing convention, not a survey of curbs.
 
 Appendix B gives a room count and never a storey count or a floor area. The height fills the first gap: a
 building's storeys are read from its LiDAR height at an assumed 3.4 m floor to floor, and that count is what
@@ -62,7 +67,7 @@ floor upward.
 **The stock** (section 02's plan). Appendix B gives each building a room count and nothing else, so
 the tool reads a typical floor from the City's footprint: a double-loaded corridor along the long axis
 of the outline, rooms in equal bays on both sides, a stair bay at one end, over a retail ground floor
-(the same assumption the generated elevations make). Room size is the footprint less a circulation
+(the same assumption the storey count on the map makes). Room size is the footprint less a circulation
 share, divided by the rooms Appendix B counts on a floor, capped where the outline holds far more
 floor than its count suggests, since the City counts designated rooms and not the commercial or
 common floor around them. Both figures are inputs (25% and 180 SF by default) and every plan says

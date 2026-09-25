@@ -49,6 +49,14 @@
     --m3-lane: #d3cdbf;
     --m3-glass: #2e3634;
     --m3-trim: #f3eee2;
+    --m3-water: #d9e0df;
+    --m3-road: #e3dfd5;
+    --m3-walk: #ece8de;
+    --m3-park: #dfe7db;
+    --map-water: #d9e0df;
+    --map-road: #e3dfd5;
+    --map-walk: #ece8de;
+    --map-park: #dfe7db;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -96,6 +104,14 @@
       --m3-lane: #3a413c;
       --m3-glass: #0c0f0e;
       --m3-trim: #b9c1ba;
+      --m3-water: #0e1416;
+      --m3-road: #23292a;
+      --m3-walk: #1c2220;
+      --m3-park: #1a2620;
+      --map-water: #0e1416;
+      --map-road: #23292a;
+      --map-walk: #1c2220;
+      --map-park: #1a2620;
     }
   }
   :root[data-theme="dark"] {
@@ -142,6 +158,14 @@
     --m3-lane: #3a413c;
     --m3-glass: #0c0f0e;
     --m3-trim: #b9c1ba;
+    --m3-water: #0e1416;
+    --m3-road: #23292a;
+    --m3-walk: #1c2220;
+    --m3-park: #1a2620;
+    --map-water: #0e1416;
+    --map-road: #23292a;
+    --map-walk: #1c2220;
+    --map-park: #1a2620;
   }
 
   /* the publish skeleton supplies this; a bare file served from the repo does not */
@@ -2305,7 +2329,36 @@
     var parts = ['<svg viewBox="' + vb() + '" role="img" '
       + 'aria-label="Map of the Downtown Eastside: building footprints, streets and SRO buildings">'];
 
-    // building footprints, City open data, drawn first as the ground
+    // water, land, parks, streets: the ground the footprints stand on
+    if (GROUND) {
+      parts.push('<rect x="' + vx0.toFixed(1) + '" y="' + vy0.toFixed(1) + '" width="' + view.w.toFixed(1)
+        + '" height="' + view.h.toFixed(1) + '" fill="var(--map-water)"/>');
+      parts.push('<path d="' + GROUND.land.map(svgPath).join("") + 'Z" fill="var(--surface)" stroke="none"/>');
+      parts.push('<path d="' + GROUND.parks.map(function (p) { return svgPath(p.r) + "Z"; }).join("") + '" fill="var(--map-park)" stroke="none"/>');
+    }
+    var mpu = mPerUnit(), walkD = [], roadD = [];
+    STREETS.segments.forEach(function (sg) {
+      if (!segInside(sg.c)) return;
+      var pave = (ROAD.pave[sg.u] || ROAD.pave[0]) / mpu;
+      walkD.push([svgPath(sg.c), pave + 2 * ROAD.walk / mpu]);
+      roadD.push([svgPath(sg.c), pave]);
+    });
+    function strokes(list, colour) {
+      var byW = {};
+      list.forEach(function (it) { var k = it[1].toFixed(2); (byW[k] = byW[k] || []).push(it[0]); });
+      Object.keys(byW).forEach(function (k) {
+        parts.push('<path d="' + byW[k].join("") + '" fill="none" stroke="' + colour + '" stroke-width="' + k
+          + '" stroke-linecap="round" stroke-linejoin="round"/>');
+      });
+    }
+    strokes(walkD, "var(--map-walk)");
+    strokes(roadD, "var(--map-road)");
+    if (GROUND) {
+      var laneD = GROUND.lanes.filter(segInside).map(svgPath).join("");
+      if (laneD) parts.push('<path d="' + laneD + '" fill="none" stroke="var(--map-road)" stroke-width="' + (ROAD.lane / mpu).toFixed(2) + '" stroke-linecap="round"/>');
+    }
+
+    // building footprints, City open data, the figure on that ground
     if (showFoot && FOOT) {
       var fp = [];
       for (var fi = 0; fi < FOOT.length; fi++) {
@@ -2323,20 +2376,6 @@
           + 'stroke-width="' + (0.6 * z).toFixed(2) + '"/>');
       }
     }
-    var bb = PROJ.bbox;
-    STREETS.segments.forEach(function (sg) {
-      var inside = sg.c.some(function (c) {
-        return c[0] >= bb[0] && c[0] <= bb[2] && c[1] >= bb[1] && c[1] <= bb[3];
-      });
-      if (!inside) return;
-      var d = sg.c.map(function (c, i) {
-        return (i ? "L" : "M") + PROJ.x(c[0]).toFixed(1) + " " + PROJ.y(c[1]).toFixed(1);
-      }).join("");
-      var w = (sg.u === 2 ? 3.4 : (sg.u === 1 ? 2.4 : 1.4)) * z;
-      var col = sg.u ? "var(--map-arterial)" : "var(--map-ink)";
-      parts.push('<path d="' + d + '" fill="none" stroke="' + col + '" stroke-width="' + w
-        + '" stroke-linecap="round"/>');
-    });
     var pick = arterialPicks();
     Object.keys(pick).forEach(function (name) {
       var sg = pick[name].sg;
@@ -2594,13 +2633,17 @@
     M3.ground.rotation.x = -Math.PI / 2;
     M3.scene.add(M3.ground);
     M3.matBldg = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
+    M3.matLand = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
+    M3.matRoad = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
+    M3.matWalk = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
+    M3.matPark = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
     M3.matArt = new THREE.LineBasicMaterial({ color: 0x999999 });
     M3.matLocal = new THREE.LineBasicMaterial({ color: 0xcccccc });
     M3.matSel = new THREE.LineBasicMaterial({ color: 0x000000 });
     M3.matStorey = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.22 });
-    M3.gFoot = new THREE.Group(); M3.gStreets = new THREE.Group();
+    M3.gGround = new THREE.Group(); M3.gFoot = new THREE.Group(); M3.gStreets = new THREE.Group();
     M3.gSro = new THREE.Group(); M3.gSel = new THREE.Group();
-    M3.scene.add(M3.gFoot, M3.gStreets, M3.gSro, M3.gSel);
+    M3.scene.add(M3.gGround, M3.gFoot, M3.gStreets, M3.gSro, M3.gSel);
     M3.sroMeshes = [];
     m3bindPointer();
     if (window.ResizeObserver) new ResizeObserver(function () { if (M3.on) m3resize(); }).observe(mapStage);
@@ -2614,7 +2657,12 @@
   function m3colours() {
     if (!M3.ready) return;
     M3.scene.background = new THREE.Color(css("--m3-sky") || "#e9e5db");
-    M3.ground.material.color.set(css("--m3-ground") || "#f4f1ea");
+    // the plane under everything is the water; the land sits on it
+    M3.ground.material.color.set(css("--m3-water") || "#d9e0df");
+    M3.matLand.color.set(css("--m3-ground") || "#f4f1ea");
+    M3.matRoad.color.set(css("--m3-road") || "#e3dfd5");
+    M3.matWalk.color.set(css("--m3-walk") || "#ece8de");
+    M3.matPark.color.set(css("--m3-park") || "#dfe7db");
     M3.matArt.color.set(css("--m3-street") || "#b9b2a3");
     M3.matLocal.color.set(css("--m3-lane") || "#d3cdbf");
     M3.matSel.color.set(css("--ink") || "#1d2320");
@@ -2678,26 +2726,58 @@
     M3.gFoot.add(new THREE.Mesh(m3extrude(items), M3.matBldg));
   }
 
+  // A flat strip along a polyline: one rectangle per segment, each extended
+  // by its half width so the rectangles meet at corners and intersections.
+  function m3strip(pos, c, half, y) {
+    for (var i = 1; i < c.length; i++) {
+      var ax = PROJ.x(c[i - 1][0]), az = PROJ.y(c[i - 1][1]), bx = PROJ.x(c[i][0]), bz = PROJ.y(c[i][1]);
+      var dx = bx - ax, dz = bz - az, L = Math.hypot(dx, dz);
+      if (!L) continue;
+      var nx = -dz / L * half, nz = dx / L * half, ex = dx / L * half, ez = dz / L * half;
+      ax -= ex; az -= ez; bx += ex; bz += ez;
+      pos.push(ax + nx, y, az + nz, bx - nx, y, bz - nz, bx + nx, y, bz + nz,
+               ax + nx, y, az + nz, ax - nx, y, az - nz, bx - nx, y, bz - nz);
+    }
+  }
+  function m3flatGeo(pos) {
+    var g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+    return g;
+  }
+  // A flat polygon at height y, triangulated
+  function m3polys(rings, y) {
+    var pos = [];
+    rings.forEach(function (ring) {
+      var c = ring.slice();
+      if (c.length > 1 && c[0][0] === c[c.length - 1][0] && c[0][1] === c[c.length - 1][1]) c.pop();
+      if (c.length < 3) return;
+      var xz = c.map(function (p) { return [PROJ.x(p[0]), PROJ.y(p[1])]; });
+      var tris;
+      try { tris = THREE.ShapeUtils.triangulateShape(xz.map(function (p) { return new THREE.Vector2(p[0], p[1]); }), []); } catch (e) { tris = []; }
+      tris.forEach(function (t) { for (var k = 0; k < 3; k++) pos.push(xz[t[k]][0], y, xz[t[k]][1]); });
+    });
+    return m3flatGeo(pos);
+  }
+
+  function m3ground() {
+    clear3(M3.gGround);
+    if (!GROUND) return;
+    M3.gGround.add(new THREE.Mesh(m3polys(GROUND.land, 0.02), M3.matLand));
+    M3.gGround.add(new THREE.Mesh(m3polys(GROUND.parks.map(function (p) { return p.r; }), 0.06), M3.matPark));
+  }
+
   function m3streets() {
     clear3(M3.gStreets);
-    var bb = PROJ.bbox, art = [], loc = [];
+    var u = 1 / mPerUnit(), walk = [], road = [];
     STREETS.segments.forEach(function (sg) {
-      var inside = sg.c.some(function (c) {
-        return c[0] >= bb[0] && c[0] <= bb[2] && c[1] >= bb[1] && c[1] <= bb[3];
-      });
-      if (!inside) return;
-      var arr = sg.u ? art : loc;
-      for (var i = 1; i < sg.c.length; i++) {
-        arr.push(PROJ.x(sg.c[i - 1][0]), 0.12, PROJ.y(sg.c[i - 1][1]),
-                 PROJ.x(sg.c[i][0]), 0.12, PROJ.y(sg.c[i][1]));
-      }
+      if (!segInside(sg.c)) return;
+      var half = (ROAD.pave[sg.u] || ROAD.pave[0]) / 2 * u;
+      m3strip(walk, sg.c, half + ROAD.walk * u, 0.08);
+      m3strip(road, sg.c, half, 0.1);
     });
-    [[art, M3.matArt], [loc, M3.matLocal]].forEach(function (pair) {
-      if (!pair[0].length) return;
-      var g = new THREE.BufferGeometry();
-      g.setAttribute("position", new THREE.Float32BufferAttribute(pair[0], 3));
-      M3.gStreets.add(new THREE.LineSegments(g, pair[1]));
-    });
+    if (GROUND) GROUND.lanes.forEach(function (c) { if (segInside(c)) m3strip(road, c, ROAD.lane / 2 * u, 0.1); });
+    if (walk.length) M3.gStreets.add(new THREE.Mesh(m3flatGeo(walk), M3.matWalk));
+    if (road.length) M3.gStreets.add(new THREE.Mesh(m3flatGeo(road), M3.matRoad));
     // arterial names, placed once and projected each frame
     M3.streetLabels = [];
     var pick = arterialPicks();
@@ -2719,6 +2799,34 @@
   var MASS = null;            // sro-massing.json, by Appendix B index
   var FAC = { ground: [3.4, 5.0], bay: 3.3, win: [1.15, 1.8], sill: 0.9, storefront: 0.6,
               parapet: 0.6, cornice: [0.5, 0.45], belt: [0.15, 0.3], glassOut: 0.12 };
+
+  /* ---- the ground: water, land, parks, lanes, and street surfaces ----
+     The shoreline, parks and lanes are City open data. The street surfaces
+     are drawn from the centrelines at a pavement width by street use, with a
+     sidewalk band either side: a drawing convention, not a survey of curbs. */
+  var GROUND = null;
+  var ROAD = { pave: { 2: 13, 1: 11, 0: 8.5 }, walk: 2.5, lane: 5 };   // metres
+  function mPerUnit() { var bb = PROJ.bbox; return (bb[2] - bb[0]) * PROJ.k * 111320 / PROJ.W; }
+  function loadGround() {
+    fetch("data/dtes-ground.json")
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d || !d.land) return;
+        GROUND = d;
+        M3.needFoot = true;
+        drawMap();
+      })
+      .catch(function () { /* the map reads without it */ });
+  }
+  function segInside(c) {
+    var bb = PROJ.bbox;
+    return c.some(function (q) { return q[0] >= bb[0] && q[0] <= bb[2] && q[1] >= bb[1] && q[1] <= bb[3]; });
+  }
+  function svgPath(pts) {
+    var d = "";
+    for (var i = 0; i < pts.length; i++) d += (i ? "L" : "M") + PROJ.x(pts[i][0]).toFixed(1) + " " + PROJ.y(pts[i][1]).toFixed(1);
+    return d;
+  }
 
   function loadMassing() {
     fetch("data/sro-massing.json")
@@ -2896,7 +3004,7 @@
   function m3build() {
     if (!M3.ready || !STREETS || !PROJ) return;
     m3scale();
-    if (M3.needFoot) { m3foot(); m3streets(); M3.needFoot = false; }
+    if (M3.needFoot) { m3ground(); m3foot(); m3streets(); M3.needFoot = false; }
     m3sro();
     m3select();
     m3hint();
@@ -4418,6 +4526,7 @@
   loadSurveyed();
   loadFootprints();
   loadMassing();
+  loadGround();
   initStore();
   renderBreakdown();
   refresh();
