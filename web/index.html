@@ -386,6 +386,11 @@
     max-height: 58%; overflow-y: auto;     /* never swallow the map */
   }
   @media (max-width: 620px) { .map-card { grid-template-columns: minmax(0, 1fr); } }
+  .map-card.side { position: static; grid-template-columns: minmax(0, 1fr); border-top: none;
+    background: none; padding: 0 0 12px 10px; margin-bottom: 12px; border-bottom: 1px solid var(--rule);
+    max-height: none; overflow: visible; align-items: start; }
+  .map-card.side .close { display: none; }
+  .map-card.side .loaded, .map-card.side .why, .map-card.side .stats { grid-column: 1; white-space: normal; overflow: visible; }
   .map-card h4 {
     margin: 0; font-family: "IBM Plex Sans Condensed", sans-serif;
     font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 7px;
@@ -502,12 +507,12 @@
 
   <div class="sec-head">
     <span class="sec-num">01</span><h2>Stock</h2>
-    <span class="note">The surveyed stock, from Appendix B &mdash; add your own on top</span>
+    <span class="note">The 143 SRO buildings of Appendix B, at LiDAR height &mdash; click one</span>
   </div>
 
   <section class="panel flush" style="margin-bottom:8px">
     <div class="stage-bar">
-      <div class="btnrow">
+      <div class="btnrow" hidden>
         <button type="button" id="b-add">+ Record a building</button>
         <button type="button" id="b-place" hidden>Click the map to place</button>
         <button type="button" id="b-survey" class="on">Survey stock</button>
@@ -546,7 +551,6 @@
           <span><i class="swatch" style="background:var(--map-market);border-radius:50%"></i>Market</span>
           <span><i class="swatch" style="background:var(--map-nonmarket);border-radius:50%"></i>Non-market</span>
           <span><i class="swatch" style="background:var(--map-unsurveyed);border-radius:50%"></i>Not surveyed</span>
-          <span><i class="swatch" style="background:var(--map-dot);border-radius:50%"></i>Yours</span>
           <span><i class="swatch" style="background:var(--map-foot)"></i>Footprint</span>
         </div>
         <form id="b-form" hidden>
@@ -585,7 +589,10 @@
             are not published per building by the City; enter them only where you have measured or
             surveyed them.</p>
         </form>
-        <div id="b-list-wrap">
+        <div class="map-card side" id="side-card" hidden></div>
+        <p class="src" id="side-empty">Click a building to read its record and draw its typical floor below.
+          Drag to pan, shift-drag or right-drag to orbit, scroll to zoom.</p>
+        <div id="b-list-wrap" hidden>
           <div id="survey-pick"></div>
           <p class="src" id="survey-ctx"></p>
           <div class="label">Recorded buildings</div>
@@ -606,8 +613,8 @@
       <div>
         <div class="stage-bar" style="padding:0 0 10px;border:none;background:none">
           <div class="btnrow">
-            <button type="button" data-read="strict" class="on" title="Every converted unit reaches 200 SF on its own">Strict &middot; 200 SF each</button>
-            <button type="button" data-read="average" title="The Guidelines&rsquo; fallback: an average of 200 SF across the converted units">Average fallback</button>
+            <button type="button" data-read="average" class="on" title="The Guidelines&rsquo; fallback: an average of 200 SF across the converted units">Average fallback</button>
+            <button type="button" data-read="strict" title="Every converted unit reaches 200 SF on its own">Strict &middot; 200 SF each</button>
           </div>
           <span class="label" id="bp-title">No building selected</span>
         </div>
@@ -670,12 +677,12 @@
     </div>
   </section>
 
-  <div class="sec-head">
+  <div class="sec-head" hidden>
     <span class="sec-num">04</span><h2>Floorplate editor</h2>
     <span class="note">Existing rooms in front, proposed scheme behind</span>
   </div>
 
-  <section class="panel flush" style="margin-bottom:18px">
+  <section class="panel flush" style="margin-bottom:18px" hidden>
     <div class="stage-bar">
       <div class="btnrow" id="floor-strip"></div>
       <div class="btnrow">
@@ -711,12 +718,12 @@
     </div>
   </section>
 
-  <div class="sec-head">
+  <div class="sec-head" hidden>
     <span class="sec-num">05</span><h2>Unit breakdown</h2>
     <span class="note">Generates the floorplate above</span>
   </div>
 
-  <section class="panel" style="margin-bottom:18px">
+  <section class="panel" style="margin-bottom:18px" hidden>
     <div class="cols" style="grid-template-columns:minmax(0,300px) minmax(0,1fr)">
       <div>
         <div class="pair">
@@ -748,12 +755,12 @@
     </div>
   </section>
 
-  <div class="sec-head">
-    <span class="sec-num">06</span><h2>Rent and affordability</h2>
+  <div class="sec-head" hidden>
+    <span class="sec-num">04</span><h2>Rent and affordability</h2>
     <span class="note">Tested against the by-law standard, not against the market</span>
   </div>
 
-  <section class="panel" style="margin-bottom:18px">
+  <section class="panel" style="margin-bottom:18px" hidden>
     <div class="afford">
       <div>
         <div class="field">
@@ -781,8 +788,8 @@
   </section>
 
   <div class="sec-head">
-    <span class="sec-num">07</span><h2>Conversion tests</h2>
-    <span class="note">Every result carries the clause it comes from</span>
+    <span class="sec-num">04</span><h2>Conversion tests</h2>
+    <span class="note">Run on the building selected above, at its least-displacement scheme</span>
   </div>
 
   <div class="cols">
@@ -792,7 +799,7 @@
           <h2>Tests</h2>
           <span class="label" id="overall"></span>
         </div>
-        <div class="btnrow" style="margin-bottom:12px">
+        <div class="btnrow" style="margin-bottom:12px" hidden>
           <button type="button" id="opt-strict" title="Search every scheme of adjacent merges for the one that loses the fewest rooms, every unit at 200 SF">Least-displacement scheme</button>
           <button type="button" id="opt-avg" title="The same search under the average fallback">&hellip; under the average fallback</button>
         </div>
@@ -805,7 +812,7 @@
           still required under SRA By-law s.4.1.</p>
       </section>
 
-      <section class="panel">
+      <section class="panel" hidden>
         <div class="panel-head">
           <h2>Displacement &amp; compensation</h2>
           <span class="label">SRA By-law s.4.8</span>
@@ -2102,6 +2109,7 @@
           dl.appendChild(o);
         });
         drawMap();
+        defaultTo3d();
       })
       .catch(function () { /* map stays empty; every other section still works */ });
   }
@@ -2193,9 +2201,10 @@
   }
 
   function renderCard() {
-    var card = document.getElementById("map-card");
+    var card = document.getElementById("side-card"), empty = document.getElementById("side-empty");
     if (!card) return;
     var b = surveySel !== null ? SURVEYED[surveySel] : null;
+    if (empty) empty.hidden = !!b;
     if (!b) { card.hidden = true; card.__b = null; return; }
     card.__b = b;
     // the bar takes the colour the building has on the map
@@ -2230,8 +2239,8 @@
         h += '<div class="why">Massing in 3D: ' + measured.length + ' LiDAR-measured part'
           + (measured.length === 1 ? "" : "s") + ' ('
           + measured.map(function (p) { return p.h + " m"; }).join(", ") + '; roof '
-          + Object.keys(roofs).join(", ").toLowerCase() + '). Elevations are generated from the '
-          + 'stock\u2019s shared type, not surveyed.</div>';
+          + Object.keys(roofs).join(", ").toLowerCase() + '). Storey lines are drawn at ' + FLOOR_M + ' m; the '
+          + 'massing is measured, the storeys are read from it.</div>';
       }
     }
     if (mrec && mrec.heritage) {
@@ -2588,6 +2597,7 @@
     M3.matArt = new THREE.LineBasicMaterial({ color: 0x999999 });
     M3.matLocal = new THREE.LineBasicMaterial({ color: 0xcccccc });
     M3.matSel = new THREE.LineBasicMaterial({ color: 0x000000 });
+    M3.matStorey = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.22 });
     M3.gFoot = new THREE.Group(); M3.gStreets = new THREE.Group();
     M3.gSro = new THREE.Group(); M3.gSel = new THREE.Group();
     M3.scene.add(M3.gFoot, M3.gStreets, M3.gSro, M3.gSel);
@@ -2608,6 +2618,7 @@
     M3.matArt.color.set(css("--m3-street") || "#b9b2a3");
     M3.matLocal.color.set(css("--m3-lane") || "#d3cdbf");
     M3.matSel.color.set(css("--ink") || "#1d2320");
+    if (M3.matStorey) M3.matStorey.color.set(css("--ink") || "#1d2320");
     M3.needFoot = true;
     M3.dirty = true;
   }
@@ -2790,13 +2801,14 @@
   }
 
   // Geometry for one Appendix B building from its massing record.
+  var DRAW_FACADES = false;   // the masses stand plain; storeys are marked by lines instead
   function m3buildingGeo(rec, body) {
     var pos = [], col = [];
     var glass = new THREE.Color(css("--m3-glass") || "#2b3230");
     var trim = new THREE.Color(css("--m3-trim") || "#efe9dc");
     var items = rec.parts.map(function (p) { return { pts: p.r, h: p.h || NOMINAL_H, col: body }; });
     var base = m3extrude(items);
-    rec.parts.forEach(function (p) {
+    if (DRAW_FACADES) rec.parts.forEach(function (p) {
       var h = p.h || NOMINAL_H;
       (p.faces || []).forEach(function (fc) { m3facade(pos, col, p.r, fc[0], h, body, glass, trim); });
     });
@@ -2847,6 +2859,27 @@
       mesh.userData = { s: i, cx: cx, cz: cz, top: top / M3.mPerUnit, est: !b.hgtM };
       M3.gSro.add(mesh);
       M3.sroMeshes.push(mesh);
+      // storey markers: one faint line around each part at every floor level
+      var rings = rec ? rec.parts.map(function (p) { return { r: p.r, h: p.h || NOMINAL_H }; })
+                      : (pts ? [{ r: pts, h: h }] : []);
+      var seg = [];
+      rings.forEach(function (rg) {
+        var c = rg.r.slice();
+        if (c.length > 1 && c[0][0] === c[c.length - 1][0] && c[0][1] === c[c.length - 1][1]) c.pop();
+        var levels = Math.max(1, Math.round(rg.h / FLOOR_M)), pitch = rg.h / levels;
+        for (var lv = 1; lv < levels; lv++) {
+          var y = lv * pitch / M3.mPerUnit;
+          for (var q = 0; q < c.length; q++) {
+            var a = c[q], d = c[(q + 1) % c.length];
+            seg.push(PROJ.x(a[0]), y, PROJ.y(a[1]), PROJ.x(d[0]), y, PROJ.y(d[1]));
+          }
+        }
+      });
+      if (seg.length) {
+        var sg = new THREE.BufferGeometry();
+        sg.setAttribute("position", new THREE.Float32BufferAttribute(seg, 3));
+        M3.gSro.add(new THREE.LineSegments(sg, M3.matStorey));
+      }
     });
   }
 
@@ -3281,6 +3314,10 @@
     renderStock();
     renderCard();
     renderBuilding();
+    if (surveySel !== null) {
+      var bp = document.getElementById("bp-plan");
+      if (bp && bp.scrollIntoView) bp.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
   }
 
   function selectBuilding(id) {
@@ -3601,7 +3638,7 @@
       + money(SHELTER_RATE) + ' \u2014 market rents rose 46% between 2013 and 2024 while that '
       + 'component rose 33%. Only ' + Math.round(SURVEY.privateBathroom * 100) + '% of tenants '
       + 'reported a private bathroom, which is why a converted unit has to add the pods drawn '
-      + 'in section 04.</p>';
+      + 'in section 02.</p>';
     h += '<p class="note">' + (drop > 0
       ? "Holding this tenant at the by-law’s ceiling in a " + fmt(usf) + " SF unit means letting the "
         + "rate fall " + Math.round(drop * 100) + "% below what the room earns today. That gap is what a "
@@ -3996,7 +4033,7 @@
 
   /* ---- section 02: the selected building ---- */
 
-  var readBuilding = "strict";
+  var readBuilding = "average";
   var optCache = {};   // i + reading -> optimum
   function optimumFor(i, strict) {
     var key = i + (strict ? "s" : "a");
@@ -4096,14 +4133,12 @@
     } else if (curve.length === 1) {
       h += '<p class="src" style="margin-top:12px">Only one unit count is legal for this building under this reading: ' + curve[0].units + ' units, ' + curve[0].lost + ' rooms lost. There is no trade-off to draw.</p>';
     }
-    h += '<div class="btnrow" style="margin-top:12px"><button type="button" id="bp-load">Load into the floorplate editor</button></div>'
-      + '<p class="src">Puts this floor’s rooms into section 04 as ' + p.res + ' identical ' + (p.res === 1 ? "floor" : "floors") + ', with the scheme above already drawn, so it can be edited room by room and tested in section 07.</p>';
+    h += '<p class="src" style="margin-top:12px">Section 04 runs its tests on this building: ' + p.res + ' identical ' + (p.res === 1 ? "floor" : "floors") + ' of these rooms at the scheme above.</p>';
     side.innerHTML = h;
-    var btn = document.getElementById("bp-load");
-    if (btn) btn.addEventListener("click", function () { loadPlanIntoEditor(i, o); });
+    loadPlanIntoEditor(i, o, true);
   }
 
-  function loadPlanIntoEditor(i, o) {
+  function loadPlanIntoEditor(i, o, quiet) {
     var p = typicalPlan(i), b = SURVEYED[i];
     if (!p) return;
     var ten = SURVEY.tenancyYears;
@@ -4132,6 +4167,7 @@
     document.getElementById("r-existing").value = b.tenure === "market" ? SURVEY.rentMarket : SURVEY.rentNonMarket;
     renderBreakdown(); renderAfford();
     refresh(); frameAll(currentView);
+    if (quiet) return;
     var ed = document.getElementById("viewport");
     if (ed && ed.scrollIntoView) ed.scrollIntoView({ behavior: "smooth", block: "center" });
   }
@@ -4178,8 +4214,15 @@
   var scenColour = false;
   var districtCands = null;
 
+  function defaultTo3d() {
+    if (M3.on || M3.defaulted || !PROJ || !STREETS || !SURVEYED.length || !FOOT || !THREE) return;
+    M3.defaulted = true;
+    setMode3d(true);
+  }
+
   function districtReady() {
     if (!SURVEYED.length || !FOOT) return;
+    defaultTo3d();
     planCache = {}; optCache = {}; curveCache = {}; districtCands = null;
     renderDistrict();
     renderBuilding();
@@ -4359,7 +4402,8 @@
   resetFloorplate();
   applyPreset("case1");
 
-  if (init3d()) {
+  var EDITOR_OFF = true;   // the floorplate editor is set aside until it is folded into the map
+  if (!EDITOR_OFF && init3d()) {
     frameAll("axo");
     loop();
   } else {
