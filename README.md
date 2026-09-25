@@ -50,7 +50,7 @@ The evaluator answers "does this scheme pass?". The optimizer answers the questi
 actually poses: *of every scheme this building admits, which one passes while moving the fewest
 people?* It works at three scales, and each is in the browser tool.
 
-**One building** (section 02, and the two buttons in section 07). Rooms sit in corridor order,
+**One building** (section 02). Rooms sit in corridor order,
 and a unit is a run of consecutive rooms, so the search is a dynamic programme along each row of
 rooms: at every room, leave it as an SRA room or close a unit there. Rows on opposite sides of a
 corridor and on different floors are searched separately and combined, because rooms never merge
@@ -63,6 +63,16 @@ in place below 200 SF is carried by the pairs around it. The fallback is discret
 result is the safe one and the average result the best case. It also draws the building's trade-off
 curve: the least rooms lost for every unit count the building can legally reach, from the DTES 9.2.7
 floor upward.
+
+**The plan is the editor.** The typical floor in section 02 is drawn from the building's state, not from
+the search, so what the user does to it is what the tests run on. A marker in the corridor between two
+rooms merges them into one unit or splits them; dragging the wall between two rooms shifts area from one
+to the other, the row keeping its length; clicking a room keeps it as an SRA room or releases it. Every
+floor is the typical floor, so an edit applies to all of them, and the search likewise runs on one floor
+and repeats it. The buttons beside the plan restore the least-displacement scheme under either reading
+or clear every merge, and a single tenancy length stands for every room, since no source gives one per
+room. The tally beside the plan says whether the drawn scheme passes and how far it sits from the
+least-displacement one; section 04 shows the working.
 
 **The stock** (section 02's plan). Appendix B gives each building a room count and nothing else, so
 the tool reads a typical floor from the City's footprint: a double-loaded corridor along the long axis
