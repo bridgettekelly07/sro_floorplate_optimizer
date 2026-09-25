@@ -1,6 +1,6 @@
 # SRO Conversion & Displacement in the DTES
 
-Interactive tool translating Vancouver's SRA-Designated Room conversion rules into an explicit operation, checked against a hand-worked example and visualized in Rhino.
+Interactive tool translating Vancouver's SRA-Designated Room conversion rules into an explicit operation, checked against a hand-worked example and visualized in Rhino, and then run the other way: a search for the compliant scheme that displaces the fewest tenants, building by building across the district's SRO stock.
 
 ## Sources
 
@@ -17,6 +17,90 @@ All three primary sources were before Council for amendment at that hearing, as 
 
 Both are settled by checking the enacted texts against `sro/rules.py`, where every threshold sits with its citation.
 
+## The district in 3D
+
+The stock map in section 01 has a 3D button. Selecting a building there draws its typical floor in section 02 with the square footage of every room, and the least-displacement scheme over it. It raises every building footprint on the map to the height the
+City's 2009 LiDAR recorded for it (*Building Footprints 2009*, field `hgt_agl`), and draws the 143 SRO
+buildings of Appendix B on their own footprints, coloured by tenure as on the flat map. Drag to pan, shift-drag
+or right-drag to orbit, scroll to zoom; hovering names a building and clicking loads it into the sections below,
+exactly as on the flat map.
+
+Each SRO is drawn from the City's LiDAR-measured footprint parts at their own heights, so a rear wing or a lower
+annex stands at its measured height rather than being averaged into one block. On every edge that fronts a street the
+tool then generates an elevation from the type the stock shares: a tall retail ground floor under a storefront, a
+regular bay of punched windows above, a belt course and a cornice, sized from that building's frontage, height and
+storey count. The massing is measured; the elevation is a typological assumption and the callout says so. Where the
+building is on the Vancouver Heritage Register the callout gives its evaluation group, the register's own name for it
+and any designation.
+
+Appendix B gives a room count and never a storey count or a floor area. The height fills the first gap: a
+building's storeys are read from its LiDAR height at an assumed 3.4 m floor to floor, and that count is what
+the floorplate model starts from (the Ivanhoe Hotel's 18.2 m reads as five storeys). It is an estimate and is
+labelled as one; the older assumption of about 22 rooms to a floor remains for the nine buildings the City has
+no height for. See [`source/citation.md`](source/citation.md) for how the heights were matched.
+
+## The optimizer
+
+The evaluator answers "does this scheme pass?". The optimizer answers the question the mandate
+actually poses: *of every scheme this building admits, which one passes while moving the fewest
+people?* It works at three scales, and each is in the browser tool.
+
+**One building** (section 02, and the two buttons in section 07). Rooms sit in corridor order,
+and a unit is a run of consecutive rooms, so the search is a dynamic programme along each row of
+rooms: at every room, leave it as an SRA room or close a unit there. Rows on opposite sides of a
+corridor and on different floors are searched separately and combined, because rooms never merge
+across a corridor or a slab. The objective is rooms lost, which with every room occupied is exactly
+the number of tenants the right of first refusal cannot re-house (s.4.8(f)–(g)). Ties go to more
+units, then to more converted area. The search is exact and runs under both readings of the size
+test the Guidelines offer: **strict**, every unit at 200 SF on its own, and the **average fallback**,
+"an average of 200 SF across all converted rooms will be considered", under which a room converted
+in place below 200 SF is carried by the pairs around it. The fallback is discretionary, so the strict
+result is the safe one and the average result the best case. It also draws the building's trade-off
+curve: the least rooms lost for every unit count the building can legally reach, from the DTES 9.2.7
+floor upward.
+
+**The stock** (section 02's plan). Appendix B gives each building a room count and nothing else, so
+the tool reads a typical floor from the City's footprint: a double-loaded corridor along the long axis
+of the outline, rooms in equal bays on both sides, a stair bay at one end, over a retail ground floor
+(the same assumption the generated elevations make). Room size is the footprint less a circulation
+share, divided by the rooms Appendix B counts on a floor, capped where the outline holds far more
+floor than its count suggests, since the City counts designated rooms and not the commercial or
+common floor around them. Both figures are inputs (25% and 180 SF by default) and every plan says
+which assumptions produced it. Rooms that would fall outside the outline are dropped; rooms that come
+out narrower than 8 ft are flagged. The outline is measured; everything drawn inside it is the type
+the stock shares, not a survey of that building.
+
+**The district** (section 03). Each building contributes its trade-off curve; the mandate is a number
+of self-contained units the stock must produce; the optimizer chooses which buildings convert, and
+how far each goes, so the target is met with the fewest tenants displaced. It is a multiple-choice
+knapsack solved exactly, and one pass yields the whole curve of least displacement against units
+required, which is drawn. A building converts at a point on its own curve or not at all, because a
+partial conversion below 50% fails DTES 9.2.7; a building whose rooms are too small for any scheme of
+adjacent merges to leave half the count standing cannot contribute, is counted and listed, and is
+drawn in solid ink on the map. The map's **Scenario** button colours every building by the share of
+its tenants displaced. Compensation is totalled at the survey's average tenancy (4.6 years, the
+4-month bracket of s.4.8(i)) and the survey's average rent for the tenure in scope.
+
+Three findings the search makes visible, all of which follow from the thresholds rather than from
+any modelling choice:
+
+- **Below 100 SF a room has no compliant conversion under either reading.** Two rooms cannot reach
+  200 SF, so units need three, and three-room units cannot leave 50% of the count standing. For those
+  buildings the mandate means replacement, not conversion.
+- **Under the strict reading an odd row of sub-200 rooms strands a room.** Every unit is a pair, so a
+  row of nine makes four and leaves one; the building reaches 50% only if another row makes up the
+  difference. Under the fallback the stranded room converts in place and the pairs carry the average.
+- **Larger rooms displace fewer people.** At 100 SF the least-loss scheme is Case 1: half the tenants
+  leave. At 150 SF under the fallback, two of ten leave; at 200 SF nobody does. The district curve
+  steepens as the mandate reaches buildings with smaller rooms, which is where it costs the most.
+
+Two assumptions are the optimizer's own and are stated here because nothing in the sources fixes
+them: a unit takes at most three rooms (`MAX_MERGE`), without which the search favours one huge
+merge carrying the average for many rooms converted in place; and every room is occupied, so rooms
+lost equals tenants displaced. The Python module (`sro/optimize.py`) and the browser tool implement
+the same search; the closed form for a building of uniform rooms is checked against the search in
+`tests/test_optimize.py`, and every scheme the search returns is checked against the evaluator.
+
 ## Explanation
 
 Vancouver's Single Room Accommodation By-law protects SRO stock by requiring a permit to convert or demolish designated rooms (s.4.1). Merging rooms into self-contained units counts as "conversion" under the by-laws's broad definition (s.1.2(e)), so this is a permitting question, not just a design one. 
@@ -32,7 +116,7 @@ Two caveats matter. Meeting both tests doesn't guarantee approval. The Guideline
 A building of one or more floors of an existing SRA-designated SRO. The browser tool models the
 building as a stack of floorplates: a floor can be isolated and edited room by room, and the
 remaining floors are drawn around it as context. The Python evaluator still takes one floorplate
-at a time; the building-wide arithmetic lives in the browser tool. The tool is an **evaluator**: the user proposes one combination scheme and the tool tests it against the source thresholds. It does not search for the best scheme (see Out of Scope). Given the room count, the individual room areas, and a proposed scheme, the tool computes:
+at a time; the building-wide arithmetic lives in the browser tool. The tool is an **evaluator** and an **optimizer**: the user proposes one combination scheme and the tool tests it against the source thresholds, or asks the tool for the compliant scheme that loses the fewest rooms, for one building or across the stock (see The optimizer). Given the room count, the individual room areas, and a proposed scheme, the tool computes:
 
 - Whether the proposed scheme satisfies the 200 SF test, including the average fallback where individual units fall short (SRA Guidelines, p.4)
 - Whether the resulting room-count reduction is ≤ 50% (SRA Guidelines, p.4)
@@ -46,8 +130,9 @@ at a time; the building-wide arithmetic lives in the browser tool. The tool is a
 - The SRA By-law's permit *process* itself (application requirements, fees, inspections, enforcement), the tool cites the By-law's definitions, permit trigger, and relocation/compensation conditions (see `source/source_extract.md`, passages 7–11) but does not model the approval workflow
 - Financing/viability determinations of when 1-for-1 replacement is "not achievable due to financial or development constraints" (Policy 9.2.7) (at the discretion of City/Council)
 - Affordability and rent-setting mechanics generally (Section 5 of the Guidelines, and the TRPP's rent calculations), excluding the SRA By-law's own compensation schedule (s.4.8(i)), which is in scope above
-- Searching for an optimal or compliant combination scheme. The tool evaluates a scheme the user proposes; finding the best arrangement across all possible merge patterns is a search problem, recorded as the next direction beyond this assignment
-- Whether a proposed scheme is physically buildable. A list of room areas cannot express which rooms adjoin one another, so the tool assumes the user proposes a scheme of adjacent rooms
+- Whether a proposed scheme is physically buildable beyond adjacency. Rooms are held in corridor order and the search merges only consecutive rooms on one side of one corridor; structure, plumbing and light are not modelled
+- The typical floor of any particular building. Appendix B gives a count, the City gives an outline, and the plan drawn between them is the stock's type, not a survey; measured plans replace it through the floorplate editor
+- Sequencing: the district scenario says which buildings convert and what it costs, not in what order or over how long, and it does not model where displaced tenants go
 
 
 ## Input → Operation → Output
@@ -76,7 +161,7 @@ at a time; the building-wide arithmetic lives in the browser tool. The tool is a
 python3 -m sro.cli --example case1              # the hand-worked cases
 python3 -m sro.cli --example case2 --svg out.svg
 python3 -m sro.cli --input floorplate.json --json
-python3 -m unittest discover -s tests           # 29 tests, the answer key below
+python3 -m unittest discover -s tests           # 43 tests: the answer key below, and the search
 ```
 
 Stdlib only, no install. `web/index.html` is the same operation as a browser tool,
@@ -103,10 +188,12 @@ the rooms, dragging a room through a boundary clears the joints it crosses.
 | `sro/rules.py` | the thresholds and the quoted clause behind each one; nothing here is user input |
 | `sro/model.py` | `Room`, `Floorplate`, `Scheme`, `Unit` |
 | `sro/evaluate.py` | the operation: the three tests, displacement, compensation |
+| `sro/optimize.py` | the search: least-loss scheme per building, the trade-off curve, the district allocation |
 | `sro/plan.py` | before/after floor plan geometry, emitted as SVG |
 | `sro/report.py`, `sro/cli.py` | text and JSON output |
 | `tests/test_hand_worked.py` | the hand-worked example, asserted |
-| `web/index.html` | the interactive version: 3D floorplate input, same tests |
+| `tests/test_optimize.py` | the search finds Case 1 and nothing else; closed form against search; the district knapsack |
+| `web/index.html` | the interactive version: the stock in 3D, a typical plan per building, the search, the district scenario, the floorplate editor, same tests |
 
 ## Hand-Worked Example
 

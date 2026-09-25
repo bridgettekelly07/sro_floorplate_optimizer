@@ -1,4 +1,4 @@
-<title>SRA Conversion Evaluator</title>
+<title>SRA Conversion Optimizer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Serif:ital,wght@0,400;1,400&display=swap">
@@ -37,8 +37,18 @@
     --map-market: #b4553f;
     --map-nonmarket: #3f7d5c;
     --map-unsurveyed: #9a948a;
+    --scen-0: #d9e7dd;
+    --scen-1: #a33a29;
+    --scen-x: #1d2320;
     --map-foot: #ddd8cc;
     --map-foot-line: #cbc5b7;
+    --m3-ground: #f4f1ea;
+    --m3-sky: #e9e5db;
+    --m3-bldg: #d8d2c3;
+    --m3-street: #b9b2a3;
+    --m3-lane: #d3cdbf;
+    --m3-glass: #2e3634;
+    --m3-trim: #f3eee2;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -74,8 +84,18 @@
       --map-market: #d98b72;
       --map-nonmarket: #6fae8b;
       --map-unsurveyed: #6d736c;
+      --scen-0: #2f4a3a;
+      --scen-1: #e08d78;
+      --scen-x: #f1efe8;
       --map-foot: #262b28;
       --map-foot-line: #323834;
+      --m3-ground: #171b19;
+      --m3-sky: #101312;
+      --m3-bldg: #565e58;
+      --m3-street: #6f776f;
+      --m3-lane: #3a413c;
+      --m3-glass: #0c0f0e;
+      --m3-trim: #b9c1ba;
     }
   }
   :root[data-theme="dark"] {
@@ -110,8 +130,18 @@
     --map-market: #d98b72;
     --map-nonmarket: #6fae8b;
     --map-unsurveyed: #6d736c;
+    --scen-0: #2f4a3a;
+    --scen-1: #e08d78;
+    --scen-x: #f1efe8;
     --map-foot: #262b28;
     --map-foot-line: #323834;
+    --m3-ground: #171b19;
+    --m3-sky: #101312;
+    --m3-bldg: #565e58;
+    --m3-street: #6f776f;
+    --m3-lane: #3a413c;
+    --m3-glass: #0c0f0e;
+    --m3-trim: #b9c1ba;
   }
 
   /* the publish skeleton supplies this; a bare file served from the repo does not */
@@ -301,6 +331,28 @@
     min-height: 340px;            /* the callout docks inside it, so it cannot collapse */
   }
   .map-stage svg { display: block; width: 100%; height: auto; }
+  #map-3d { position: relative; overflow: hidden; }
+  #map-3d canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  #map-3d.orbiting canvas { cursor: move; }
+  #map-3d.picking canvas { cursor: pointer; }
+  .map-3d-labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  .map-3d-labels .lbl {
+    position: absolute; transform: translate(-50%, -100%); white-space: nowrap;
+    font-family: "IBM Plex Sans Condensed", sans-serif; font-size: 11px; color: var(--ink);
+    text-shadow: 0 1px 3px var(--surface), 0 0 6px var(--surface);
+  }
+  .map-3d-labels .lbl.street {
+    font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3);
+    transform: translate(-50%, -50%);
+  }
+  .map-3d-labels .lbl.sel { font-weight: 600; font-size: 12.5px; }
+  .map-3d-hint {
+    position: absolute; left: 12px; top: 10px; max-width: 250px; pointer-events: none;
+    font-size: 11.5px; line-height: 1.45; color: var(--ink-2);
+    background: color-mix(in srgb, var(--surface) 88%, transparent);
+    border-left: 2px solid var(--accent); padding: 7px 10px;
+  }
+  @media (max-width: 620px) { .map-3d-hint { display: none; } }
   .map-side { border-left: 1px solid var(--rule); padding: 14px; min-width: 0; }
   @media (max-width: 900px) { .map-side { border-left: none; border-top: 1px solid var(--rule); } }
   .map-zoom {
@@ -311,6 +363,7 @@
     font-size: 12px; padding: 3px 8px; min-width: 30px;
     background: color-mix(in srgb, var(--surface) 92%, transparent);
   }
+  .map-zoom button.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
   .map-empty {
     position: absolute; inset: 0; display: flex; flex-direction: column;
     align-items: center; justify-content: center; gap: 6px; text-align: center;
@@ -348,9 +401,9 @@
   .map-card .who b { color: var(--ink-2); font-weight: 600; }
   .map-card .stats {
     display: flex; flex-wrap: wrap; gap: 3px 16px; font-variant-numeric: tabular-nums;
-    font-size: 12px; justify-content: flex-end;
+    font-size: 12px; justify-content: flex-end; max-width: 58%;   /* leave the name its column */
   }
-  @media (max-width: 620px) { .map-card .stats { justify-content: flex-start; } }
+  @media (max-width: 620px) { .map-card .stats { justify-content: flex-start; max-width: none; } }
   .map-card .stats span { display: flex; gap: 5px; align-items: baseline; }
   .map-card .stats em { font-style: normal; color: var(--ink-3); font-size: 10.5px;
     text-transform: uppercase; letter-spacing: 0.06em; }
@@ -414,6 +467,20 @@
     font-size: 30px; font-variant-numeric: tabular-nums; line-height: 1.1;
   }
   .hero-sub { font-size: 12px; color: var(--ink-3); }
+  .plan-stage { background: var(--sunk); border: 1px solid var(--rule); min-height: 200px;
+    display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .plan-stage svg { display: block; width: 100%; height: auto; max-height: 460px; }
+  .plan-stage .empty { color: var(--ink-3); font-size: 13px; padding: 40px 20px; text-align: center; }
+  .curve { border: 1px solid var(--rule); background: var(--surface); }
+  .curve svg { display: block; width: 100%; height: auto; }
+  table.dist { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 12px; }
+  table.dist th { text-align: left; font-family: "IBM Plex Sans Condensed", sans-serif; font-size: 10px;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); padding: 4px 6px;
+    border-bottom: 1px solid var(--rule); }
+  table.dist td { padding: 4px 6px; border-bottom: 1px solid var(--rule-soft); }
+  table.dist td.n, table.dist th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  table.dist tr.pick { cursor: pointer; }
+  table.dist tr.pick:hover { background: var(--sunk); }
   .kv { display: grid; grid-template-columns: 1fr auto; gap: 3px 10px; font-size: 13px;
     font-variant-numeric: tabular-nums; margin-top: 10px; }
   .kv dt { color: var(--ink-2); }
@@ -424,11 +491,13 @@
 <div class="wrap">
   <header class="masthead">
     <div class="label">Vancouver SRA By-law No. 8733 &middot; SRA Conversion Guidelines &middot; DTES Plan s.9</div>
-    <h1>SRA Conversion Evaluator</h1>
-    <p class="lede">A study tool for SRO conversion in the Downtown Eastside, in four moves: record the
-      stock building by building, model a typical floorplate, break it into units, and test what those
-      units must rent for. The conversion tests at the end read every threshold from the source
-      documents and report each with its own citation.</p>
+    <h1>SRA Conversion Optimizer</h1>
+    <p class="lede">A study tool for SRO conversion in the Downtown Eastside at the scale of the
+      district. The stock is mapped building by building; each building gets a typical floor read
+      from its own footprint, and a search over every scheme of adjacent merges finds the one that
+      displaces the fewest tenants while passing the City&rsquo;s tests. The district scenario then
+      asks how far a conversion mandate can reach, and who it moves. Every threshold is read from
+      the source documents and reported with its citation.</p>
   </header>
 
   <div class="sec-head">
@@ -450,18 +519,30 @@
     <div class="map-wrap">
       <div class="map-stage" id="map-stage">
         <div id="map-canvas"></div>
+        <div id="map-3d" hidden>
+          <div class="map-3d-labels" id="map-3d-labels"></div>
+          <div class="map-3d-hint" id="map-3d-hint"></div>
+        </div>
         <div class="map-tip" id="map-tip" hidden></div>
         <div class="map-card" id="map-card" hidden></div>
         <div class="map-zoom">
           <button type="button" id="z-in" title="Zoom in" aria-label="Zoom in">+</button>
           <button type="button" id="z-out" title="Zoom out" aria-label="Zoom out">&minus;</button>
           <button type="button" id="z-fit" title="Fit the whole district">Fit</button>
+          <button type="button" id="z-3d" title="The district in 3D, at LiDAR height">3D</button>
           <button type="button" id="z-foot" class="on" title="Building footprints">Footprints</button>
+          <button type="button" id="z-scen" title="Colour the stock by the district scenario">Scenario</button>
         </div>
         <div class="map-empty" id="map-empty" hidden></div>
       </div>
       <div class="map-side">
-        <div class="legend" style="margin:0 0 12px">
+        <div class="legend" id="legend-scen" hidden style="margin:0 0 12px">
+          <span><i class="swatch" style="background:var(--scen-0)"></i>Converted, none displaced</span>
+          <span><i class="swatch" style="background:var(--scen-1)"></i>Half the tenants displaced</span>
+          <span><i class="swatch" style="background:var(--map-unsurveyed)"></i>Left as it is</span>
+          <span><i class="swatch" style="background:var(--scen-x)"></i>No compliant scheme</span>
+        </div>
+        <div class="legend" id="legend-tenure" style="margin:0 0 12px">
           <span><i class="swatch" style="background:var(--map-market);border-radius:50%"></i>Market</span>
           <span><i class="swatch" style="background:var(--map-nonmarket);border-radius:50%"></i>Non-market</span>
           <span><i class="swatch" style="background:var(--map-unsurveyed);border-radius:50%"></i>Not surveyed</span>
@@ -516,7 +597,81 @@
   </section>
 
   <div class="sec-head">
-    <span class="sec-num">02</span><h2>Typical floorplate</h2>
+    <span class="sec-num">02</span><h2>Building</h2>
+    <span class="note">The typical floor of the building selected on the map, and its least-displacement scheme</span>
+  </div>
+
+  <section class="panel" style="margin-bottom:18px">
+    <div class="cols" style="grid-template-columns:minmax(0,1fr) minmax(0,340px)">
+      <div>
+        <div class="stage-bar" style="padding:0 0 10px;border:none;background:none">
+          <div class="btnrow">
+            <button type="button" data-read="strict" class="on" title="Every converted unit reaches 200 SF on its own">Strict &middot; 200 SF each</button>
+            <button type="button" data-read="average" title="The Guidelines&rsquo; fallback: an average of 200 SF across the converted units">Average fallback</button>
+          </div>
+          <span class="label" id="bp-title">No building selected</span>
+        </div>
+        <div id="bp-plan" class="plan-stage"></div>
+        <p class="src" id="bp-foot"></p>
+      </div>
+      <div id="bp-side"></div>
+    </div>
+  </section>
+
+  <div class="sec-head">
+    <span class="sec-num">03</span><h2>District scenario</h2>
+    <span class="note">How far a conversion mandate reaches, and who it moves</span>
+  </div>
+
+  <section class="panel" style="margin-bottom:18px">
+    <div class="cols" style="grid-template-columns:minmax(0,300px) minmax(0,1fr)">
+      <div>
+        <div class="field">
+          <label for="d-scope">Stock the mandate reaches</label>
+          <select id="d-scope">
+            <option value="market">Market SROs</option>
+            <option value="all">All of Appendix B</option>
+            <option value="nonmarket">Non-market SROs</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="d-read">Size test</label>
+          <select id="d-read">
+            <option value="average">Average fallback</option>
+            <option value="strict">Strict &middot; every unit 200 SF</option>
+          </select>
+        </div>
+        <div class="pair">
+          <div class="field"><label for="d-cap">Largest room assumed, SF</label>
+            <input type="number" id="d-cap" min="100" max="420" step="5" value="180"></div>
+          <div class="field"><label for="d-circ">Circulation share, %</label>
+            <input type="number" id="d-circ" min="0" max="60" step="1" value="25"></div>
+        </div>
+        <div class="field">
+          <label for="d-target">Self-contained units the mandate requires &middot; <span id="d-target-v"></span></label>
+          <input type="range" id="d-target" min="0" max="100" step="1" value="50">
+          <span class="hint-s" id="d-target-hint"></span>
+        </div>
+        <p class="src">Room size is read from each footprint: its area less the circulation share,
+          divided by the rooms Appendix B counts on a floor, and capped where a footprint holds far
+          more than its count suggests, since the City counts the designated rooms and not the
+          commercial or common floor around them. Both figures are assumptions and are editable.</p>
+        <p class="src">The optimizer chooses which buildings convert, and how far each goes, so that
+          the mandate is met with the fewest tenants displaced. A building converts at its own
+          least-loss scheme or not at all: a partial conversion below 50% fails DTES 9.2.7. Every room
+          is taken as occupied, so rooms lost equals tenants displaced; the survey&rsquo;s average
+          tenancy of 4.6 years places each of them in the 4-month bracket of s.4.8(i).</p>
+      </div>
+      <div>
+        <div class="tally" id="d-tally"></div>
+        <div id="d-curve" style="margin-top:14px"></div>
+        <div id="d-out"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="sec-head">
+    <span class="sec-num">04</span><h2>Floorplate editor</h2>
     <span class="note">Existing rooms in front, proposed scheme behind</span>
   </div>
 
@@ -557,7 +712,7 @@
   </section>
 
   <div class="sec-head">
-    <span class="sec-num">03</span><h2>Unit breakdown</h2>
+    <span class="sec-num">05</span><h2>Unit breakdown</h2>
     <span class="note">Generates the floorplate above</span>
   </div>
 
@@ -594,7 +749,7 @@
   </section>
 
   <div class="sec-head">
-    <span class="sec-num">04</span><h2>Rent and affordability</h2>
+    <span class="sec-num">06</span><h2>Rent and affordability</h2>
     <span class="note">Tested against the by-law standard, not against the market</span>
   </div>
 
@@ -626,7 +781,7 @@
   </section>
 
   <div class="sec-head">
-    <span class="sec-num">05</span><h2>Conversion tests</h2>
+    <span class="sec-num">07</span><h2>Conversion tests</h2>
     <span class="note">Every result carries the clause it comes from</span>
   </div>
 
@@ -637,6 +792,11 @@
           <h2>Tests</h2>
           <span class="label" id="overall"></span>
         </div>
+        <div class="btnrow" style="margin-bottom:12px">
+          <button type="button" id="opt-strict" title="Search every scheme of adjacent merges for the one that loses the fewest rooms, every unit at 200 SF">Least-displacement scheme</button>
+          <button type="button" id="opt-avg" title="The same search under the average fallback">&hellip; under the average fallback</button>
+        </div>
+        <p class="src" id="opt-note" hidden></p>
         <div class="tally" id="tally"></div>
         <div id="tests" style="margin-top:14px"></div>
         <div id="flags"></div>
@@ -677,8 +837,9 @@
   </div>
 
   <footer>
-    <p><strong>Scope.</strong> One floorplate at a time. The tool evaluates a scheme you propose; it does
-      not search for a compliant one. It does not model the permit process, financial-viability findings,
+    <p><strong>Scope.</strong> The tool evaluates a scheme you propose, and it searches for the compliant
+      scheme of adjacent merges that loses the fewest rooms, building by building and across the
+      district. It does not model the permit process, financial-viability findings,
       rent-setting, or whether a merge is physically buildable. The model is diagrammatic: rooms are
       single-loaded off one corridor at an assumed 12&prime; depth, and width follows area. Partitions are
       drawn at 3&prime; so the plan reads from above. Pod program comes from SRA Guidelines p.5&ndash;6,
@@ -1880,7 +2041,7 @@
         if (!d || !d.rings) return;
         // rings arrive delta-encoded in 1e-5 degree steps from an origin
         var o = d.origin, k = d.scale;
-        FOOT = d.rings.map(function (e) {
+        FOOT = d.rings.map(function (e, i2) {
           var pts = [], x = e[0], y = e[1];
           pts.push([o[0] + x * k, o[1] + y * k]);
           for (var i = 2; i < e.length; i += 2) {
@@ -1889,9 +2050,12 @@
           }
           var xs = pts.map(function (q) { return q[0]; }), ys = pts.map(function (q) { return q[1]; });
           return { p: pts, b: [Math.min.apply(null, xs), Math.min.apply(null, ys),
-                               Math.max.apply(null, xs), Math.max.apply(null, ys)] };
+                               Math.max.apply(null, xs), Math.max.apply(null, ys)],
+                   h: d.heights ? (d.heights[i2] || 0) : 0 };   // metres; 0 = no 2009 height
         });
+        M3.needFoot = true;
         drawMap();
+        districtReady();
       })
       .catch(function () { /* the map reads fine without them */ });
   }
@@ -1903,8 +2067,10 @@
         if (!d || !d.buildings) return;
         SURVEYED = d.buildings;
         if (STREETS) { setProj(mapBbox(STREETS.bbox)); resetView(); }
+        M3.needFoot = true;
         drawMap();
         renderStock();
+        districtReady();
       })
       .catch(function () { /* the map still works with the user's own records */ });
   }
@@ -1928,6 +2094,7 @@
         STREETS = d;
         setProj(mapBbox(d.bbox));
         resetView();
+        M3.needFoot = true;
         var dl = document.getElementById("hblocks");
         Object.keys(d.hblocks).sort().forEach(function (h) {
           var o = document.createElement("option");
@@ -2032,9 +2199,7 @@
     if (!b) { card.hidden = true; card.__b = null; return; }
     card.__b = b;
     // the bar takes the colour the building has on the map
-    var col = !b.surveyed ? "var(--map-unsurveyed)"
-      : (b.tenure === "market" ? "var(--map-market)" : "var(--map-nonmarket)");
-    card.style.setProperty("--pick", col);
+    card.style.setProperty("--pick", mapColour(b, surveySel));
 
     var pct = b.rooms ? Math.round(b.surveys / b.rooms * 100) : 0;
     var h = '<button type="button" class="close" aria-label="Close">&times;</button>'
@@ -2050,20 +2215,52 @@
       + '<span><em>Rooms</em>' + b.rooms + '</span>'
       + (b.surveyed ? '<span><em>Surveys</em>' + b.surveys + ' (' + pct + '%)</span>' : "")
       + (b.parcelSf ? '<span><em>Lot</em>' + fmt(b.parcelSf) + ' SF</span>' : "")
+      + (b.hgtM ? '<span><em>Height</em>' + b.hgtM + ' m \u00b7 \u2248' + floorsOf(b) + ' storeys</span>' : "")
       // a building the survey did not enter has no tenure, so no average applies to it
       + (b.surveyed ? '<span><em>Typical rent</em>'
           + money(b.tenure === "market" ? SURVEY.rentMarket : SURVEY.rentNonMarket) + '</span>' : "")
       + '</div>';
 
+    var mrec = MASS && MASS[surveySel];
+    if (mrec && mrec.parts.length) {
+      var measured = mrec.parts.filter(function (p) { return !p.est; });
+      var roofs = {};
+      measured.forEach(function (p) { roofs[p.roof] = true; });
+      if (measured.length) {
+        h += '<div class="why">Massing in 3D: ' + measured.length + ' LiDAR-measured part'
+          + (measured.length === 1 ? "" : "s") + ' ('
+          + measured.map(function (p) { return p.h + " m"; }).join(", ") + '; roof '
+          + Object.keys(roofs).join(", ").toLowerCase() + '). Elevations are generated from the '
+          + 'stock\u2019s shared type, not surveyed.</div>';
+      }
+    }
+    if (mrec && mrec.heritage) {
+      var hz = mrec.heritage;
+      h += '<div class="why">Vancouver Heritage Register'
+        + (hz.group ? ', evaluation group ' + esc(hz.group) : "")
+        + (hz.name && hz.name.toUpperCase() !== b.name.toUpperCase() ? ', listed as \u201c' + esc(hz.name) + '\u201d' : "")
+        + (hz.flags.length ? ' \u00b7 ' + esc(hz.flags.join(", ")) : "") + '.</div>';
+    }
     if (b.note) h += '<div class="why">' + esc(b.note) + '</div>';
     if (!b.parcelSf) h += '<div class="why">No parcel matched this address, so the point sits on '
       + 'its hundred block.</div>';
-    if (b.surveyed && b.rooms) {
-      var fl = Math.max(1, Math.min(12, Math.round(b.rooms / 22))) || 1;
+    var tp = b.rooms ? typicalPlan(surveySel) : null;
+    if (tp && tp.placed) {
+      h += '<div class="loaded">Typical floor in section 02: ' + tp.res + ' residential '
+        + (tp.res === 1 ? "storey" : "storeys") + ' \u00d7 ' + tp.placed + ' rooms of about ' + Math.round(tp.sf)
+        + ' SF, read from the footprint' + (b.hgtM ? ' and the ' + b.hgtM + ' m LiDAR height' : '') + '.'
+        + (SCEN && SCEN.byIndex[surveySel] ? ' Scenario: ' + (function (sc) {
+            return sc.state === "converted" ? sc.units + " units, " + sc.lost + " tenants displaced"
+              : sc.state === "infeasible" ? "no compliant conversion" : "left as it is"; })(SCEN.byIndex[surveySel]) + '.' : '')
+        + '</div>';
+    } else if (b.surveyed && b.rooms) {
+      var fl = floorsOf(b);
       var per = Math.max(1, Math.round(b.rooms / fl));
       h += '<div class="loaded">Loaded below as ' + fl + ' floors \u00d7 ' + per + ' rooms'
         + (b.parcelSf ? ", " + fmt(Math.round(b.parcelSf * 0.75 / per)) + " SF each" : "")
-        + '. Floors are assumed \u2014 edit them.</div>';
+        + (b.hgtM ? '. Storeys read from the ' + b.hgtM + ' m LiDAR height at ' + FLOOR_M
+                    + ' m each \u2014 an estimate; edit them.'
+                  : '. Floors are assumed \u2014 edit them.') + '</div>';
     }
     card.innerHTML = h;
     card.hidden = false;
@@ -2072,8 +2269,27 @@
     });
   }
 
+  // Each arterial labelled once, on whichever of its segments sits closest to
+  // the middle of the frame, so labels do not land on the clipped edges.
+  function arterialPicks() {
+    var pick = {}, bb = PROJ.bbox;
+    STREETS.segments.forEach(function (sg) {
+      if (sg.u !== 2 || !sg.h || sg.c.length < 2) return;
+      var name = sg.h.replace(/^[\d\u2013-]+\s+/, "");
+      var a = sg.c[0], b = sg.c[sg.c.length - 1];
+      if (a[0] < bb[0] || a[0] > bb[2] || a[1] < bb[1] || a[1] > bb[3]) return;
+      var mx = (PROJ.x(a[0]) + PROJ.x(b[0])) / 2, my = (PROJ.y(a[1]) + PROJ.y(b[1])) / 2;
+      var d = Math.hypot(mx - PROJ.W / 2, my - PROJ.H / 2);
+      var edge = Math.min(mx, PROJ.W - mx, my, PROJ.H - my);
+      if (edge < 60) return;                       // too close to the frame edge
+      if (!pick[name] || d < pick[name].d) pick[name] = { d: d, sg: sg, name: name };
+    });
+    return pick;
+  }
+
   function drawMap() {
     if (!STREETS || !PROJ) return;
+    if (M3.on) { m3build(); return; }          // the 3D view draws from the same state
     if (!view) resetView();
     var z = zk();
     var vx0 = view.x, vy0 = view.y, vx1 = view.x + view.w, vy1 = view.y + view.h;
@@ -2112,20 +2328,7 @@
       parts.push('<path d="' + d + '" fill="none" stroke="' + col + '" stroke-width="' + w
         + '" stroke-linecap="round"/>');
     });
-    // Label each arterial once, on whichever of its segments sits closest to
-    // the middle of the frame, so labels do not land on the clipped edges.
-    var pick = {};
-    STREETS.segments.forEach(function (sg) {
-      if (sg.u !== 2 || !sg.h || sg.c.length < 2) return;
-      var name = sg.h.replace(/^[\d\u2013-]+\s+/, "");
-      var a = sg.c[0], b = sg.c[sg.c.length - 1];
-      if (a[0] < bb[0] || a[0] > bb[2] || a[1] < bb[1] || a[1] > bb[3]) return;
-      var mx = (PROJ.x(a[0]) + PROJ.x(b[0])) / 2, my = (PROJ.y(a[1]) + PROJ.y(b[1])) / 2;
-      var d = Math.hypot(mx - PROJ.W / 2, my - PROJ.H / 2);
-      var edge = Math.min(mx, PROJ.W - mx, my, PROJ.H - my);
-      if (edge < 60) return;                       // too close to the frame edge
-      if (!pick[name] || d < pick[name].d) pick[name] = { d: d, sg: sg };
-    });
+    var pick = arterialPicks();
     Object.keys(pick).forEach(function (name) {
       var sg = pick[name].sg;
       var a = sg.c[0], b = sg.c[sg.c.length - 1];
@@ -2146,8 +2349,7 @@
         for (var q = 0; q < b.poly.length; q++) {
           dd += (q ? "L" : "M") + PROJ.x(b.poly[q][0]).toFixed(1) + " " + PROJ.y(b.poly[q][1]).toFixed(1);
         }
-        var col = !b.surveyed ? "var(--map-unsurveyed)"
-          : (b.tenure === "market" ? "var(--map-market)" : "var(--map-nonmarket)");
+        var col = mapColour(b, i);
         parts.push('<path data-s="' + i + '" d="' + dd + 'Z" fill="' + col + '" fill-opacity="'
           + (surveySel === i ? "0.95" : "0.55") + '" stroke="'
           + (surveySel === i ? "var(--ink)" : col) + '" stroke-width="'
@@ -2164,8 +2366,7 @@
         var r = (3.5 + 11 * Math.sqrt((b.rooms || 1) / maxS)) * z;
         if (z < 0.34 && b.poly) return;          // close in, the parcel says it better
         var sel = surveySel === i;
-        var fill = !b.surveyed ? "var(--map-unsurveyed)"
-          : (b.tenure === "market" ? "var(--map-market)" : "var(--map-nonmarket)");
+        var fill = mapColour(b, i);
         parts.push('<circle data-s="' + i + '" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1)
           + '" r="' + r.toFixed(1) + '" fill="' + fill + '" fill-opacity="'
           + (sel ? "0.95" : "0.6") + '" stroke="' + (sel ? "var(--ink)" : "none")
@@ -2273,14 +2474,21 @@
   }
 
   mapStage.addEventListener("wheel", function (e) {
-    if (!view) return;
+    if (!view || M3.on) return;
     e.preventDefault();
     var u = toUser(e);
     zoomBy(e.deltaY > 0 ? 1.18 : 1 / 1.18, u && u[0], u && u[1]);
   }, { passive: false });
 
+  // A press that starts on a control belongs to the control. Capturing the
+  // pointer here would retarget the release to the stage, and the browser then
+  // delivers the click to the stage instead of the button under the cursor.
+  function onControl(e) {
+    return !!(e.target && e.target.closest && e.target.closest("button, .map-zoom, .map-card, .map-3d-hint"));
+  }
+
   mapStage.addEventListener("pointerdown", function (e) {
-    if (!view || placing) return;
+    if (!view || placing || M3.on || onControl(e)) return;
     panning = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y };
     moved = false;
     mapStage.setPointerCapture(e.pointerId);
@@ -2310,7 +2518,7 @@
   mapStage.addEventListener("pointercancel", endPan);
 
   mapStage.addEventListener("click", function (e) {
-    if (!placing || !PROJ) return;
+    if (!placing || !PROJ || M3.on) return;
     var u = toUser(e);
     if (!u) return;
     document.getElementById("f-addr-hint").textContent =
@@ -2325,6 +2533,622 @@
     placing = on;
     document.body.classList.toggle("placing", on);
     document.getElementById("b-place").hidden = !on;
+  }
+
+  /* ======================================================================
+     6. THE DISTRICT IN 3D
+     The same footprints, streets and Appendix B buildings as the map, raised
+     to the height the City's 2009 LiDAR recorded for each footprint. An SRO
+     takes the footprint under its parcel centroid, coloured by tenure; the
+     rest of the neighbourhood is the ground it stands in.
+     ====================================================================== */
+
+  var M3 = { on: false, ready: false, dirty: true, needFoot: true, hover: null, mPerUnit: 1 };
+  var m3wrap = document.getElementById("map-3d");
+  var m3labels = document.getElementById("map-3d-labels");
+  var NOMINAL_H = 4;      // metres drawn for a footprint the 2009 survey did not measure
+  var FLOOR_M = 3.4;      // assumed floor-to-floor, for storeys read from a height
+
+  // Storeys: from the LiDAR height where the City measured one, otherwise the
+  // older assumption of about 22 rooms to a floor.
+  function floorsOf(b) {
+    if (b.hgtM) return Math.max(1, Math.round(b.hgtM / FLOOR_M));
+    return Math.max(1, Math.min(12, Math.round((b.rooms || 22) / 22))) || 1;
+  }
+  function tenureVar(b) {
+    return !b.surveyed ? "--map-unsurveyed" : (b.tenure === "market" ? "--map-market" : "--map-nonmarket");
+  }
+  function clear3(g) { while (g.children.length) g.remove(g.children[0]); }
+
+  function m3init() {
+    if (M3.ready) return true;
+    if (!THREE || !PROJ) return false;
+    var r;
+    try { r = new THREE.WebGLRenderer({ antialias: true, alpha: false }); } catch (e) { return false; }
+    if (!r || !r.domElement) return false;
+    M3.renderer = r;
+    r.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    m3wrap.insertBefore(r.domElement, m3labels);
+    M3.scene = new THREE.Scene();
+    M3.camera = new THREE.PerspectiveCamera(40, 1, 1, 30000);
+    M3.ray = new THREE.Raycaster();
+    M3.ndc = { x: 0, y: 0 };
+    M3.v = new THREE.Vector3();
+    M3.scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8a80, 0.9));
+    var sun = new THREE.DirectionalLight(0xffffff, 1.4);
+    sun.position.set(-700, 600, 500);
+    M3.scene.add(sun);
+    var fill = new THREE.DirectionalLight(0xffffff, 0.25);
+    fill.position.set(700, 300, -400);
+    M3.scene.add(fill);
+    M3.ground = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshLambertMaterial({ color: 0xffffff }));
+    M3.ground.rotation.x = -Math.PI / 2;
+    M3.scene.add(M3.ground);
+    M3.matBldg = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
+    M3.matArt = new THREE.LineBasicMaterial({ color: 0x999999 });
+    M3.matLocal = new THREE.LineBasicMaterial({ color: 0xcccccc });
+    M3.matSel = new THREE.LineBasicMaterial({ color: 0x000000 });
+    M3.gFoot = new THREE.Group(); M3.gStreets = new THREE.Group();
+    M3.gSro = new THREE.Group(); M3.gSel = new THREE.Group();
+    M3.scene.add(M3.gFoot, M3.gStreets, M3.gSro, M3.gSel);
+    M3.sroMeshes = [];
+    m3bindPointer();
+    if (window.ResizeObserver) new ResizeObserver(function () { if (M3.on) m3resize(); }).observe(mapStage);
+    else window.addEventListener("resize", function () { if (M3.on) m3resize(); });
+    M3.ready = true;
+    m3colours();
+    M3.cam = { r: PROJ.W, theta: Math.PI / 2 + 0.45, phi: 0.95, tx: PROJ.W / 2, tz: PROJ.H / 2 };
+    return true;
+  }
+
+  function m3colours() {
+    if (!M3.ready) return;
+    M3.scene.background = new THREE.Color(css("--m3-sky") || "#e9e5db");
+    M3.ground.material.color.set(css("--m3-ground") || "#f4f1ea");
+    M3.matArt.color.set(css("--m3-street") || "#b9b2a3");
+    M3.matLocal.color.set(css("--m3-lane") || "#d3cdbf");
+    M3.matSel.color.set(css("--ink") || "#1d2320");
+    M3.needFoot = true;
+    M3.dirty = true;
+  }
+
+  // One merged geometry from many rings: a triangulated roof and one quad per
+  // edge, coloured per vertex so a single draw covers the whole district.
+  function m3extrude(items) {
+    var pos = [], col = [];
+    items.forEach(function (it) {
+      var c = it.pts.slice();
+      if (c.length > 1 && c[0][0] === c[c.length - 1][0] && c[0][1] === c[c.length - 1][1]) c.pop();
+      if (c.length < 3) return;
+      var xz = c.map(function (p) { return [PROJ.x(p[0]), PROJ.y(p[1])]; });
+      var y = Math.max(0.5, it.h) / M3.mPerUnit;
+      var contour = xz.map(function (p) { return new THREE.Vector2(p[0], p[1]); });
+      var tris;
+      try { tris = THREE.ShapeUtils.triangulateShape(contour, []); } catch (e) { tris = []; }
+      var r = it.col.r, g = it.col.g, b = it.col.b;
+      function push(x, yy, z, f) { pos.push(x, yy, z); col.push(r * f, g * f, b * f); }
+      tris.forEach(function (t) { for (var k = 0; k < 3; k++) push(xz[t[k]][0], y, xz[t[k]][1], 1); });
+      for (var i = 0; i < xz.length; i++) {
+        var a = xz[i], q = xz[(i + 1) % xz.length];
+        push(a[0], 0, a[1], 0.86); push(q[0], 0, q[1], 0.86); push(q[0], y, q[1], 0.86);
+        push(a[0], 0, a[1], 0.86); push(q[0], y, q[1], 0.86); push(a[0], y, a[1], 0.86);
+      }
+    });
+    var geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+    geo.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
+    geo.computeVertexNormals();
+    return geo;
+  }
+
+  function m3scale() {
+    var bb = PROJ.bbox;
+    M3.mPerUnit = (bb[2] - bb[0]) * PROJ.k * 111320 / PROJ.W;   // metres per map unit
+    M3.ground.scale.set(PROJ.W * 8, PROJ.H * 8, 1);
+    M3.ground.position.set(PROJ.W / 2, -0.05, PROJ.H / 2);
+  }
+
+  // Footprints that an SRO already stands on are drawn by the SRO itself.
+  function m3sroFootSet() {
+    var set = {};
+    if (showSurveyed) SURVEYED.forEach(function (b) { if (b.foot != null) set[b.foot] = true; });
+    return set;
+  }
+
+  function m3foot() {
+    clear3(M3.gFoot);
+    if (!showFoot || !FOOT) return;
+    var skip = m3sroFootSet(), colour = new THREE.Color(css("--m3-bldg") || "#d8d2c3");
+    var items = [];
+    for (var i = 0; i < FOOT.length; i++) {
+      if (skip[i]) continue;
+      items.push({ pts: FOOT[i].p, h: FOOT[i].h || NOMINAL_H, col: colour });
+    }
+    M3.gFoot.add(new THREE.Mesh(m3extrude(items), M3.matBldg));
+  }
+
+  function m3streets() {
+    clear3(M3.gStreets);
+    var bb = PROJ.bbox, art = [], loc = [];
+    STREETS.segments.forEach(function (sg) {
+      var inside = sg.c.some(function (c) {
+        return c[0] >= bb[0] && c[0] <= bb[2] && c[1] >= bb[1] && c[1] <= bb[3];
+      });
+      if (!inside) return;
+      var arr = sg.u ? art : loc;
+      for (var i = 1; i < sg.c.length; i++) {
+        arr.push(PROJ.x(sg.c[i - 1][0]), 0.12, PROJ.y(sg.c[i - 1][1]),
+                 PROJ.x(sg.c[i][0]), 0.12, PROJ.y(sg.c[i][1]));
+      }
+    });
+    [[art, M3.matArt], [loc, M3.matLocal]].forEach(function (pair) {
+      if (!pair[0].length) return;
+      var g = new THREE.BufferGeometry();
+      g.setAttribute("position", new THREE.Float32BufferAttribute(pair[0], 3));
+      M3.gStreets.add(new THREE.LineSegments(g, pair[1]));
+    });
+    // arterial names, placed once and projected each frame
+    M3.streetLabels = [];
+    var pick = arterialPicks();
+    Object.keys(pick).forEach(function (name) {
+      var sg = pick[name].sg, a = sg.c[0], b = sg.c[sg.c.length - 1];
+      M3.streetLabels.push({ text: name, x: (PROJ.x(a[0]) + PROJ.x(b[0])) / 2,
+                             z: (PROJ.y(a[1]) + PROJ.y(b[1])) / 2 });
+    });
+  }
+
+  /* ---- the buildings themselves: measured parts, generated elevations ----
+     Massing is the City's LiDAR-measured footprint parts at their own heights.
+     The elevations are generated from the type the stock shares: a tall retail
+     ground floor under a storefront, a regular bay rhythm of punched windows
+     above, a belt course and a cornice. Frontage, height and storey count come
+     from the data; the rhythm is the assumption, and it is drawn only on the
+     edges that front a street. */
+
+  var MASS = null;            // sro-massing.json, by Appendix B index
+  var FAC = { ground: [3.4, 5.0], bay: 3.3, win: [1.15, 1.8], sill: 0.9, storefront: 0.6,
+              parapet: 0.6, cornice: [0.5, 0.45], belt: [0.15, 0.3], glassOut: 0.12 };
+
+  function loadMassing() {
+    fetch("data/sro-massing.json")
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d || !d.buildings) return;
+        MASS = [];
+        d.buildings.forEach(function (rec) { MASS[rec.i] = rec; });
+        if (M3.on) m3build();
+        renderCard();
+      })
+      .catch(function () { /* the extrusions stand in */ });
+  }
+
+  // An oriented box along a footprint edge. A and B are the edge in map units,
+  // n its outward unit normal; t runs along the edge, d outward, y up, all in
+  // metres. Twelve triangles, coloured per vertex like everything else.
+  function m3edgeBox(pos, col, A, ex, n, t0, t1, y0, y1, d0, d1, c, shade) {
+    var u = 1 / M3.mPerUnit;
+    function P(t, y, d) {
+      return [A[0] + ex[0] * t * u + n[0] * d * u, y * u, A[1] + ex[1] * t * u + n[1] * d * u];
+    }
+    var v = [P(t0, y0, d0), P(t1, y0, d0), P(t1, y1, d0), P(t0, y1, d0),
+             P(t0, y0, d1), P(t1, y0, d1), P(t1, y1, d1), P(t0, y1, d1)];
+    var f = [[4, 5, 6, 7], [1, 0, 3, 2], [0, 4, 7, 3], [5, 1, 2, 6], [3, 7, 6, 2], [0, 1, 5, 4]];
+    f.forEach(function (q) {
+      [[0, 1, 2], [0, 2, 3]].forEach(function (t) {
+        t.forEach(function (k) {
+          var p = v[q[k]]; pos.push(p[0], p[1], p[2]); col.push(c.r * shade, c.g * shade, c.b * shade);
+        });
+      });
+    });
+  }
+
+  // The generated elevation on one street-facing edge of one part.
+  function m3facade(pos, col, ring, ei, h, body, glass, trim) {
+    var a = ring[ei], b = ring[(ei + 1) % ring.length];
+    var A = [PROJ.x(a[0]), PROJ.y(a[1])], B = [PROJ.x(b[0]), PROJ.y(b[1])];
+    var dx = B[0] - A[0], dz = B[1] - A[1], Lu = Math.hypot(dx, dz);
+    if (!Lu) return;
+    var L = Lu * M3.mPerUnit, ex = [dx / Lu, dz / Lu];
+    // outward: away from the part's centroid
+    var cx = 0, cz = 0;
+    ring.forEach(function (p) { cx += PROJ.x(p[0]); cz += PROJ.y(p[1]); });
+    cx /= ring.length; cz /= ring.length;
+    var n = [ex[1], -ex[0]];
+    var mx = (A[0] + B[0]) / 2, mz = (A[1] + B[1]) / 2;
+    if ((mx - cx) * n[0] + (mz - cz) * n[1] < 0) n = [-n[0], -n[1]];
+
+    var storeys = Math.max(1, Math.round(h / FLOOR_M));
+    var g = storeys > 1 ? Math.max(FAC.ground[0], Math.min(FAC.ground[1], h * 0.22)) : h;
+    var top = h - FAC.parapet;
+    var upper = storeys > 1 ? (top - g) / (storeys - 1) : 0;
+    var m = 0.5;   // end margin
+
+    // storefront: glazing between a plinth and the transom line
+    if (L > 3) {
+      var sTop = Math.min(g - 0.7, h - 0.5);
+      if (sTop > FAC.storefront + 0.8) {
+        m3edgeBox(pos, col, A, ex, n, m, L - m, FAC.storefront, sTop, 0, FAC.glassOut, glass, 1);
+      }
+    }
+    if (storeys > 1) {
+      // belt course at the top of the ground floor
+      m3edgeBox(pos, col, A, ex, n, 0, L, g - FAC.belt[1], g, 0, FAC.belt[0], trim, 1);
+      // punched windows, one per bay, on every upper floor
+      var bays = Math.max(1, Math.floor((L - 2 * m) / FAC.bay));
+      var pitch = (L - 2 * m) / bays, w = Math.min(FAC.win[0], pitch * 0.55);
+      var wh = Math.min(FAC.win[1], Math.max(0.8, upper - FAC.sill - 0.5));
+      for (var f = 1; f < storeys; f++) {
+        var y0 = g + (f - 1) * upper + FAC.sill;
+        for (var k = 0; k < bays; k++) {
+          var t0 = m + k * pitch + (pitch - w) / 2;
+          m3edgeBox(pos, col, A, ex, n, t0, t0 + w, y0, y0 + wh, 0, FAC.glassOut, glass, 1);
+        }
+      }
+      // cornice under the parapet
+      m3edgeBox(pos, col, A, ex, n, -0.1, L + 0.1, top - FAC.cornice[1], top, 0, FAC.cornice[0], trim, 1);
+    }
+  }
+
+  // Geometry for one Appendix B building from its massing record.
+  function m3buildingGeo(rec, body) {
+    var pos = [], col = [];
+    var glass = new THREE.Color(css("--m3-glass") || "#2b3230");
+    var trim = new THREE.Color(css("--m3-trim") || "#efe9dc");
+    var items = rec.parts.map(function (p) { return { pts: p.r, h: p.h || NOMINAL_H, col: body }; });
+    var base = m3extrude(items);
+    rec.parts.forEach(function (p) {
+      var h = p.h || NOMINAL_H;
+      (p.faces || []).forEach(function (fc) { m3facade(pos, col, p.r, fc[0], h, body, glass, trim); });
+    });
+    if (!pos.length) return base;
+    var bp = base.getAttribute("position").array, bc = base.getAttribute("color").array;
+    var P = new Float32Array(bp.length + pos.length), C = new Float32Array(bc.length + col.length);
+    P.set(bp); P.set(pos, bp.length); C.set(bc); C.set(col, bc.length);
+    var geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.BufferAttribute(P, 3));
+    geo.setAttribute("color", new THREE.BufferAttribute(C, 3));
+    geo.computeVertexNormals();
+    return geo;
+  }
+
+  function m3sro() {
+    clear3(M3.gSro);
+    M3.sroMeshes = [];
+    if (!showSurveyed) return;
+    SURVEYED.forEach(function (b, i) {
+      if (b.lon == null) return;
+      var colour = new THREE.Color(mapColourHex(b, i));
+      var rec = MASS && MASS[i] && MASS[i].parts.length ? MASS[i] : null;
+      var pts = (b.foot != null && FOOT && FOOT[b.foot]) ? FOOT[b.foot].p : b.poly;
+      var h = b.hgtM || floorsOf(b) * FLOOR_M;
+      var mesh, cx, cz, top = h;
+      if (rec) {
+        mesh = new THREE.Mesh(m3buildingGeo(rec, colour), M3.matBldg);
+        var sx = 0, sz = 0, nn = 0;
+        rec.parts.forEach(function (p) {
+          top = Math.max(top, p.h || 0);
+          p.r.forEach(function (q) { sx += PROJ.x(q[0]); sz += PROJ.y(q[1]); nn++; });
+        });
+        cx = sx / nn; cz = sz / nn;
+      } else if (pts) {
+        mesh = new THREE.Mesh(m3extrude([{ pts: pts, h: h, col: colour }]), M3.matBldg);
+        var sx2 = 0, sz2 = 0;
+        pts.forEach(function (p) { sx2 += PROJ.x(p[0]); sz2 += PROJ.y(p[1]); });
+        cx = sx2 / pts.length; cz = sz2 / pts.length;
+      } else {
+        // a hundred-block placement has no outline: a column marks it
+        cx = PROJ.x(b.lon); cz = PROJ.y(b.lat);
+        var rr = 7 / M3.mPerUnit, y = h / M3.mPerUnit;
+        mesh = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 20),
+          new THREE.MeshLambertMaterial({ color: colour }));
+        mesh.scale.set(rr, y, rr);
+        mesh.position.set(cx, y / 2, cz);
+      }
+      mesh.userData = { s: i, cx: cx, cz: cz, top: top / M3.mPerUnit, est: !b.hgtM };
+      M3.gSro.add(mesh);
+      M3.sroMeshes.push(mesh);
+    });
+  }
+
+  function m3select() {
+    clear3(M3.gSel);
+    M3.sroMeshes.forEach(function (m) {
+      if (m.userData.s !== surveySel) return;
+      var edges = new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry, 40), M3.matSel);
+      edges.position.copy(m.position); edges.scale.copy(m.scale);
+      M3.gSel.add(edges);
+    });
+  }
+
+  function m3build() {
+    if (!M3.ready || !STREETS || !PROJ) return;
+    m3scale();
+    if (M3.needFoot) { m3foot(); m3streets(); M3.needFoot = false; }
+    m3sro();
+    m3select();
+    m3hint();
+    M3.dirty = true;
+  }
+
+  function m3hint() {
+    var el = document.getElementById("map-3d-hint");
+    if (!el) return;
+    var n = 0, est = 0, none = 0;
+    SURVEYED.forEach(function (b) { if (b.hgtM) n++; else if (b.lon != null) est++; });
+    if (FOOT) FOOT.forEach(function (f) { if (!f.h) none++; });
+    el.innerHTML = "Drag to pan · shift-drag or right-drag to orbit · scroll to zoom.<br>"
+      + "Heights are the City’s 2009 LiDAR: " + n + " of the Appendix B buildings measured"
+      + (est ? ", " + est + " estimated from room count" : "") + "."
+      + (none ? " " + none.toLocaleString("en-CA") + " footprints with no reading stand at "
+          + NOMINAL_H + " m." : "");
+  }
+
+  /* ---- camera ---- */
+
+  function m3place() {
+    var c = M3.cam, sp = Math.max(0.12, Math.min(1.5, c.phi));
+    M3.camera.position.set(
+      c.tx + c.r * Math.sin(sp) * Math.cos(c.theta),
+      c.r * Math.cos(sp),
+      c.tz + c.r * Math.sin(sp) * Math.sin(c.theta));
+    M3.camera.lookAt(c.tx, 0, c.tz);
+    M3.camera.updateMatrixWorld();
+  }
+
+  function m3clamp() {
+    var c = M3.cam;
+    c.r = Math.max(PROJ.W * 0.02, Math.min(PROJ.W * 2.2, c.r));
+    c.tx = Math.max(-PROJ.W * 0.3, Math.min(PROJ.W * 1.3, c.tx));
+    c.tz = Math.max(-PROJ.H * 0.3, Math.min(PROJ.H * 1.3, c.tz));
+    c.phi = Math.max(0.12, Math.min(1.5, c.phi));
+  }
+
+  // Frame the district: pull the camera back until the ground rectangle the
+  // stock sits on projects inside the canvas, whatever its aspect.
+  function m3fit() {
+    if (!M3.ready) return;
+    var xs = [], zs = [];
+    SURVEYED.forEach(function (b) { if (b.lon != null) { xs.push(PROJ.x(b.lon)); zs.push(PROJ.y(b.lat)); } });
+    var x0 = xs.length ? Math.min.apply(null, xs) : 0, x1 = xs.length ? Math.max.apply(null, xs) : PROJ.W;
+    var z0 = zs.length ? Math.min.apply(null, zs) : 0, z1 = zs.length ? Math.max.apply(null, zs) : PROJ.H;
+    M3.cam = { r: Math.max(x1 - x0, z1 - z0), theta: Math.PI / 2 + 0.5, phi: 1.12,
+               tx: (x0 + x1) / 2, tz: (z0 + z1) / 2 };
+    var corners = [[x0, z0], [x1, z0], [x0, z1], [x1, z1]];
+    for (var pass = 0; pass < 4; pass++) {
+      m3place();
+      var m = 0;
+      corners.forEach(function (c) {
+        M3.v.set(c[0], 0, c[1]).project(M3.camera);
+        m = Math.max(m, Math.abs(M3.v.x), Math.abs(M3.v.y));
+      });
+      if (m > 0) M3.cam.r *= m / 0.96;
+    }
+    m3clamp();
+    M3.dirty = true;
+  }
+
+  function m3zoom(f) {
+    if (!M3.ready) return;
+    M3.cam.r *= f; m3clamp(); M3.dirty = true;
+  }
+
+  function m3resize() {
+    if (!M3.ready) return;
+    var w = mapStage.clientWidth || 600;
+    var h = Math.max(380, Math.min(600, Math.round(w * 0.64)));
+    m3wrap.style.height = h + "px";
+    M3.renderer.setSize(w, h, false);
+    M3.camera.aspect = w / h;
+    M3.camera.updateProjectionMatrix();
+    M3.dirty = true;
+  }
+
+  function m3ndc(e) {
+    var rect = M3.renderer.domElement.getBoundingClientRect();
+    M3.ndc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    M3.ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    return M3.ndc;
+  }
+
+  function m3groundPoint(e) {
+    M3.ray.setFromCamera(m3ndc(e), M3.camera);
+    var hits = M3.ray.intersectObject(M3.ground, false);
+    return hits.length ? hits[0].point : null;
+  }
+
+  function m3pick(e) {
+    M3.ray.setFromCamera(m3ndc(e), M3.camera);
+    var hits = M3.ray.intersectObjects(M3.sroMeshes, false);
+    return hits.length ? hits[0].object : null;
+  }
+
+  // world -> pixels inside the stage, for the tooltip and the labels
+  function m3toScreen(x, y, z) {
+    M3.v.set(x, y, z).project(M3.camera);
+    var r = M3.renderer.domElement.getBoundingClientRect();
+    return { x: (M3.v.x + 1) / 2 * r.width, y: (1 - M3.v.y) / 2 * r.height,
+             on: M3.v.z < 1 && Math.abs(M3.v.x) < 1.05 && Math.abs(M3.v.y) < 1.05 };
+  }
+
+  function m3bindPointer() {
+    var el = M3.renderer.domElement, down = null, pointers = new Map(), lastPinch = 0;
+
+    el.addEventListener("pointerdown", function (e) {
+      el.setPointerCapture(e.pointerId);
+      pointers.set(e.pointerId, e);
+      if (pointers.size > 1) { down = null; return; }
+      var orbit = e.button === 2 || e.shiftKey || e.ctrlKey || e.metaKey;
+      down = { x: e.clientX, y: e.clientY, moved: false, orbit: orbit,
+               theta: M3.cam.theta, phi: M3.cam.phi, g: m3groundPoint(e) };
+      m3wrap.classList.toggle("orbiting", orbit);
+      e.stopPropagation();
+    });
+
+    el.addEventListener("pointermove", function (e) {
+      if (pointers.has(e.pointerId)) pointers.set(e.pointerId, e);
+      if (pointers.size > 1) { pinch(); return; }
+      if (!down) { hover(e); return; }
+      var dx = e.clientX - down.x, dy = e.clientY - down.y;
+      if (Math.abs(dx) + Math.abs(dy) > 4) down.moved = true;
+      if (!down.moved) return;
+      hideTip();
+      if (down.orbit) {
+        M3.cam.theta = down.theta + dx * 0.006;
+        M3.cam.phi = down.phi - dy * 0.006;
+      } else if (down.g) {
+        // keep the ground point that was under the pointer under the pointer
+        var g = m3groundPoint(e);
+        if (g) { M3.cam.tx += down.g.x - g.x; M3.cam.tz += down.g.z - g.z; }
+      }
+      m3clamp(); m3place(); M3.dirty = true;
+    });
+
+    function end(e) {
+      pointers.delete(e.pointerId);
+      if (pointers.size < 2) lastPinch = 0;
+      m3wrap.classList.remove("orbiting");
+      if (!down) return;
+      var d = down; down = null;
+      if (d.moved || e.button === 2) return;
+      var hit = m3pick(e);
+      if (hit) selectSurveyed(hit.userData.s);
+    }
+    el.addEventListener("pointerup", end);
+    el.addEventListener("pointercancel", end);
+    el.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+    el.addEventListener("pointerleave", function () { M3.hover = null; hideTip(); m3wrap.classList.remove("picking"); M3.dirty = true; });
+
+    el.addEventListener("wheel", function (e) {
+      e.preventDefault(); e.stopPropagation();
+      // zoom toward the ground under the cursor, as the flat map does
+      var g0 = m3groundPoint(e);
+      M3.cam.r *= e.deltaY > 0 ? 1.15 : 1 / 1.15;
+      m3clamp(); m3place();
+      var g1 = m3groundPoint(e);
+      if (g0 && g1) { M3.cam.tx += g0.x - g1.x; M3.cam.tz += g0.z - g1.z; m3clamp(); }
+      M3.dirty = true;
+    }, { passive: false });
+
+    function pinch() {
+      var pts = Array.from(pointers.values());
+      if (pts.length < 2) return;
+      var d = Math.hypot(pts[0].clientX - pts[1].clientX, pts[0].clientY - pts[1].clientY);
+      if (lastPinch) { M3.cam.r *= lastPinch / d; m3clamp(); M3.dirty = true; }
+      lastPinch = d;
+    }
+
+    function hover(e) {
+      var hit = m3pick(e);
+      var s = hit ? hit.userData.s : null;
+      m3wrap.classList.toggle("picking", s !== null);
+      if (s === M3.hover) return;
+      M3.hover = s;
+      M3.dirty = true;
+      if (s === null) { hideTip(); return; }
+      var b = SURVEYED[s], u = hit.userData, q = m3toScreen(u.cx, u.top, u.cz);
+      var t = document.getElementById("map-tip");
+      var off = m3offset();
+      t.textContent = b.name + " · " + b.rooms + " rooms"
+        + (b.hgtM ? " · " + b.hgtM + " m" : " · height estimated");
+      t.style.left = (q.x + off.x).toFixed(0) + "px";
+      t.style.top = (q.y + off.y).toFixed(0) + "px";
+      t.hidden = false;
+    }
+  }
+
+  function m3offset() {
+    var r = M3.renderer.domElement.getBoundingClientRect(), sr = mapStage.getBoundingClientRect();
+    return { x: r.left - sr.left, y: r.top - sr.top };
+  }
+
+  // Street names always; building names when close enough that they can be
+  // read, skipping any that would land on one already placed.
+  function m3labelsDraw() {
+    var parts = [], placed = [];
+    var W = M3.renderer.domElement.clientWidth, H = M3.renderer.domElement.clientHeight;
+    function free(x, y, w) {
+      for (var i = 0; i < placed.length; i++) {
+        if (Math.abs(placed[i][0] - x) < (placed[i][2] + w) / 2 && Math.abs(placed[i][1] - y) < 14) return false;
+      }
+      placed.push([x, y, w]); return true;
+    }
+    var close = M3.cam.r < PROJ.W * 0.22;   // near enough that the names can be read
+    M3.sroMeshes.forEach(function (m) {
+      var u = m.userData, sel = u.s === surveySel;
+      if (!close && !sel && u.s !== M3.hover) return;
+      var q = m3toScreen(u.cx, u.top, u.cz);
+      if (!q.on) return;
+      var name = SURVEYED[u.s].name, w = name.length * 6.2 + 8;
+      if (!sel && !free(q.x, q.y, w)) return;
+      parts.push('<span class="lbl' + (sel ? " sel" : "") + '" style="left:' + q.x.toFixed(0)
+        + 'px;top:' + (q.y - 4).toFixed(0) + 'px">' + esc(name) + '</span>');
+    });
+    (M3.streetLabels || []).forEach(function (l) {
+      var q = m3toScreen(l.x, 0, l.z);
+      if (!q.on || q.x < 30 || q.x > W - 30 || q.y < 20 || q.y > H - 20) return;
+      if (!free(q.x, q.y, l.text.length * 7 + 8)) return;
+      parts.push('<span class="lbl street" style="left:' + q.x.toFixed(0) + 'px;top:' + q.y.toFixed(0)
+        + 'px">' + esc(l.text) + '</span>');
+    });
+    m3labels.innerHTML = parts.join("");
+  }
+
+  function m3loop() {
+    if (!M3.on) return;
+    requestAnimationFrame(m3loop);
+    if (!M3.dirty) return;
+    M3.dirty = false;
+    try {
+      m3place();
+      M3.renderer.render(M3.scene, M3.camera);
+      m3labelsDraw();
+    } catch (e) {
+      M3.on = false;
+      m3fail((e && e.message) ? e.message : String(e));
+    }
+  }
+
+  // Anything that stops the view says so on the map, rather than leaving a
+  // button that seems to do nothing.
+  function m3fail(msg) {
+    var el = document.getElementById("map-3d-hint");
+    m3wrap.hidden = false;
+    m3wrap.style.height = "";
+    m3wrap.style.minHeight = "120px";
+    if (el) el.textContent = "3D view: " + msg;
+    storeNote("3D view: " + msg);
+    if (window.console && console.error) console.error("3D view: " + msg);
+  }
+
+  function setMode3d(on) {
+    var btn = document.getElementById("z-3d");
+    try {
+      if (on && !PROJ) { m3fail("the street grid has not finished loading; try again in a moment."); return; }
+      if (on && !THREE) { m3fail("three.js did not load, so nothing can be drawn."); return; }
+      if (on && !m3init()) { m3fail("this browser could not start a WebGL context."); return; }
+      M3.on = on;
+      btn.classList.toggle("on", on);
+      m3wrap.hidden = !on;
+      m3wrap.style.minHeight = "";
+      document.getElementById("map-canvas").hidden = on;
+      hideTip();
+      if (on) {
+        m3resize();
+        if (!M3.framed) { m3fit(); M3.framed = true; }   // the first fit needs the canvas sized
+        m3build();
+        m3loop();
+      } else drawMap();
+    } catch (e) {
+      M3.on = false;
+      m3fail((e && e.message) ? e.message : String(e));
+    }
+  }
+
+  if (window.matchMedia) {
+    var mq3 = window.matchMedia("(prefers-color-scheme: dark)");
+    var onTheme3 = function () { if (M3.ready) { m3colours(); if (M3.on) m3build(); } };
+    if (mq3.addEventListener) mq3.addEventListener("change", onTheme3);
+    else if (mq3.addListener) mq3.addListener(onTheme3);
   }
 
   /* ---- store: db when the viewer has it, memory otherwise ---- */
@@ -2400,6 +3224,7 @@
           + '<span class="meta">' + esc(sb.addr) + ' \u00b7 ' + esc(sb.tenure)
           + (sb.surveyed ? " \u00b7 " + sb.surveys + " surveys" : "")
           + (sb.parcelSf ? " \u00b7 lot " + fmt(sb.parcelSf) + " SF" : "")
+          + (sb.hgtM ? " \u00b7 " + sb.hgtM + " m" : "")
           + (sb.approx ? " \u00b7 placed approximately" : "")
           + (sb.note ? '</span><span class="meta">' + esc(sb.note) : "")
           + '</span></div>';
@@ -2411,7 +3236,8 @@
       ctx.textContent = placed
         ? "Coloured points: the " + placed + " SRO buildings listed in Appendix B of the 2024 SRO "
           + "Tenant Survey, placed from their addresses on the City street grid. Market red, "
-          + "non-market green, not surveyed grey; area \u221d rooms. Click one to load it below."
+          + "non-market green, not surveyed grey; area \u221d rooms. Click one to load it below. "
+          + "The 3D button raises every footprint to the height the City's LiDAR measured."
         : "2024 SRO Tenant Survey: " + SURVEY.buildings + " buildings and " + SURVEY.respondents
           + " tenants surveyed.";
     }
@@ -2430,12 +3256,15 @@
     var b = SURVEYED[i];
     if (surveySel !== null && b && b.rooms) {
       // The survey gives rooms per building, never the floorplate. Rooms are
-      // spread over an assumed number of floors so the model starts somewhere
-      // sensible; both figures stay editable.
-      var fl = Math.max(1, Math.min(12, Math.round(b.rooms / 22))) || 1;
+      // spread over the storeys the building's LiDAR height implies, or an
+      // assumed count where the City has no height; both stay editable.
+      var tp = typicalPlan(i), fl = tp && tp.placed ? tp.res : floorsOf(b);
       document.getElementById("u-floors").value = fl;
-      document.getElementById("u-count").value = Math.max(1, Math.round(b.rooms / fl));
-      if (b.parcelSf) {
+      document.getElementById("u-count").value = tp && tp.placed ? tp.placed : Math.max(1, Math.round(b.rooms / fl));
+      if (tp && tp.placed) {
+        document.getElementById("u-sf").value = Math.max(MIN_AREA, Math.min(MAX_AREA, Math.round(tp.sf)));
+        document.getElementById("r-existing-sf").value = Math.round(tp.sf);
+      } else if (b.parcelSf) {
         // The lot area, less a circulation share, divided by the rooms on a
         // floor: a starting room size where the survey gives none.
         var circ = (num(document.getElementById("u-circ").value) || 25) / 100;
@@ -2451,6 +3280,7 @@
     }
     renderStock();
     renderCard();
+    renderBuilding();
   }
 
   function selectBuilding(id) {
@@ -2549,14 +3379,24 @@
     }, function () { showImport(out); });
   });
 
-  document.getElementById("z-in").addEventListener("click", function () { zoomBy(1 / 1.5); });
-  document.getElementById("z-out").addEventListener("click", function () { zoomBy(1.5); });
-  document.getElementById("z-fit").addEventListener("click", function () { resetView(); drawMap(); });
+  document.getElementById("z-in").addEventListener("click", function () {
+    if (M3.on) m3zoom(1 / 1.5); else zoomBy(1 / 1.5);
+  });
+  document.getElementById("z-out").addEventListener("click", function () {
+    if (M3.on) m3zoom(1.5); else zoomBy(1.5);
+  });
+  document.getElementById("z-fit").addEventListener("click", function () {
+    if (M3.on) { m3fit(); return; }
+    resetView(); drawMap();
+  });
   document.getElementById("z-foot").addEventListener("click", function () {
     showFoot = !showFoot;
     this.classList.toggle("on", showFoot);
+    M3.needFoot = true;
     drawMap();
   });
+  document.getElementById("z-3d").addEventListener("click", function () { setMode3d(!M3.on); });
+  document.getElementById("z-scen").addEventListener("click", function () { setScenarioColour(!scenColour); });
 
   document.getElementById("b-survey").addEventListener("click", function () {
     showSurveyed = !showSurveyed;
@@ -2761,7 +3601,7 @@
       + money(SHELTER_RATE) + ' \u2014 market rents rose 46% between 2013 and 2024 while that '
       + 'component rose 33%. Only ' + Math.round(SURVEY.privateBathroom * 100) + '% of tenants '
       + 'reported a private bathroom, which is why a converted unit has to add the pods drawn '
-      + 'in section 02.</p>';
+      + 'in section 04.</p>';
     h += '<p class="note">' + (drop > 0
       ? "Holding this tenant at the by-law’s ceiling in a " + fmt(usf) + " SF unit means letting the "
         + "rate fall " + Math.round(drop * 100) + "% below what the room earns today. That gap is what a "
@@ -2780,6 +3620,742 @@
   });
   document.getElementById("u-apply").addEventListener("click", applyBreakdown);
 
+  /* ======================================================================
+     8. THE SEARCH
+     A port of sro/optimize.py. A run is a row of rooms along one side of
+     one corridor; units are runs of consecutive rooms; rooms never merge
+     across a corridor or a floor slab. The objective is rooms lost, which
+     with every room occupied is tenants displaced.
+     ====================================================================== */
+
+  var MAX_MERGE = 3;   // a self-contained unit takes at most three rooms: an assumption, stated in the README
+
+  function runFrontier(areas, strict) {
+    var n = areas.length, layers = [];
+    for (var i = 0; i <= n; i++) layers.push({});
+    layers[0]["0,0"] = { u: 0, k: 0, area: 0, prev: null, move: null };
+    function push(layer, u, k, area, prev, move) {
+      var key = u + "," + k, cur = layer[key];
+      if (!cur || area > cur.area + EPS) layer[key] = { u: u, k: k, area: area, prev: prev, move: move };
+    }
+    for (i = 0; i < n; i++) {
+      var L = layers[i];
+      for (var key in L) {
+        var st = L[key];
+        push(layers[i + 1], st.u, st.k + 1, st.area, st, [0, i]);
+        var s = 0;
+        for (var j = i; j < n && j - i < MAX_MERGE; j++) {
+          s += areas[j];
+          if (strict && s < MIN_UNIT_AREA - EPS) continue;
+          push(layers[j + 1], st.u + 1, st.k, st.area + s, st, [1, i, j]);
+        }
+      }
+    }
+    return layers[n];
+  }
+
+  function walkRun(state) {
+    var groups = [], kept = [];
+    while (state.prev) {
+      if (state.move[0] === 0) kept.push(state.move[1]);
+      else { var g = []; for (var r = state.move[1]; r <= state.move[2]; r++) g.push(r); groups.push(g); }
+      state = state.prev;
+    }
+    return { groups: groups.reverse(), kept: kept.reverse() };
+  }
+
+  function buildingFrontier(runs, strict) {
+    var per = runs.map(function (r) { return runFrontier(r, strict); });
+    var states = { "0,0": { U: 0, K: 0, area: 0, path: [] } };
+    per.forEach(function (fr) {
+      var nxt = {};
+      for (var a in states) {
+        var S = states[a];
+        for (var b in fr) {
+          var st = fr[b], U = S.U + st.u, K = S.K + st.k, key = U + "," + K, area = S.area + st.area;
+          var cur = nxt[key];
+          if (!cur || area > cur.area + EPS) nxt[key] = { U: U, K: K, area: area, path: S.path.concat([st]) };
+        }
+      }
+      states = nxt;
+    });
+    return { states: states, per: per };
+  }
+
+  function minUnits(n) { return Math.ceil(n * MIN_REPLACEMENT - EPS); }
+  function passes(n, U, K, area) {
+    var lost = n - U - K;
+    if (n && lost / n > MAX_REDUCTION + EPS) return false;
+    if (U < minUnits(n)) return false;
+    if (U && area / U < MIN_UNIT_AREA - EPS) return false;
+    return true;
+  }
+
+  // The least-loss compliant scheme for a building of runs. Ties on rooms
+  // lost go to more units, then to more converted area.
+  function optimise(runs, strict, minU) {
+    var n = runs.reduce(function (t, r) { return t + r.length; }, 0);
+    var bf = buildingFrontier(runs, strict), need = Math.max(minUnits(n), minU || 0), best = null;
+    for (var key in bf.states) {
+      var S = bf.states[key];
+      if (S.U < need || !passes(n, S.U, S.K, S.area)) continue;
+      if (!best || S.U + S.K > best.U + best.K
+          || (S.U + S.K === best.U + best.K && (S.U > best.U || (S.U === best.U && S.area > best.area)))) best = S;
+    }
+    if (!best) {
+      var small = 0, odd = 0; runs.forEach(function (r) { r.forEach(function (a) { if (a < MIN_UNIT_AREA - EPS) small++; }); if (r.length % 2) odd++; });
+      return { feasible: false, strict: strict, original: n, units: 0, kept: n, lost: 0, area: 0, runs: [],
+        reason: strict
+          ? "every unit needs 200 SF on its own; " + small + " of " + n + " rooms fall short, and merging them cannot leave " + need + " units standing"
+            + (odd && small === n ? " (" + odd + " of the " + runs.length + " rows of rooms hold an odd count, and a room with no partner to pair with is stranded)" : "")
+          : "even averaging, the rooms merged cannot reach 200 SF × " + need + " units without consuming more rooms than the building has" };
+    }
+    return { feasible: true, strict: strict, original: n, units: best.U, kept: best.K, lost: n - best.U - best.K,
+      area: best.area, runs: best.path.map(walkRun), reason: "" };
+  }
+
+  // Least rooms lost for every unit count the building can legally reach.
+  function tradeOff(runs, strict) {
+    var n = runs.reduce(function (t, r) { return t + r.length; }, 0);
+    var bf = buildingFrontier(runs, strict), best = {};
+    for (var key in bf.states) {
+      var S = bf.states[key];
+      if (!passes(n, S.U, S.K, S.area)) continue;
+      var lost = n - S.U - S.K, cur = best[S.U];
+      if (!cur || lost < cur.lost || (lost === cur.lost && S.area > cur.area)) best[S.U] = { units: S.U, lost: lost, kept: S.K, area: S.area };
+    }
+    return Object.keys(best).map(Number).sort(function (a, b) { return a - b; }).map(function (u) { return best[u]; });
+  }
+
+  // The district: every building contributes nothing or one point of its
+  // curve; reach the target at the least loss. One forward pass gives the
+  // whole curve of least loss against units required.
+  function allocate(cands, T) {
+    var INF = Infinity, layers = [new Float64Array(T + 1).fill(INF)];
+    layers[0][0] = 0;
+    cands.forEach(function (c) {
+      var cur = layers[layers.length - 1], nxt = new Float64Array(cur);
+      for (var t = 0; t <= T; t++) {
+        if (cur[t] === INF) continue;
+        for (var i = 0; i < c.curve.length; i++) {
+          var p = c.curve[i], t2 = t + p.units;
+          if (t2 > T) break;
+          if (cur[t] + p.lost < nxt[t2]) nxt[t2] = cur[t] + p.lost;
+        }
+      }
+      layers.push(nxt);
+    });
+    var last = layers[layers.length - 1];
+    // least loss reaching AT LEAST t units: suffix minimum
+    var atLeast = new Float64Array(T + 1), arg = new Int32Array(T + 1);
+    var m = INF, mi = -1;
+    for (var t = T; t >= 0; t--) {
+      if (last[t] < m) { m = last[t]; mi = t; }   // strict: ties keep the larger t
+      atLeast[t] = m; arg[t] = mi;
+    }
+    return {
+      atLeast: atLeast, arg: arg, maxUnits: (function () { for (var t = T; t >= 0; t--) if (last[t] < INF) return t; return 0; })(),
+      pick: function (target) {
+        var t = arg[target];
+        if (t < 0 || atLeast[target] === INF) return { feasible: false, units: 0, lost: 0, chosen: {} };
+        var chosen = {}, units = 0;
+        for (var idx = cands.length - 1; idx >= 0; idx--) {
+          var prev = layers[idx], cur = layers[idx + 1], c = cands[idx];
+          if (prev[t] < INF && Math.abs(prev[t] - cur[t]) < EPS) continue;
+          for (var i = 0; i < c.curve.length; i++) {
+            var p = c.curve[i], tp = t - p.units;
+            if (tp >= 0 && prev[tp] < INF && Math.abs(prev[tp] + p.lost - cur[t]) < EPS) {
+              chosen[c.key] = p; units += p.units; t = tp; break;
+            }
+          }
+        }
+        return { feasible: true, units: units, lost: Math.round(atLeast[target]), chosen: chosen };
+      }
+    };
+  }
+
+  /* ======================================================================
+     9. THE TYPICAL FLOOR, READ FROM THE FOOTPRINT
+     A double-loaded corridor along the long axis of the building's
+     footprint, rooms in equal bays on both sides, a stair at one end. The
+     footprint is measured; the corridor, the bays and the stair are the
+     type the stock shares, stated here as assumptions. Rooms are counted
+     from Appendix B and spread over the storeys above a retail ground
+     floor, which is what the generated elevations assume as well.
+     ====================================================================== */
+
+  var PLAN = { corridor: 1.5, stair: 3.0, minDepth: 2.75, maxDepth: 4.6, minWidth: 2.4, groundRetail: true };
+  function planAssumptions() {
+    var cap = num((document.getElementById("d-cap") || {}).value), circ = num((document.getElementById("d-circ") || {}).value);
+    return { cap: Math.max(100, Math.min(MAX_AREA, cap || 180)), circ: Math.max(0, Math.min(60, circ == null ? 25 : circ)) / 100 };
+  }
+
+  function localXY(ring, lon0, lat0) {
+    var kx = 111320 * Math.cos(lat0 * Math.PI / 180), ky = 110540;
+    var pts = ring.map(function (p) { return [(p[0] - lon0) * kx, (p[1] - lat0) * ky]; });
+    if (pts.length > 1 && pts[0][0] === pts[pts.length - 1][0] && pts[0][1] === pts[pts.length - 1][1]) pts.pop();
+    return pts;
+  }
+  function hullOf(pts) {
+    var p = pts.slice().sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; });
+    if (p.length < 3) return p;
+    function cross(o, a, b) { return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]); }
+    var lo = [], up = [];
+    p.forEach(function (q) { while (lo.length >= 2 && cross(lo[lo.length - 2], lo[lo.length - 1], q) <= 0) lo.pop(); lo.push(q); });
+    for (var i = p.length - 1; i >= 0; i--) { var q = p[i]; while (up.length >= 2 && cross(up[up.length - 2], up[up.length - 1], q) <= 0) up.pop(); up.push(q); }
+    lo.pop(); up.pop();
+    return lo.concat(up);
+  }
+  // minimum-area rectangle around the hull: one edge of it lies on a hull edge
+  function minRect(hull) {
+    var best = null;
+    for (var i = 0; i < hull.length; i++) {
+      var a = hull[i], b = hull[(i + 1) % hull.length], dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy);
+      if (!L) continue;
+      var ux = dx / L, uy = dy / L, vx = -uy, vy = ux;
+      var u0 = Infinity, u1 = -Infinity, v0 = Infinity, v1 = -Infinity;
+      hull.forEach(function (q) {
+        var u = q[0] * ux + q[1] * uy, v = q[0] * vx + q[1] * vy;
+        u0 = Math.min(u0, u); u1 = Math.max(u1, u); v0 = Math.min(v0, v); v1 = Math.max(v1, v);
+      });
+      var area = (u1 - u0) * (v1 - v0);
+      if (!best || area < best.area) best = { area: area, ux: ux, uy: uy, vx: vx, vy: vy, u0: u0, u1: u1, v0: v0, v1: v1 };
+    }
+    if (!best) return null;
+    // long axis along u
+    if (best.u1 - best.u0 < best.v1 - best.v0) {
+      best = { area: best.area, ux: best.vx, uy: best.vy, vx: -best.ux, vy: -best.uy,
+               u0: best.v0, u1: best.v1, v0: -best.u1, v1: -best.u0 };
+    }
+    best.L = best.u1 - best.u0; best.W = best.v1 - best.v0;
+    return best;
+  }
+  function inPoly(x, y, ring) {
+    var inside = false;
+    for (var i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      var xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1];
+      if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside;
+    }
+    return inside;
+  }
+  function ringArea(r) { var a = 0; for (var i = 0, j = r.length - 1; i < r.length; j = i++) a += (r[j][0] + r[i][0]) * (r[j][1] - r[i][1]); return Math.abs(a / 2); }
+
+  function residentialFloors(b) {
+    var st = floorsOf(b);
+    return (PLAN.groundRetail && st > 1) ? st - 1 : st;
+  }
+
+  var planCache = {};
+  function typicalPlan(i) {
+    if (planCache[i] !== undefined) return planCache[i];
+    var b = SURVEYED[i], out = null;
+    var ring = (b.foot != null && FOOT && FOOT[b.foot]) ? FOOT[b.foot].p : b.poly;
+    if (ring && ring.length >= 3 && b.rooms) {
+      var lon0 = ring[0][0], lat0 = ring[0][1];
+      var pts = localXY(ring, lon0, lat0), rect = minRect(hullOf(pts));
+      if (rect) {
+        var res = residentialFloors(b), per = Math.max(1, Math.round(b.rooms / res));
+        var toUV = function (p) { return [p[0] * rect.ux + p[1] * rect.uy - rect.u0, p[0] * rect.vx + p[1] * rect.vy - rect.v0]; };
+        var uv = pts.map(toUV);
+        var L = rect.L, W = rect.W, footM2 = ringArea(uv);
+        var stair = L > 12 ? PLAN.stair : 0;
+        var dbl = (W - PLAN.corridor) / 2 >= PLAN.minDepth;
+        var depth = Math.min(PLAN.maxDepth, dbl ? (W - PLAN.corridor) / 2 : Math.max(1, W - PLAN.corridor));
+        // the room: footprint less circulation, over the rooms on a floor, capped
+        var circ = planAssumptions().circ, cap = planAssumptions().cap;
+        var target = Math.max(MIN_AREA, Math.min(cap, footM2 * 10.7639 * (1 - circ) / per));
+        var capped = footM2 * 10.7639 * (1 - circ) / per > cap;
+        var sides = dbl ? 2 : 1, bays = Math.max(1, Math.ceil(per / sides)), Lr = L - stair;
+        var width = target / 10.7639 / depth, squeezed = false;
+        if (bays * width > Lr) { width = Lr / bays; squeezed = true; }
+        var cand = [];
+        for (var k = 0; k < bays; k++) {
+          for (var sd = 0; sd < sides; sd++) {
+            var u = stair + k * width, v = sd === 0 ? 0 : W - depth;
+            var cx = u + width / 2, cy = v + depth / 2;
+            if (!inPoly(cx, cy, uv)) continue;
+            cand.push({ side: sd, bay: k, u: u, v: v, w: width, d: depth, sf: width * depth * 10.7639 });
+          }
+        }
+        // corridor order: side 0 left to right, then side 1
+        cand.sort(function (a, c) { return a.side - c.side || a.bay - c.bay; });
+        // fill both sides evenly: take bays in order, alternating sides
+        var take = [], bySide = [[], []];
+        cand.forEach(function (r) { bySide[r.side].push(r); });
+        var q0 = 0, q1 = 0;
+        while (take.length < per && (q0 < bySide[0].length || q1 < bySide[1].length)) {
+          if (q0 < bySide[0].length) take.push(bySide[0][q0++]);
+          if (take.length < per && q1 < bySide[1].length) take.push(bySide[1][q1++]);
+        }
+        take.sort(function (a, c) { return a.side - c.side || a.bay - c.bay; });
+        take.forEach(function (r, n) { r.n = n + 1; });
+        var runs = [take.filter(function (r) { return r.side === 0; }).map(function (r) { return r.sf; }),
+                    take.filter(function (r) { return r.side === 1; }).map(function (r) { return r.sf; })]
+                   .filter(function (r) { return r.length; });
+        out = { ring: uv, L: L, W: W, stair: stair, corridor: PLAN.corridor, dbl: dbl, depth: depth, width: width,
+                rooms: take, perFloor: per, placed: take.length, storeys: floorsOf(b), res: res,
+                sf: take.length ? take.reduce(function (t, r) { return t + r.sf; }, 0) / take.length : 0,
+                footSf: footM2 * 10.7639, runs: runs, narrow: width < PLAN.minWidth, capped: capped, squeezed: squeezed,
+                circ: circ, cap: cap, roomsEnd: stair + bays * width,
+                source: (b.foot != null && FOOT && FOOT[b.foot]) ? "footprint" : "parcel" };
+      }
+    }
+    planCache[i] = out;
+    return out;
+  }
+
+  // The building as the search sees it: each floor's two sides are separate runs.
+  function buildingRuns(i) {
+    var p = typicalPlan(i);
+    if (!p || !p.placed) return null;
+    var runs = [];
+    for (var f = 0; f < p.res; f++) p.runs.forEach(function (r) { runs.push(r.slice()); });
+    return runs;
+  }
+
+  function planSvg(p, opt, sel) {
+    var pad = 1.2, W = p.L + pad * 2, H = p.W + pad * 2, sc = 1;
+    var h = '<svg viewBox="0 0 ' + (W * sc).toFixed(2) + ' ' + (H * sc).toFixed(2) + '" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans, sans-serif">'
+      + '<defs><pattern id="hatch" width="0.6" height="0.6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="0.6" stroke="var(--rule)" stroke-width="0.12"/></pattern></defs>';
+    function X(u) { return ((u + pad) * sc).toFixed(2); }
+    function Y(v) { return ((v + pad) * sc).toFixed(2); }
+    // the footprint
+    h += '<path d="' + p.ring.map(function (q, k) { return (k ? "L" : "M") + X(q[0]) + " " + Y(q[1]); }).join("") + 'Z" fill="var(--surface)" stroke="var(--ink)" stroke-width="0.14"/>';
+    // corridor and stair
+    var cv = p.dbl ? p.depth : p.W - p.corridor;
+    h += '<rect x="' + X(p.stair) + '" y="' + Y(cv) + '" width="' + (p.L - p.stair).toFixed(2) + '" height="' + p.corridor.toFixed(2) + '" fill="var(--sunk)" stroke="none"/>';
+    if (p.stair) {
+      h += '<rect x="' + X(0) + '" y="' + Y(0) + '" width="' + p.stair.toFixed(2) + '" height="' + p.W.toFixed(2) + '" fill="var(--sunk)" stroke="var(--ink-3)" stroke-width="0.06"/>';
+      for (var s = 0.4; s < p.W; s += 0.28) h += '<line x1="' + X(0.4) + '" y1="' + Y(s) + '" x2="' + X(p.stair - 0.4) + '" y2="' + Y(s) + '" stroke="var(--ink-3)" stroke-width="0.04"/>';
+    }
+    // floor beyond the rooms: common or commercial, which Appendix B does not count
+    if (p.roomsEnd < p.L - 0.3) {
+      if (p.L - p.roomsEnd > 3) h += '<text x="' + X((p.roomsEnd + p.L) / 2) + '" y="' + Y(p.W / 2) + '" font-size="0.5" text-anchor="middle" fill="var(--ink-3)">not designated</text>';
+      h += '<rect x="' + X(p.roomsEnd) + '" y="' + Y(0) + '" width="' + (p.L - p.roomsEnd).toFixed(2) + '" height="' + p.W.toFixed(2) + '" fill="url(#hatch)" stroke="none"/>';
+    }
+    // scheme overlay: unit index per room, kept flags
+    var unitOf = {}, keptOf = {}, unitArea = {};
+    if (opt && opt.feasible) {
+      var runIdx = 0, unitNo = 0;
+      p.runs.forEach(function (run, ri) {
+        var sideRooms = p.rooms.filter(function (r) { return r.side === (p.runs.length === 2 ? ri : r.side); });
+        var sch = opt.runs[ri];
+        if (!sch) return;
+        sch.groups.forEach(function (g) {
+          var a = g.reduce(function (t, k) { return t + sideRooms[k].sf; }, 0);
+          g.forEach(function (k) { unitOf[sideRooms[k].n] = unitNo; unitArea[sideRooms[k].n] = a; });
+          unitNo++;
+        });
+        sch.kept.forEach(function (k) { keptOf[sideRooms[k].n] = true; });
+      });
+    }
+    var fs = Math.max(0.42, Math.min(0.8, p.width * 0.22));
+    p.rooms.forEach(function (r) {
+      var fill = "var(--surface)", stroke = "var(--ink-2)";
+      if (opt && opt.feasible) {
+        if (keptOf[r.n]) fill = "var(--edge-soft)";
+        else if (unitOf[r.n] !== undefined) fill = "var(--pass-soft)";
+      }
+      h += '<rect x="' + X(r.u) + '" y="' + Y(r.v) + '" width="' + r.w.toFixed(2) + '" height="' + r.d.toFixed(2) + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="0.08"/>';
+      var lbl = Math.round(r.sf) + " SF";
+      h += '<text x="' + X(r.u + r.w / 2) + '" y="' + Y(r.v + r.d / 2 + fs * 0.35) + '" font-size="' + fs.toFixed(2) + '" text-anchor="middle" fill="var(--ink)">' + lbl + '</text>';
+      h += '<text x="' + X(r.u + 0.25) + '" y="' + Y(r.v + fs * 0.9) + '" font-size="' + (fs * 0.7).toFixed(2) + '" fill="var(--ink-3)">' + r.n + '</text>';
+    });
+    // merged units: erase the partition between rooms in one unit, then name it
+    if (opt && opt.feasible) {
+      var done = {};
+      p.rooms.forEach(function (r) {
+        var u = unitOf[r.n];
+        if (u === undefined) return;
+        var mates = p.rooms.filter(function (q) { return unitOf[q.n] === u; });
+        if (mates.length > 1) {
+          mates.forEach(function (q) {
+            if (q.bay === r.bay + 1 && q.side === r.side) {
+              h += '<line x1="' + X(q.u) + '" y1="' + Y(q.v + 0.1) + '" x2="' + X(q.u) + '" y2="' + Y(q.v + q.d - 0.1) + '" stroke="var(--pass-soft)" stroke-width="0.16"/>';
+            }
+          });
+        }
+        if (!done[u]) {
+          done[u] = true;
+          var u0 = Math.min.apply(null, mates.map(function (q) { return q.u; })), u1 = Math.max.apply(null, mates.map(function (q) { return q.u + q.w; }));
+          h += '<rect x="' + X(u0) + '" y="' + Y(r.v) + '" width="' + (u1 - u0).toFixed(2) + '" height="' + r.d.toFixed(2) + '" fill="none" stroke="var(--pass)" stroke-width="0.14"/>';
+          if (mates.length > 1) {
+            var yy = r.side === 0 ? r.v + 0.75 : r.v + r.d - 0.35;
+            h += '<text x="' + X((u0 + u1) / 2) + '" y="' + Y(yy) + '" font-size="' + (fs * 0.7).toFixed(2) + '" text-anchor="middle" fill="var(--pass)">' + letter(u) + " · " + Math.round(unitArea[r.n]) + ' SF</text>';
+          }
+        }
+      });
+    }
+    // scale bar: 10 m
+    var sb = Math.min(10, Math.floor(p.L / 2));
+    h += '<line x1="' + X(p.L - sb) + '" y1="' + Y(p.W + 0.7) + '" x2="' + X(p.L) + '" y2="' + Y(p.W + 0.7) + '" stroke="var(--ink-3)" stroke-width="0.08"/>';
+    h += '<text x="' + X(p.L - sb / 2) + '" y="' + Y(p.W + 0.55) + '" font-size="0.5" text-anchor="middle" fill="var(--ink-3)">' + sb + ' m</text>';
+    h += '</svg>';
+    return h;
+  }
+
+  /* ---- section 02: the selected building ---- */
+
+  var readBuilding = "strict";
+  var optCache = {};   // i + reading -> optimum
+  function optimumFor(i, strict) {
+    var key = i + (strict ? "s" : "a");
+    if (optCache[key]) return optCache[key];
+    var runs = buildingRuns(i);
+    var o = runs ? optimise(runs, strict) : null;
+    optCache[key] = o;
+    return o;
+  }
+  var curveCache = {};
+  function curveFor(i, strict) {
+    var key = i + (strict ? "s" : "a");
+    if (curveCache[key]) return curveCache[key];
+    var runs = buildingRuns(i);
+    var c = runs ? tradeOff(runs, strict) : [];
+    curveCache[key] = c;
+    return c;
+  }
+
+  function curveSvg(curve, n, pickU, w, hh) {
+    if (!curve.length) return "";
+    var W = w || 320, H = hh || 120, px = 34, py = 14, pb = 26;
+    var uMax = n, lMax = Math.max(1, Math.max.apply(null, curve.map(function (c) { return c.lost; })));
+    function X(u) { return px + (u / uMax) * (W - px - 10); }
+    function Y(l) { return py + (1 - l / lMax) * (H - py - pb); }
+    var h = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans Condensed, sans-serif" font-size="9.5">';
+    h += '<line x1="' + px + '" y1="' + Y(0) + '" x2="' + (W - 10) + '" y2="' + Y(0) + '" stroke="var(--rule)"/>';
+    h += '<line x1="' + px + '" y1="' + py + '" x2="' + px + '" y2="' + Y(0) + '" stroke="var(--rule)"/>';
+    h += '<line x1="' + X(n / 2) + '" y1="' + py + '" x2="' + X(n / 2) + '" y2="' + Y(0) + '" stroke="var(--edge)" stroke-dasharray="2 2"/>';
+    h += '<text x="' + (X(n / 2) + 3) + '" y="' + (py + 8) + '" fill="var(--edge)">50% floor</text>';
+    var d = curve.map(function (c, k) { return (k ? "L" : "M") + X(c.units).toFixed(1) + " " + Y(c.lost).toFixed(1); }).join("");
+    h += '<path d="' + d + '" fill="none" stroke="var(--ink)" stroke-width="1.4"/>';
+    curve.forEach(function (c) {
+      var on = c.units === pickU;
+      h += '<circle cx="' + X(c.units).toFixed(1) + '" cy="' + Y(c.lost).toFixed(1) + '" r="' + (on ? 4 : 2.2) + '" fill="' + (on ? "var(--fail)" : "var(--ink)") + '"/>';
+    });
+    h += '<text x="' + (px - 4) + '" y="' + (Y(lMax) + 3) + '" text-anchor="end" fill="var(--ink-3)">' + lMax + '</text>';
+    h += '<text x="' + (px - 4) + '" y="' + (Y(0) + 3) + '" text-anchor="end" fill="var(--ink-3)">0</text>';
+    h += '<text x="' + (W - 10) + '" y="' + (H - 4) + '" text-anchor="end" fill="var(--ink-3)">units produced → ' + n + '</text>';
+    h += '<text x="' + px + '" y="' + (H - 4) + '" fill="var(--ink-3)">rooms lost ↑</text>';
+    h += '</svg>';
+    return h;
+  }
+
+  function renderBuilding() {
+    var stage = document.getElementById("bp-plan"), side = document.getElementById("bp-side");
+    var title = document.getElementById("bp-title"), foot = document.getElementById("bp-foot");
+    if (!stage) return;
+    var i = surveySel, b = i !== null ? SURVEYED[i] : null;
+    if (!b) {
+      title.textContent = "No building selected";
+      stage.innerHTML = '<div class="empty">Click a building on the map in section 01. Its typical floor is drawn here from the City’s footprint, with the square footage of every room, and the search finds the scheme that displaces the fewest tenants.</div>';
+      side.innerHTML = ""; foot.textContent = "";
+      return;
+    }
+    var p = typicalPlan(i);
+    title.textContent = b.name + " · " + b.addr;
+    if (!p || !p.placed) {
+      stage.innerHTML = '<div class="empty">' + esc(b.name) + ' has no footprint or parcel outline in the City data, so no typical floor can be drawn. It is loaded below as ' + floorsOf(b) + ' floors of assumed rooms.</div>';
+      side.innerHTML = ""; foot.textContent = "";
+      return;
+    }
+    var strict = readBuilding === "strict";
+    var o = optimumFor(i, strict), curve = curveFor(i, strict);
+    stage.innerHTML = planSvg(p, o, i);
+    foot.innerHTML = "Typical floor, " + p.res + " residential " + (p.res === 1 ? "storey" : "storeys")
+      + (p.storeys > p.res ? " over a retail ground floor" : "") + ", from the " + p.storeys + "-storey"
+      + (b.hgtM ? " LiDAR height" : " assumed height") + ". Outline: the City’s " + p.source
+      + " (" + fmt(Math.round(p.footSf)) + " SF, " + p.L.toFixed(1) + " × " + p.W.toFixed(1) + " m). "
+      + (p.dbl ? "Double-loaded" : "Single-loaded") + " corridor of " + p.corridor + " m, rooms "
+      + p.width.toFixed(2) + " m wide × " + p.depth.toFixed(2) + " m deep" + (p.stair ? ", a " + p.stair + " m stair bay" : "") + ". "
+      + "Room size: the footprint less " + Math.round(p.circ * 100) + "% circulation over " + p.perFloor + " rooms"
+      + (p.capped ? ", capped at " + p.cap + " SF (the footprint holds more floor than the count suggests; the rest is drawn hatched as floor Appendix B does not count)" : "")
+      + (p.squeezed ? ", squeezed to fit the length" : "") + ". "
+      + (p.placed < p.perFloor ? "<strong>Only " + p.placed + " of " + p.perFloor + " rooms fit inside the outline; the building is modelled with those.</strong> " : "")
+      + (p.narrow ? "<strong>Rooms come out narrower than 8 ft: Appendix B’s count does not fit this outline.</strong> " : "")
+      + "The outline is measured; the corridor, the bays and the stair are the type the stock shares, not a survey of this building.";
+
+    var h = '<div class="tally">' + tile(b.rooms, "Rooms") + tile(p.placed, "Per floor") + tile(Math.round(p.sf) + " SF", "Each") + '</div>';
+    if (o && o.feasible) {
+      var avg = o.units ? o.area / o.units : 0;
+      h += '<div class="tally" style="margin-top:10px">' + tile(o.units, "Units") + tile(o.kept, "Kept as SRA") + tile(o.lost, "Tenants displaced") + tile(pct(o.lost / o.original), "Of the building") + '</div>';
+      var pairs = 0, singles = 0, bigger = 0;
+      o.runs.forEach(function (r) { r.groups.forEach(function (g) { if (g.length === 1) singles++; else if (g.length === 2) pairs++; else bigger++; }); });
+      h += '<p class="note" style="margin-top:12px">Least-displacement scheme under the ' + (strict ? "strict" : "average") + ' reading: '
+        + (pairs ? pairs + " pair" + (pairs > 1 ? "s" : "") : "") + (pairs && (singles || bigger) ? ", " : "")
+        + (singles ? singles + " room" + (singles > 1 ? "s" : "") + " converted in place" : "") + ((pairs || singles) && bigger ? ", " : "")
+        + (bigger ? bigger + " larger merge" + (bigger > 1 ? "s" : "") : "")
+        + '. Units average ' + fmt(avg) + ' SF' + (strict ? "" : (avg >= MIN_UNIT_AREA && o.runs.some(function (r) { return r.groups.some(function (g) { return g.length === 1 && p.sf < MIN_UNIT_AREA; }); }) ? ", carried by the pairs: the rooms converted in place sit below 200 SF and pass only on the average" : ""))
+        + '. Replacement ' + pct(o.units / o.original) + ' (DTES 9.2.7), reduction ' + pct(o.lost / o.original) + ' (Guidelines p.4).</p>';
+    } else {
+      h += '<p class="note" style="margin-top:12px"><strong>No compliant conversion.</strong> ' + (o ? esc(o.reason) : "") + '. Under the by-law this building can only be replaced, not converted, and the 50% floor of DTES 9.2.7 cannot be met by merging.</p>';
+    }
+    if (curve.length > 1) {
+      h += '<div class="label" style="margin-top:12px">What more units would cost</div><div class="curve">' + curveSvg(curve, o.original, o.units) + '</div>'
+        + '<p class="src">Every unit the mandate asks for beyond the 50% floor costs more rooms: the red point is the least-displacement scheme, and the curve is the trade-off the district scenario chooses along.</p>';
+    } else if (curve.length === 1) {
+      h += '<p class="src" style="margin-top:12px">Only one unit count is legal for this building under this reading: ' + curve[0].units + ' units, ' + curve[0].lost + ' rooms lost. There is no trade-off to draw.</p>';
+    }
+    h += '<div class="btnrow" style="margin-top:12px"><button type="button" id="bp-load">Load into the floorplate editor</button></div>'
+      + '<p class="src">Puts this floor’s rooms into section 04 as ' + p.res + ' identical ' + (p.res === 1 ? "floor" : "floors") + ', with the scheme above already drawn, so it can be edited room by room and tested in section 07.</p>';
+    side.innerHTML = h;
+    var btn = document.getElementById("bp-load");
+    if (btn) btn.addEventListener("click", function () { loadPlanIntoEditor(i, o); });
+  }
+
+  function loadPlanIntoEditor(i, o) {
+    var p = typicalPlan(i), b = SURVEYED[i];
+    if (!p) return;
+    var ten = SURVEY.tenancyYears;
+    floors = [];
+    for (var f = 0; f < p.res; f++) {
+      var fr = [], fj = [];
+      var sch = o && o.feasible ? o.runs.slice(f * p.runs.length, (f + 1) * p.runs.length) : null;
+      p.runs.forEach(function (run, ri) {
+        var base = fr.length;
+        run.forEach(function (sf, k) {
+          fr.push({ id: String(fr.length + 1), area: Math.max(MIN_AREA, Math.min(MAX_AREA, Math.round(sf))), tenancy: ten, keep: false });
+          if (fr.length > 1) fj.push(false);
+        });
+        if (sch && sch[ri]) {
+          sch[ri].kept.forEach(function (k) { fr[base + k].keep = true; });
+          sch[ri].groups.forEach(function (g) { for (var q = 0; q < g.length - 1; q++) fj[base + g[q]] = true; });
+        }
+      });
+      floors.push({ rooms: fr, joints: fj });
+    }
+    activeFloor = 0; rooms = floors[0].rooms; joints = floors[0].joints; nextId = rooms.length + 1; selected = null;
+    document.getElementById("u-floors").value = p.res;
+    document.getElementById("u-count").value = p.placed;
+    document.getElementById("u-sf").value = Math.round(p.sf);
+    document.getElementById("r-existing-sf").value = Math.round(p.sf);
+    document.getElementById("r-existing").value = b.tenure === "market" ? SURVEY.rentMarket : SURVEY.rentNonMarket;
+    renderBreakdown(); renderAfford();
+    refresh(); frameAll(currentView);
+    var ed = document.getElementById("viewport");
+    if (ed && ed.scrollIntoView) ed.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  document.querySelectorAll("[data-read]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      readBuilding = btn.getAttribute("data-read");
+      document.querySelectorAll("[data-read]").forEach(function (x) { x.classList.toggle("on", x === btn); });
+      renderBuilding();
+    });
+  });
+
+  /* ---- the search applied to the editor's own floorplate (section 07) ---- */
+
+  function optimiseEditor(strict) {
+    syncFloor();
+    var runs = floors.map(function (fl) { return fl.rooms.map(function (r) { return r.area; }); });
+    var o = optimise(runs, strict);
+    var note = document.getElementById("opt-note");
+    note.hidden = false;
+    if (!o.feasible) {
+      note.innerHTML = "<strong>No compliant scheme of adjacent merges exists</strong> for this floorplate under the " + (strict ? "strict" : "average") + " reading: " + esc(o.reason) + ".";
+      return;
+    }
+    floors.forEach(function (fl, f) {
+      fl.rooms.forEach(function (r) { r.keep = false; });
+      fl.joints = new Array(Math.max(fl.rooms.length - 1, 0)).fill(false);
+      var sch = o.runs[f];
+      sch.kept.forEach(function (k) { fl.rooms[k].keep = true; });
+      sch.groups.forEach(function (g) { for (var q = 0; q < g.length - 1; q++) fl.joints[g[q]] = true; });
+    });
+    rooms = floors[activeFloor].rooms; joints = floors[activeFloor].joints; selected = null;
+    note.innerHTML = "Drawn above: the scheme that loses the fewest rooms while passing every test under the " + (strict ? "strict" : "average") + " reading — " + o.units + " units, " + o.kept + " kept, <strong>" + o.lost + " rooms lost</strong> of " + o.original + ". Every scheme of adjacent merges was searched; none loses fewer.";
+    refresh();
+  }
+  document.getElementById("opt-strict").addEventListener("click", function () { optimiseEditor(true); });
+  document.getElementById("opt-avg").addEventListener("click", function () { optimiseEditor(false); });
+
+  /* ======================================================================
+     10. THE DISTRICT SCENARIO
+     ====================================================================== */
+
+  var SCEN = null;          // the current allocation, by Appendix B index
+  var scenColour = false;
+  var districtCands = null;
+
+  function districtReady() {
+    if (!SURVEYED.length || !FOOT) return;
+    planCache = {}; optCache = {}; curveCache = {}; districtCands = null;
+    renderDistrict();
+    renderBuilding();
+  }
+
+  function districtInputs() {
+    return {
+      scope: document.getElementById("d-scope").value,
+      strict: document.getElementById("d-read").value === "strict",
+      share: parseInt(document.getElementById("d-target").value, 10) / 100
+    };
+  }
+
+  function inScope(b, scope) {
+    if (scope === "all") return true;
+    if (!b.surveyed) return false;
+    return scope === "market" ? b.tenure === "market" : b.tenure !== "market";
+  }
+
+  function candidatesFor(scope, strict) {
+    var key = scope + (strict ? "s" : "a");
+    if (districtCands && districtCands.key === key) return districtCands;
+    var list = [], stuck = [], noPlan = [], rooms = 0;
+    SURVEYED.forEach(function (b, i) {
+      if (!inScope(b, scope) || !b.rooms) return;
+      rooms += b.rooms;
+      var p = typicalPlan(i);
+      if (!p || !p.placed) { noPlan.push(i); return; }
+      var curve = curveFor(i, strict);
+      if (!curve.length) { stuck.push(i); return; }
+      list.push({ key: String(i), i: i, original: p.placed * p.res, curve: curve });
+    });
+    var maxUnits = list.reduce(function (t, c) { return t + c.curve[c.curve.length - 1].units; }, 0);
+    districtCands = { key: key, list: list, stuck: stuck, noPlan: noPlan, rooms: rooms, maxUnits: maxUnits,
+                      alloc: allocate(list, maxUnits) };
+    return districtCands;
+  }
+
+  function districtCurveSvg(cands, target) {
+    var W = 520, H = 150, px = 44, py = 12, pb = 28, a = cands.alloc, T = cands.maxUnits;
+    if (!T) return "";
+    var lMax = Math.max(1, a.atLeast[0] === Infinity ? 1 : Math.max.apply(null, Array.prototype.slice.call(a.atLeast).filter(isFinite)));
+    function X(u) { return px + (u / T) * (W - px - 12); }
+    function Y(l) { return py + (1 - l / lMax) * (H - py - pb); }
+    var h = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans Condensed, sans-serif" font-size="10">';
+    h += '<line x1="' + px + '" y1="' + Y(0) + '" x2="' + (W - 12) + '" y2="' + Y(0) + '" stroke="var(--rule)"/>';
+    h += '<line x1="' + px + '" y1="' + py + '" x2="' + px + '" y2="' + Y(0) + '" stroke="var(--rule)"/>';
+    var d = "", first = true;
+    for (var t = 0; t <= T; t++) {
+      if (!isFinite(a.atLeast[t])) continue;
+      d += (first ? "M" : "L") + X(t).toFixed(1) + " " + Y(a.atLeast[t]).toFixed(1);
+      first = false;
+    }
+    h += '<path d="' + d + '" fill="none" stroke="var(--ink)" stroke-width="1.4"/>';
+    if (isFinite(a.atLeast[target])) {
+      h += '<line x1="' + X(target).toFixed(1) + '" y1="' + py + '" x2="' + X(target).toFixed(1) + '" y2="' + Y(0) + '" stroke="var(--fail)" stroke-dasharray="3 2"/>';
+      h += '<circle cx="' + X(target).toFixed(1) + '" cy="' + Y(a.atLeast[target]).toFixed(1) + '" r="4" fill="var(--fail)"/>';
+    }
+    h += '<text x="' + (px - 5) + '" y="' + (Y(lMax) + 3) + '" text-anchor="end" fill="var(--ink-3)">' + Math.round(lMax).toLocaleString("en-CA") + '</text>';
+    h += '<text x="' + (px - 5) + '" y="' + (Y(0) + 3) + '" text-anchor="end" fill="var(--ink-3)">0</text>';
+    h += '<text x="' + px + '" y="' + (H - 5) + '" fill="var(--ink-3)">tenants displaced ↑</text>';
+    h += '<text x="' + (W - 12) + '" y="' + (H - 5) + '" text-anchor="end" fill="var(--ink-3)">self-contained units required → ' + T.toLocaleString("en-CA") + '</text>';
+    h += '</svg>';
+    return h;
+  }
+
+  function renderDistrict() {
+    var tally = document.getElementById("d-tally");
+    if (!tally || !SURVEYED.length || !FOOT) return;
+    var inp = districtInputs(), cands = candidatesFor(inp.scope, inp.strict);
+    var T = Math.round(cands.maxUnits * inp.share);
+    var res = cands.alloc.pick(T);
+    document.getElementById("d-target-v").textContent = T.toLocaleString("en-CA") + " of " + cands.maxUnits.toLocaleString("en-CA") + " possible";
+    document.getElementById("d-target-hint").textContent = "0 leaves the stock as it is; 100% converts every building that can be converted. " + cands.rooms.toLocaleString("en-CA") + " rooms are in scope.";
+
+    SCEN = { byIndex: {}, scope: inp.scope };
+    cands.list.forEach(function (c) {
+      var pk = res.chosen[c.key];
+      SCEN.byIndex[c.i] = pk ? { state: "converted", units: pk.units, lost: pk.lost, n: c.original } : { state: "untouched", n: c.original };
+    });
+    cands.stuck.forEach(function (i) { SCEN.byIndex[i] = { state: "infeasible", n: SURVEYED[i].rooms }; });
+
+    var converted = Object.keys(res.chosen).length;
+    var stuckRooms = cands.stuck.reduce(function (t, i) { return t + SURVEYED[i].rooms; }, 0);
+    var months = res.lost * compensationMonths(SURVEY.tenancyYears);
+    var rent = inp.scope === "nonmarket" ? SURVEY.rentNonMarket : SURVEY.rentMarket;
+    tally.innerHTML = tile(converted + " / " + cands.list.length, "Buildings converted")
+      + tile(res.units.toLocaleString("en-CA"), "Units produced")
+      + tile(res.lost.toLocaleString("en-CA"), "Tenants displaced")
+      + tile(cands.rooms ? pct(res.lost / cands.rooms) : "—", "Of rooms in scope")
+      + tile(money(months * rent), "Compensation, s.4.8(i)");
+
+    document.getElementById("d-curve").innerHTML = '<div class="curve">' + districtCurveSvg(cands, T) + '</div>'
+      + '<p class="src">The least displacement the district can reach each unit count at, with the buildings chosen anew at every point. The curve steepens as the mandate reaches buildings with smaller rooms, where each unit costs more of the people already there.</p>';
+
+    var h = '';
+    if (cands.stuck.length) {
+      h += '<p class="note" style="margin-top:12px"><strong>' + cands.stuck.length + ' building' + (cands.stuck.length > 1 ? "s" : "") + ' with ' + stuckRooms.toLocaleString("en-CA") + ' rooms cannot be converted at all</strong> under the ' + (inp.strict ? "strict" : "average") + ' reading: their rooms are too small for any scheme of adjacent merges to leave half the count standing. Conversion there means replacement, and the mandate is met without them. They are drawn in solid ink on the map.</p>';
+    }
+    if (cands.noPlan.length) {
+      h += '<p class="src">' + cands.noPlan.length + ' in-scope building' + (cands.noPlan.length > 1 ? "s have" : " has") + ' no footprint to draw a floor from and ' + (cands.noPlan.length > 1 ? "are" : "is") + ' left out of the scenario.</p>';
+    }
+    var rows = cands.list.filter(function (c) { return res.chosen[c.key]; }).map(function (c) {
+      var pk = res.chosen[c.key], p = typicalPlan(c.i);
+      return { i: c.i, b: SURVEYED[c.i], sf: p.sf, n: c.original, units: pk.units, lost: pk.lost };
+    }).sort(function (a, b) { return (b.lost / b.n) - (a.lost / a.n) || b.lost - a.lost; });
+    if (rows.length) {
+      h += '<table class="dist"><thead><tr><th>Converted building</th><th class="n">Rooms</th><th class="n">SF each</th><th class="n">Units</th><th class="n">Displaced</th><th class="n">Share</th></tr></thead><tbody>';
+      rows.forEach(function (r) {
+        h += '<tr class="pick" data-i="' + r.i + '"><td>' + esc(r.b.name) + '</td><td class="n">' + r.n + '</td><td class="n">' + Math.round(r.sf) + '</td><td class="n">' + r.units + '</td><td class="n">' + r.lost + '</td><td class="n">' + pct(r.lost / r.n) + '</td></tr>';
+      });
+      h += '</tbody></table><p class="src">Sorted by the share of each building’s tenants displaced. Click a row to load that building in section 02.</p>';
+    } else if (T > 0) {
+      h += '<p class="note" style="margin-top:12px">No combination of buildings reaches this target.</p>';
+    }
+    document.getElementById("d-out").innerHTML = h;
+    document.querySelectorAll("#d-out tr.pick").forEach(function (tr) {
+      tr.addEventListener("click", function () {
+        var i = parseInt(tr.getAttribute("data-i"), 10);
+        if (surveySel !== i) selectSurveyed(i);
+        var el = document.getElementById("bp-plan");
+        if (el && el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    });
+    if (scenColour) { drawMap(); if (M3.on) m3build(); }
+    renderCard();
+  }
+
+  ["d-scope", "d-read"].forEach(function (id) {
+    document.getElementById(id).addEventListener("change", function () { districtCands = null; renderDistrict(); });
+  });
+  ["d-cap", "d-circ"].forEach(function (id) {
+    document.getElementById(id).addEventListener("change", function () { districtReady(); });
+  });
+  document.getElementById("d-target").addEventListener("input", renderDistrict);
+
+  /* ---- map colour: tenure, or the scenario ---- */
+
+  function hexOf(v) {
+    // css variables resolve to hex in this stylesheet; fall back to a mid grey
+    return /^#[0-9a-f]{6}$/i.test(v || "") ? v : "#888888";
+  }
+  function mix(a, b, t) {
+    a = hexOf(a); b = hexOf(b);
+    var out = "#";
+    for (var k = 0; k < 3; k++) {
+      var x = parseInt(a.substr(1 + k * 2, 2), 16), y = parseInt(b.substr(1 + k * 2, 2), 16);
+      out += ("0" + Math.round(x + (y - x) * t).toString(16)).slice(-2);
+    }
+    return out;
+  }
+  function mapColourHex(b, i) {
+    if (scenColour && SCEN) {
+      var s = SCEN.byIndex[i];
+      if (!s) return hexOf(css("--map-unsurveyed"));
+      if (s.state === "infeasible") return hexOf(css("--scen-x"));
+      if (s.state === "untouched") return hexOf(css("--map-unsurveyed"));
+      return mix(css("--scen-0"), css("--scen-1"), Math.min(1, (s.lost / s.n) / MAX_REDUCTION));
+    }
+    return hexOf(css(tenureVar(b)));
+  }
+  function mapColour(b, i) {
+    if (scenColour && SCEN) return mapColourHex(b, i);
+    return "var(" + tenureVar(b) + ")";
+  }
+  function setScenarioColour(on) {
+    scenColour = on;
+    document.getElementById("z-scen").classList.toggle("on", on);
+    document.getElementById("legend-scen").hidden = !on;
+    document.getElementById("legend-tenure").hidden = on;
+    if (on && !SCEN) renderDistrict();
+    drawMap();
+    if (M3.on) m3build();
+    renderCard();
+  }
+
   resetFloorplate();
   applyPreset("case1");
 
@@ -2797,6 +4373,7 @@
   loadStreets();
   loadSurveyed();
   loadFootprints();
+  loadMassing();
   initStore();
   renderBreakdown();
   refresh();
