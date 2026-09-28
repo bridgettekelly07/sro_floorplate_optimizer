@@ -499,6 +499,7 @@
   .plan-stage { background: var(--sunk); border: 1px solid var(--rule); min-height: 200px;
     display: flex; align-items: center; justify-content: center; overflow: hidden; }
   .plan-stage svg { display: block; width: 100%; height: auto; max-height: 460px; }
+  .plan-stage.ro .room, .plan-stage.ro .wall { pointer-events: none; cursor: default; }
   .plan-stage .empty { color: var(--ink-3); font-size: 13px; padding: 40px 20px; text-align: center; }
   .curve { border: 1px solid var(--rule); background: var(--surface); }
   .curve svg { display: block; width: 100%; height: auto; }
@@ -559,7 +560,7 @@
           <button type="button" id="z-out" title="Zoom out" aria-label="Zoom out">&minus;</button>
           <button type="button" id="z-fit" title="Fit the whole district">Fit</button>
           <button type="button" id="z-3d" title="The district in 3D, at LiDAR height">3D</button>
-          <button type="button" id="z-foot" class="on" title="Building footprints">Footprints</button>
+          <button type="button" id="z-plan" title="Look straight down: the district in plan, without perspective">Plan</button>
           <button type="button" id="z-scen" title="Colour the stock by the district scenario">Scenario</button>
         </div>
         <div class="map-empty" id="map-empty" hidden></div>
@@ -568,7 +569,8 @@
         <div class="legend" id="legend-scen" hidden style="margin:0 0 12px">
           <span><i class="swatch" style="background:var(--scen-0)"></i>Converted, none displaced</span>
           <span><i class="swatch" style="background:var(--scen-1)"></i>Half the tenants displaced</span>
-          <span><i class="swatch" style="background:var(--map-unsurveyed)"></i>Left as it is</span>
+          <span><i class="swatch" style="background:var(--edge)"></i>In works this phase</span>
+          <span><i class="swatch" style="background:var(--map-unsurveyed)"></i>Left as it is, or a later phase</span>
           <span><i class="swatch" style="background:var(--scen-x)"></i>No compliant scheme</span>
         </div>
         <div class="legend" id="legend-tenure" style="margin:0 0 12px">
@@ -637,7 +639,10 @@
       <div>
         <div class="stage-bar" style="padding:0 0 10px;border:none;background:none">
           <span class="label" id="bp-title">No building selected</span>
-          <span class="note">Plan of the typical floor &middot; edit it, and the tests follow</span>
+          <div class="btnrow">
+            <button type="button" data-plan-view="existing" title="The rooms as they stand: doors to the corridor, windows on the outer wall">Existing</button>
+            <button type="button" data-plan-view="proposed" class="on" title="The scheme: units with their bathroom and kitchen, one door each">Proposed</button>
+          </div>
         </div>
         <div id="bp-plan" class="plan-stage"></div>
         <p class="src" id="bp-foot"></p>
@@ -680,6 +685,16 @@
           <input type="range" id="d-target" min="0" max="100" step="1" value="50">
           <span class="hint-s" id="d-target-hint"></span>
         </div>
+        <div class="field">
+          <label for="d-cap-works">Rooms under works at once</label>
+          <input type="number" id="d-cap-works" min="10" max="5000" step="10" value="300">
+          <span class="hint-s">The relocation housing available for one phase: a building in works is every one of its rooms (s.4.8(f))</span>
+        </div>
+        <div class="field">
+          <label for="d-phase">Phase shown on the map &middot; <span id="d-phase-v"></span></label>
+          <input type="range" id="d-phase" min="0" max="1" step="1" value="1">
+          <span class="hint-s" id="d-phase-hint"></span>
+        </div>
         <p class="src">Room size is read from each footprint: its area less the circulation share,
           divided by the rooms Appendix B counts on a floor, and capped where a footprint holds far
           more than its count suggests, since the City counts the designated rooms and not the
@@ -689,10 +704,16 @@
           least-loss scheme or not at all: a partial conversion below 50% fails DTES 9.2.7. Every room
           is taken as occupied, so rooms lost equals tenants displaced; the survey&rsquo;s average
           tenancy of 4.6 years places each of them in the 4-month bracket of s.4.8(i).</p>
+        <p class="src">The chosen buildings are then put in order. Works empty a building, so the
+          most that can convert at once is set by the relocation housing on hand; buildings go in
+          rising order of tenants displaced per unit delivered, each into the earliest phase with
+          room for it, so that if the programme stops early the conversions made are the ones that
+          cost least. The capacity is an assumption; nothing in the sources fixes it.</p>
       </div>
       <div>
         <div class="tally" id="d-tally"></div>
         <div id="d-curve" style="margin-top:14px"></div>
+        <div id="d-phases"></div>
         <div id="d-out"></div>
       </div>
     </div>
@@ -2280,7 +2301,7 @@
         + (tp.res === 1 ? "storey" : "storeys") + ' \u00d7 ' + tp.placed + ' rooms of about ' + Math.round(tp.sf)
         + ' SF, read from the footprint' + (b.hgtM ? ' and the ' + b.hgtM + ' m LiDAR height' : '') + '.'
         + (SCEN && SCEN.byIndex[surveySel] ? ' Scenario: ' + (function (sc) {
-            return sc.state === "converted" ? sc.units + " units, " + sc.lost + " tenants displaced"
+            return sc.state === "converted" ? sc.units + " units, " + sc.lost + " tenants displaced, phase " + sc.phase
               : sc.state === "infeasible" ? "no compliant conversion" : "left as it is"; })(SCEN.byIndex[surveySel]) + '.' : '')
         + '</div>';
     } else if (b.surveyed && b.rooms) {
@@ -2615,7 +2636,9 @@
     r.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     m3wrap.insertBefore(r.domElement, m3labels);
     M3.scene = new THREE.Scene();
-    M3.camera = new THREE.PerspectiveCamera(40, 1, 1, 30000);
+    M3.persp = new THREE.PerspectiveCamera(40, 1, 1, 30000);
+    M3.ortho = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, 30000);
+    M3.camera = M3.persp;
     M3.ray = new THREE.Raycaster();
     M3.ndc = { x: 0, y: 0 };
     M3.v = new THREE.Vector3();
@@ -3023,8 +3046,28 @@
 
   /* ---- camera ---- */
 
+  // Plan: an orthographic camera straight above the target, north up, its
+  // frustum sized so the zoom carries over from the perspective view.
+  function setPlan(on) {
+    M3.plan = on;
+    M3.camera = on ? M3.ortho : M3.persp;
+    document.getElementById("z-plan").classList.toggle("on", on);
+    m3resize(); m3place(); M3.dirty = true;
+  }
+
   function m3place() {
-    var c = M3.cam, sp = Math.max(0.12, Math.min(1.5, c.phi));
+    var c = M3.cam;
+    if (M3.plan) {
+      M3.ortho.position.set(c.tx, c.r, c.tz);
+      M3.ortho.up.set(0, 0, -1);
+      M3.ortho.lookAt(c.tx, 0, c.tz);
+      var hh = c.r * Math.tan(20 * Math.PI / 180), aspect = M3.persp.aspect || 1;
+      M3.ortho.left = -hh * aspect; M3.ortho.right = hh * aspect; M3.ortho.top = hh; M3.ortho.bottom = -hh;
+      M3.ortho.updateProjectionMatrix();
+      M3.ortho.updateMatrixWorld();
+      return;
+    }
+    var sp = Math.max(0.12, Math.min(1.5, c.phi));
     M3.camera.position.set(
       c.tx + c.r * Math.sin(sp) * Math.cos(c.theta),
       c.r * Math.cos(sp),
@@ -3076,8 +3119,9 @@
     var h = Math.max(380, Math.min(600, Math.round(w * 0.64)));
     m3wrap.style.height = h + "px";
     M3.renderer.setSize(w, h, false);
-    M3.camera.aspect = w / h;
-    M3.camera.updateProjectionMatrix();
+    M3.persp.aspect = w / h;
+    M3.persp.updateProjectionMatrix();
+    if (M3.plan) m3place();
     M3.dirty = true;
   }
 
@@ -3116,6 +3160,7 @@
       pointers.set(e.pointerId, e);
       if (pointers.size > 1) { down = null; return; }
       var orbit = e.button === 2 || e.shiftKey || e.ctrlKey || e.metaKey;
+      if (orbit && M3.plan) { M3.cam.phi = 0.12; M3.cam.theta = -Math.PI / 2; setPlan(false); }   // orbiting tips the plan back into perspective
       down = { x: e.clientX, y: e.clientY, moved: false, orbit: orbit,
                theta: M3.cam.theta, phi: M3.cam.phi, g: m3groundPoint(e) };
       m3wrap.classList.toggle("orbiting", orbit);
@@ -3531,11 +3576,9 @@
     if (M3.on) { m3fit(); return; }
     resetView(); drawMap();
   });
-  document.getElementById("z-foot").addEventListener("click", function () {
-    showFoot = !showFoot;
-    this.classList.toggle("on", showFoot);
-    M3.needFoot = true;
-    drawMap();
+  document.getElementById("z-plan").addEventListener("click", function () {
+    if (!M3.on) { setMode3d(true); if (!M3.on) return; }
+    setPlan(!M3.plan);
   });
   document.getElementById("z-3d").addEventListener("click", function () { setMode3d(!M3.on); });
   document.getElementById("z-scen").addEventListener("click", function () { setScenarioColour(!scenColour); });
@@ -3916,6 +3959,32 @@
     };
   }
 
+  // The order: the chosen conversions packed into phases under a relocation
+  // capacity, the most rooms that can be under works at once. A building's
+  // tenants are all re-housed for the duration of its works (s.4.8(f)), so
+  // a building in works is every one of its rooms. Least harm first: rising
+  // tenants displaced per unit delivered, each building into the earliest
+  // phase with room for it; one larger than the capacity stands alone.
+  function sequence(chosen, capacity) {
+    var cap = Math.max(1, capacity);
+    var order = chosen.slice().sort(function (a, b) {
+      var ha = a.point.units ? a.point.lost / a.point.units : Infinity, hb = b.point.units ? b.point.lost / b.point.units : Infinity;
+      return ha - hb || b.point.units - a.point.units || a.original - b.original || (a.key < b.key ? -1 : 1);
+    });
+    var bins = [];
+    order.forEach(function (c) {
+      var slot = null;
+      for (var k = 0; k < bins.length && !slot; k++) if (!bins[k].over && bins[k].inWorks + c.original <= cap) slot = bins[k];
+      if (!slot) { slot = { items: [], inWorks: 0, units: 0, lost: 0, over: c.original > cap }; bins.push(slot); }
+      slot.items.push(c); slot.inWorks += c.original; slot.units += c.point.units; slot.lost += c.point.lost;
+    });
+    var cu = 0, cl = 0;
+    return bins.map(function (b, n) {
+      cu += b.units; cl += b.lost;
+      return { number: n + 1, items: b.items, inWorks: b.inWorks, units: b.units, lost: b.lost, cumUnits: cu, cumLost: cl, over: b.over };
+    });
+  }
+
   /* ======================================================================
      9. THE TYPICAL FLOOR, READ FROM THE FOOTPRINT
      A double-loaded corridor along the long axis of the building's
@@ -3927,6 +3996,11 @@
      ====================================================================== */
 
   var PLAN = { corridor: 1.5, stair: 3.0, minDepth: 2.75, maxDepth: 4.6, minWidth: 2.4, groundRetail: true };
+  // the unit's program, SRA Guidelines p.5-6: a complete bathroom and a kitchen
+  // run with a 24" fridge. The source dimensions only the fridge; these are
+  // conventional minimums in metres (5' x 8' bath, 8' x 2' kitchen, 3' door).
+  var POD = { bath: [1.52, 2.44], kitchen: [2.44, 0.61], kitchenMin: 1.5, door: 0.9 };
+  var planView = "proposed";
   function planAssumptions() {
     var cap = num((document.getElementById("d-cap") || {}).value), circ = num((document.getElementById("d-circ") || {}).value);
     return { cap: Math.max(100, Math.min(MAX_AREA, cap || 180)), circ: Math.max(0, Math.min(60, circ == null ? 25 : circ)) / 100 };
@@ -4072,10 +4146,20 @@
      wall shifts area from one room to its neighbour. Every floor is the
      typical floor, so an edit applies to all of them. */
 
-  function planFromState(i) {
+  function planFromState(i, original) {
     var p = typicalPlan(i);
     if (!p || !p.placed || !floors.length) return null;
     var fr = floors[0].rooms, fj = floors[0].joints;
+    if (original) {
+      // the floor as generated, untouched by any edit: what "existing" shows
+      var perSide = {};
+      p.rooms.forEach(function (r) { perSide[r.side] = (perSide[r.side] || 0) + 1; });
+      var seen = {};
+      return { p: p, fr: fr, fj: fj, rooms: p.rooms.map(function (r, k) {
+        seen[r.side] = (seen[r.side] || 0) + 1;
+        return { n: r.n, idx: k, side: r.side, k: r.bay, u: r.u, v: r.v, w: r.w, d: r.d, sf: r.sf, keep: false, last: seen[r.side] === perSide[r.side] };
+      }) };
+    }
     var counts = p.runs.map(function (r) { return r.length; });
     var total = counts.reduce(function (t, n) { return t + n; }, 0);
     if (fr.length !== total) return null;
@@ -4113,21 +4197,44 @@
     }
 
     // units from the state: groups of consecutive converted rooms linked by joints
-    var groups = groupsOf(g.fr, g.fj), unitOf = {}, unitArea = {};
+    var proposed = planView === "proposed";
+    var groups = proposed ? groupsOf(g.fr, g.fj) : [], unitOf = {}, unitArea = {};
     groups.forEach(function (grp, ui) {
       var a = grp.reduce(function (t, k) { return t + g.fr[k].area; }, 0);
       grp.forEach(function (k) { unitOf[k] = ui; unitArea[k] = a; });
     });
     var fs = Math.max(0.42, Math.min(0.8, p.width * 0.22));
+    // a door in the corridor wall: a gap and a quarter swing into the room
+    function door(x, r) {
+      var cw = r.side === 0 ? r.v + r.d : r.v, dir = r.side === 0 ? -1 : 1;   // swing inward
+      var s = '<line x1="' + X(x) + '" y1="' + Y(cw) + '" x2="' + X(x + POD.door) + '" y2="' + Y(cw) + '" stroke="var(--surface)" stroke-width="0.12" pointer-events="none"/>';
+      s += '<path d="M' + X(x) + ' ' + Y(cw) + ' L' + X(x) + ' ' + Y(cw + dir * POD.door) + ' A' + POD.door.toFixed(2) + ' ' + POD.door.toFixed(2) + ' 0 0 ' + (r.side === 0 ? 1 : 0) + ' ' + X(x + POD.door) + ' ' + Y(cw) + '" fill="none" stroke="var(--ink-2)" stroke-width="0.05" pointer-events="none"/>';
+      return s;
+    }
+    // a window on the outer wall, centred on the room
+    function window_(r) {
+      var ow = r.side === 0 ? r.v : r.v + r.d, off = r.side === 0 ? 0.1 : -0.1;
+      var a = r.u + r.w * 0.25, b = r.u + r.w * 0.75;
+      return '<line x1="' + X(a) + '" y1="' + Y(ow) + '" x2="' + X(b) + '" y2="' + Y(ow) + '" stroke="var(--surface)" stroke-width="0.1" pointer-events="none"/>'
+        + '<line x1="' + X(a) + '" y1="' + Y(ow + off * 0.3) + '" x2="' + X(b) + '" y2="' + Y(ow + off * 0.3) + '" stroke="var(--ink)" stroke-width="0.04" pointer-events="none"/>'
+        + '<line x1="' + X(a) + '" y1="' + Y(ow - off * 0.3) + '" x2="' + X(b) + '" y2="' + Y(ow - off * 0.3) + '" stroke="var(--ink)" stroke-width="0.04" pointer-events="none"/>';
+    }
     g.rooms.forEach(function (r) {
-      var fill = r.keep ? "var(--edge-soft)" : "var(--pass-soft)";
+      var fill = !proposed ? "var(--surface)" : r.keep ? "var(--edge-soft)" : "var(--pass-soft)";
       h += '<rect class="room" data-room="' + r.idx + '" x="' + X(r.u) + '" y="' + Y(r.v) + '" width="' + r.w.toFixed(2) + '" height="' + r.d.toFixed(2) + '" fill="' + fill + '" stroke="var(--ink-2)" stroke-width="0.08" style="cursor:pointer"/>';
-      h += '<text x="' + X(r.u + r.w / 2) + '" y="' + Y(r.v + r.d / 2 + fs * 0.35) + '" font-size="' + fs.toFixed(2) + '" text-anchor="middle" fill="var(--ink)" pointer-events="none">' + Math.round(r.sf) + ' SF</text>';
+      // in a converted room the pods sit at the corridor wall, so the area reads in the band by the window
+      var band = r.d - POD.bath[1], cy = r.v + r.d / 2;
+      if (unitOf[r.idx] !== undefined && band >= 1.1) cy = r.side === 0 ? r.v + band / 2 : r.v + POD.bath[1] + band / 2;
+      h += '<text x="' + X(r.u + r.w / 2) + '" y="' + Y(cy + fs * 0.35) + '" font-size="' + fs.toFixed(2) + '" text-anchor="middle" fill="var(--ink)" pointer-events="none">' + Math.round(r.sf) + ' SF</text>';
       var ny = r.side === 0 ? r.v + fs * 0.9 : r.v + r.d - fs * 0.35;
-      h += '<text x="' + X(r.u + 0.25) + '" y="' + Y(ny) + '" font-size="' + (fs * 0.7).toFixed(2) + '" fill="var(--ink-3)" pointer-events="none">' + r.n + (r.keep ? " SRA" : "") + '</text>';
+      h += '<text x="' + X(r.u + 0.25) + '" y="' + Y(ny) + '" font-size="' + (fs * 0.7).toFixed(2) + '" fill="var(--ink-3)" pointer-events="none">' + r.n + (proposed && r.keep ? " SRA" : "") + '</text>';
     });
-    // merged units: the partition inside a unit is erased, the unit outlined and named
-    var done = {};
+    g.rooms.forEach(function (r) { h += window_(r); });
+    // doors: every room as it stands, or one per unit in the proposed scheme
+    g.rooms.forEach(function (r) { if (unitOf[r.idx] === undefined) h += door(r.u + 0.15, r); });
+    // merged units: the partition inside a unit is erased, the unit outlined and named,
+    // and the bathroom and kitchen of Guidelines p.5-6 drawn at the corridor wall
+    var done = {}, podFlags = [];
     g.rooms.forEach(function (r) {
       var u = unitOf[r.idx];
       if (u === undefined) return;
@@ -4141,14 +4248,38 @@
         done[u] = true;
         var u0 = Math.min.apply(null, mates.map(function (q) { return q.u; })), u1 = Math.max.apply(null, mates.map(function (q) { return q.u + q.w; }));
         var short = unitArea[r.idx] < MIN_UNIT_AREA - EPS;
+        // pods along the corridor wall: bath at the u0 end, then the door, then the kitchen run
+        var cwY = r.side === 0 ? r.v + r.d - POD.bath[1] : r.v, kY = r.side === 0 ? r.v + r.d - POD.kitchen[1] : r.v;
+        var kx0 = u0 + POD.bath[0] + 0.1 + POD.door + 0.1, kLen = Math.min(POD.kitchen[0], u1 - 0.1 - kx0);
+        // pods are faint, unfilled and labelled inside, so the room's area stays legible over them
+        var pod = ' fill="none" stroke-width="0.03" stroke-dasharray="0.18 0.1" pointer-events="none"';
+        h += '<rect x="' + X(u0 + 0.08) + '" y="' + Y(cwY) + '" width="' + (POD.bath[0] - 0.08).toFixed(2) + '" height="' + POD.bath[1].toFixed(2) + '" stroke="var(--ink-3)"' + pod + '/>';
+        h += '<text x="' + X(u0 + POD.bath[0] / 2) + '" y="' + Y(cwY + POD.bath[1] / 2 + 0.1) + '" font-size="0.26" text-anchor="middle" fill="var(--ink-3)" pointer-events="none">BATH</text>';
+        h += door(u0 + POD.bath[0] + 0.1, r);
+        var fits = true;
+        if (kLen >= POD.kitchenMin) {
+          // the run along the corridor wall, after the door
+          h += '<rect x="' + X(kx0) + '" y="' + Y(kY) + '" width="' + kLen.toFixed(2) + '" height="' + POD.kitchen[1].toFixed(2) + '" stroke="var(--ink-3)"' + pod + '/>';
+          h += '<text x="' + X(kx0 + kLen / 2) + '" y="' + Y(kY + POD.kitchen[1] / 2 + 0.1) + '" font-size="0.26" text-anchor="middle" fill="var(--ink-3)" pointer-events="none">KITCHEN</text>';
+        } else {
+          // no room beside the door: the run turns up the far party wall
+          var vLen = Math.min(POD.kitchen[0], r.d - 0.2), vx = u1 - 0.08 - POD.kitchen[1];
+          fits = vx >= kx0 && vLen >= POD.kitchenMin;
+          var vy = r.side === 0 ? r.v + r.d - 0.08 - vLen : r.v + 0.08;
+          h += '<rect x="' + X(vx) + '" y="' + Y(vy) + '" width="' + POD.kitchen[1].toFixed(2) + '" height="' + vLen.toFixed(2) + '" stroke="var(--' + (fits ? "ink-3" : "fail") + ')"' + pod + '/>';
+          h += '<text transform="translate(' + X(vx + POD.kitchen[1] / 2 + 0.1) + ' ' + Y(vy + vLen / 2) + ') rotate(-90)" font-size="0.26" text-anchor="middle" fill="var(--' + (fits ? "ink-3" : "fail") + ')" pointer-events="none">KITCHEN</text>';
+        }
+        if (!fits) podFlags.push(letter(u));
         h += '<rect x="' + X(u0) + '" y="' + Y(r.v) + '" width="' + (u1 - u0).toFixed(2) + '" height="' + r.d.toFixed(2) + '" fill="none" stroke="var(--' + (short ? "edge" : "pass") + ')" stroke-width="0.14" pointer-events="none"/>';
-        var yy = r.side === 0 ? r.v + r.d - 0.35 : r.v + 0.75;
-        h += '<text x="' + X((u0 + u1) / 2) + '" y="' + Y(yy) + '" font-size="' + (fs * 0.7).toFixed(2) + '" text-anchor="middle" fill="var(--' + (short ? "edge" : "pass") + ')" pointer-events="none">' + letter(u) + ' · ' + Math.round(unitArea[r.idx]) + ' SF</text>';
+        // the unit's name sits just inside the kitchen run, clear of the area in the window band
+        var yy = r.side === 0 ? r.v + r.d - POD.kitchen[1] - 0.2 : r.v + POD.kitchen[1] + fs * 0.7 + 0.15;
+        h += '<text x="' + X(u1 - 0.25) + '" y="' + Y(yy) + '" font-size="' + (fs * 0.7).toFixed(2) + '" text-anchor="end" fill="var(--' + (short ? "edge" : "pass") + ')" pointer-events="none">' + letter(u) + ' · ' + Math.round(unitArea[r.idx]) + ' SF</text>';
       }
     });
+    g.podFlags = podFlags;
     // walls between neighbours on a row: drag to move, click to merge or split
     g.rooms.forEach(function (r) {
-      if (r.last) return;
+      if (r.last || !proposed) return;
       var x = r.u + r.w, joined = g.fj[r.idx], my = r.side === 0 ? r.v + r.d : r.v;
       h += '<rect class="wall" data-wall="' + r.idx + '" x="' + (x + pad - 0.22).toFixed(2) + '" y="' + Y(r.v) + '" width="0.44" height="' + r.d.toFixed(2) + '" fill="transparent" style="cursor:col-resize"/>';
       h += '<circle class="joint" data-wall="' + r.idx + '" cx="' + X(x) + '" cy="' + Y(my) + '" r="0.34" fill="' + (joined ? "var(--pass)" : "var(--surface)") + '" stroke="var(--' + (joined ? "pass" : "ink-2") + ')" stroke-width="0.08" style="cursor:pointer"/>';
@@ -4186,31 +4317,6 @@
     return c;
   }
 
-  function curveSvg(curve, n, pickU, w, hh) {
-    if (!curve.length) return "";
-    var W = w || 320, H = hh || 120, px = 34, py = 14, pb = 26;
-    var uMax = n, lMax = Math.max(1, Math.max.apply(null, curve.map(function (c) { return c.lost; })));
-    function X(u) { return px + (u / uMax) * (W - px - 10); }
-    function Y(l) { return py + (1 - l / lMax) * (H - py - pb); }
-    var h = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans Condensed, sans-serif" font-size="9.5">';
-    h += '<line x1="' + px + '" y1="' + Y(0) + '" x2="' + (W - 10) + '" y2="' + Y(0) + '" stroke="var(--rule)"/>';
-    h += '<line x1="' + px + '" y1="' + py + '" x2="' + px + '" y2="' + Y(0) + '" stroke="var(--rule)"/>';
-    h += '<line x1="' + X(n / 2) + '" y1="' + py + '" x2="' + X(n / 2) + '" y2="' + Y(0) + '" stroke="var(--edge)" stroke-dasharray="2 2"/>';
-    h += '<text x="' + (X(n / 2) + 3) + '" y="' + (py + 8) + '" fill="var(--edge)">50% floor</text>';
-    var d = curve.map(function (c, k) { return (k ? "L" : "M") + X(c.units).toFixed(1) + " " + Y(c.lost).toFixed(1); }).join("");
-    h += '<path d="' + d + '" fill="none" stroke="var(--ink)" stroke-width="1.4"/>';
-    curve.forEach(function (c) {
-      var on = c.units === pickU;
-      h += '<circle cx="' + X(c.units).toFixed(1) + '" cy="' + Y(c.lost).toFixed(1) + '" r="' + (on ? 4 : 2.2) + '" fill="' + (on ? "var(--fail)" : "var(--ink)") + '"/>';
-    });
-    h += '<text x="' + (px - 4) + '" y="' + (Y(lMax) + 3) + '" text-anchor="end" fill="var(--ink-3)">' + lMax + '</text>';
-    h += '<text x="' + (px - 4) + '" y="' + (Y(0) + 3) + '" text-anchor="end" fill="var(--ink-3)">0</text>';
-    h += '<text x="' + (W - 10) + '" y="' + (H - 4) + '" text-anchor="end" fill="var(--ink-3)">units produced → ' + n + '</text>';
-    h += '<text x="' + px + '" y="' + (H - 4) + '" fill="var(--ink-3)">rooms lost ↑</text>';
-    h += '</svg>';
-    return h;
-  }
-
   function renderBuilding() {
     var stage = document.getElementById("bp-plan"), side = document.getElementById("bp-side");
     var title = document.getElementById("bp-title"), foot = document.getElementById("bp-foot");
@@ -4230,10 +4336,15 @@
       return;
     }
     if (loadedFor !== i) loadPlanIntoEditor(i, optimumFor(i, readBuilding === "strict"));
-    var g = planFromState(i);
-    if (!g) { loadPlanIntoEditor(i, optimumFor(i, readBuilding === "strict")); g = planFromState(i); }
+    var g = planFromState(i, planView !== "proposed");
+    if (!g) { loadPlanIntoEditor(i, optimumFor(i, readBuilding === "strict")); g = planFromState(i, planView !== "proposed"); }
     stage.innerHTML = planSvg(g);
-    foot.innerHTML = "Typical floor, " + p.res + " residential " + (p.res === 1 ? "storey" : "storeys")
+    stage.classList.toggle("ro", planView !== "proposed");
+    foot.innerHTML = (planView === "proposed"
+        ? "Proposed: each unit gets the program of SRA Guidelines p.5–6, a complete bathroom (drawn 5′ × 8′) and a kitchen run with a 24″ fridge (8′ × 2′), at the corridor wall so the window wall stays free, and one door. The source dimensions only the fridge; the pods are conventional minimums. "
+          + (g.podFlags.length ? "<strong>Unit" + (g.podFlags.length > 1 ? "s " : " ") + g.podFlags.join(", ") + (g.podFlags.length > 1 ? " are" : " is") + " too narrow for the kitchen run beside the bathroom and door: the plan fails on program before it fails on area.</strong> " : "")
+        : "Existing: the rooms as they stand, a door each to the corridor and a window on the outer wall, unchanged by anything done to the proposed plan; washrooms are shared and are not drawn, since the outline holds no record of them. ")
+      + "Typical floor, " + p.res + " residential " + (p.res === 1 ? "storey" : "storeys")
       + (p.storeys > p.res ? " over a retail ground floor" : "") + ", from the " + p.storeys + "-storey"
       + (b.hgtM ? " LiDAR height" : " assumed height") + ". Outline: the City’s " + p.source
       + " (" + fmt(Math.round(p.footSf)) + " SF, " + p.L.toFixed(1) + " × " + p.W.toFixed(1) + " m). "
@@ -4247,7 +4358,7 @@
       + "The outline is measured; the corridor, the bays and the stair are the type the stock shares, not a survey of this building.";
 
     var ev = evaluate(), strict = readBuilding === "strict";
-    var o = optimumFor(i, strict), curve = curveFor(i, strict);
+    var o = optimumFor(i, strict);
     var fr = floors[0].rooms, meanSf = fr.reduce(function (t, r) { return t + r.area; }, 0) / fr.length;
     var h = '<div class="tally">' + tile(ev.original, "Rooms") + tile(fr.length, "Per floor") + tile(Math.round(meanSf) + " SF", "Each") + '</div>';
     h += '<div class="tally" style="margin-top:10px">' + tile(ev.units.length, "Units") + tile(ev.untouched.length, "Kept as SRA") + tile(ev.displaced, "Tenants displaced") + tile(pct(ev.original ? ev.lost / ev.original : 0), "Of the building") + '</div>';
@@ -4266,27 +4377,41 @@
     h += '<div class="btnrow" style="margin-top:10px">'
       + '<button type="button" data-opt="average" title="Apply the search result under the Guidelines’ average fallback">Least displacement</button>'
       + '<button type="button" data-opt="strict" title="Apply the search result with every unit at 200 SF">… strict</button>'
-      + '<button type="button" id="bp-clear" title="Split every unit and keep nothing">Clear</button></div>';
+      + '<button type="button" id="bp-clear" title="Split every unit and keep nothing">Clear</button>'
+      + '<button type="button" id="bp-reset" title="Undo every edit: the typical floor as generated, its least-displacement scheme and the survey tenancy">Reset</button></div>';
     h += '<div class="field" style="margin-top:12px;max-width:200px"><label for="bp-ten">Tenancy of every room, years</label>'
       + '<input type="number" id="bp-ten" min="0" step="0.5" value="' + fr[0].tenancy + '"><span class="hint-s">Survey average 4.6; drives the compensation bracket of s.4.8(i)</span></div>';
-    if (curve.length > 1) {
-      h += '<div class="label" style="margin-top:12px">What more units would cost</div><div class="curve">' + curveSvg(curve, ev.original, ev.compliant ? ev.units.length : (o ? o.units : 0)) + '</div>'
-        + '<p class="src">Least rooms lost for every unit count the building can legally reach; the red point is where this scheme sits.</p>';
-    }
+    // what the district scenario does with this building, and whether it is pinned to the drawing
+    var sc = SCEN && SCEN.byIndex[i], pin = PINNED[i];
+    h += '<p class="note" style="margin-top:12px"><strong>In the district scenario:</strong> '
+      + (!SCEN ? 'not yet run' : !sc ? 'not in the stock the mandate reaches'
+        : sc.state === "converted" ? 'phase ' + sc.phase + ' · ' + sc.units + ' units · ' + sc.lost + ' displaced'
+        : sc.state === "infeasible" ? 'no compliant conversion'
+        : sc.state === "pinned-fail" ? 'pinned as drawn, but the drawing fails the tests, so it cannot convert'
+        : 'left as it is')
+      + (pin ? '. <strong>Pinned</strong>: the district takes this building exactly as drawn, or not at all. <button type="button" id="bp-unpin" style="margin-left:6px">Unpin</button>'
+             : '. Edit the plan and the district will take this building as drawn.') + '</p>';
     h += '<p class="src" style="margin-top:12px"><b>Click a marker</b> in the corridor to merge the two rooms or split them. <b>Drag a wall</b> to shift area between two rooms. <b>Click a room</b> to keep it as an SRA room, or to release it. Every floor is this floor.</p>';
     side.innerHTML = h;
     side.querySelectorAll("[data-opt]").forEach(function (btn) {
       btn.addEventListener("click", function () {
         readBuilding = btn.getAttribute("data-opt");
         loadPlanIntoEditor(i, optimumFor(i, readBuilding === "strict"));
-        renderBuilding();
+        pinEditor(); renderBuilding();
       });
     });
     document.getElementById("bp-clear").addEventListener("click", function () {
       floors.forEach(function (fl) { fl.rooms.forEach(function (r) { r.keep = false; }); fl.joints = fl.joints.map(function () { return false; }); });
       rooms = floors[activeFloor].rooms; joints = floors[activeFloor].joints;
-      refresh(); renderBuilding();
+      refresh(); pinEditor(); renderBuilding();
     });
+    document.getElementById("bp-reset").addEventListener("click", function () {
+      loadedFor = null;   // forget the edited state, tenancy included
+      loadPlanIntoEditor(i, optimumFor(i, readBuilding === "strict"));
+      unpin(i); renderBuilding();
+    });
+    var unpinBtn = document.getElementById("bp-unpin");
+    if (unpinBtn) unpinBtn.addEventListener("click", function () { unpin(i); renderBuilding(); });
     document.getElementById("bp-ten").addEventListener("change", function () {
       var t = Math.max(0, num(this.value) || 0);
       floors.forEach(function (fl) { fl.rooms.forEach(function (r) { r.tenancy = t; }); });
@@ -4365,25 +4490,25 @@
       var a = Math.max(MIN_AREA, Math.min(sum - MIN_AREA, Math.min(MAX_AREA, drag.a0 + dSf)));
       var fr = floors[0].rooms;
       fr[drag.k].area = Math.round(a); fr[drag.k + 1].area = Math.round(sum - a);
-      var g = planFromState(surveySel);
-      if (g) stage.innerHTML = planSvg(g);
+      // the plan, the tally and the tests follow the wall as it moves
+      typicalToAllFloors(); refresh(true); renderBuilding();
     });
     window.addEventListener("pointerup", function (e) {
       if (!drag) return;
       var d = drag; drag = null;
       if (!d.moved) toggleJoint(d.k);
-      typicalToAllFloors(); refresh(); renderBuilding();
+      typicalToAllFloors(); refresh(); pinEditor(); renderBuilding();
     });
     stage.addEventListener("click", function (e) {
       var t = e.target;
       var joint = t.closest && t.closest(".joint");
-      if (joint) { toggleJoint(parseInt(joint.getAttribute("data-wall"), 10)); typicalToAllFloors(); refresh(); renderBuilding(); return; }
+      if (joint) { toggleJoint(parseInt(joint.getAttribute("data-wall"), 10)); typicalToAllFloors(); refresh(); pinEditor(); renderBuilding(); return; }
       var room = t.closest && t.closest(".room");
       if (room) {
         var k = parseInt(room.getAttribute("data-room"), 10), fr = floors[0].rooms, fj = floors[0].joints;
         fr[k].keep = !fr[k].keep;
         if (fr[k].keep) { if (k > 0) fj[k - 1] = false; if (k < fj.length) fj[k] = false; }
-        typicalToAllFloors(); refresh(); renderBuilding();
+        typicalToAllFloors(); refresh(); pinEditor(); renderBuilding();
       }
     });
     function toggleJoint(k) {
@@ -4417,6 +4542,13 @@
     note.innerHTML = "Drawn above: the scheme that loses the fewest rooms while passing every test under the " + (strict ? "strict" : "average") + " reading — " + o.units + " units, " + o.kept + " kept, <strong>" + o.lost + " rooms lost</strong> of " + o.original + ". Every scheme of adjacent merges was searched; none loses fewer.";
     refresh();
   }
+  Array.prototype.forEach.call(document.querySelectorAll("[data-plan-view]"), function (b) {
+    b.addEventListener("click", function () {
+      planView = b.getAttribute("data-plan-view");
+      Array.prototype.forEach.call(document.querySelectorAll("[data-plan-view]"), function (o) { o.classList.toggle("on", o === b); });
+      renderBuilding();
+    });
+  });
   document.getElementById("opt-strict").addEventListener("click", function () { optimiseEditor(true); });
   document.getElementById("opt-avg").addEventListener("click", function () { optimiseEditor(false); });
 
@@ -4426,7 +4558,23 @@
 
   var SCEN = null;          // the current allocation, by Appendix B index
   var scenColour = false;
+  var scenPhase = null;     // phase shown on the map; null = the programme complete
   var districtCands = null;
+  var PINNED = {};          // Appendix B index -> the scheme drawn in section 02, which the district takes as is
+
+  // An edit in section 02 pins the building: the district converts it exactly
+  // as drawn, or not at all. Reset or Unpin hands it back to the search.
+  function pinEditor() {
+    if (surveySel === null) return;
+    var ev = evaluate();
+    PINNED[surveySel] = { compliant: ev.compliant, original: ev.original, units: ev.units.length, kept: ev.untouched.length, lost: ev.lost,
+                          area: ev.units.reduce(function (t, u) { return t + u.area; }, 0) };
+    districtCands = null; renderDistrict();
+  }
+  function unpin(i) {
+    delete PINNED[i];
+    districtCands = null; renderDistrict();
+  }
 
   function defaultTo3d() {
     if (M3.on || M3.defaulted || !PROJ || !STREETS || !SURVEYED.length || !FOOT || !THREE) return;
@@ -4459,48 +4607,45 @@
   function candidatesFor(scope, strict) {
     var key = scope + (strict ? "s" : "a");
     if (districtCands && districtCands.key === key) return districtCands;
-    var list = [], stuck = [], noPlan = [], rooms = 0;
+    var list = [], stuck = [], noPlan = [], pinnedOut = [], rooms = 0;
     SURVEYED.forEach(function (b, i) {
       if (!inScope(b, scope) || !b.rooms) return;
       rooms += b.rooms;
       var p = typicalPlan(i);
       if (!p || !p.placed) { noPlan.push(i); return; }
+      var pin = PINNED[i];
+      if (pin) {
+        if (!pin.compliant) { pinnedOut.push(i); return; }
+        list.push({ key: String(i), i: i, original: pin.original, pinned: true,
+                    curve: [{ units: pin.units, lost: pin.lost, kept: pin.kept, area: pin.area }] });
+        return;
+      }
       var curve = curveFor(i, strict);
       if (!curve.length) { stuck.push(i); return; }
       list.push({ key: String(i), i: i, original: p.placed * p.res, curve: curve });
     });
     var maxUnits = list.reduce(function (t, c) { return t + c.curve[c.curve.length - 1].units; }, 0);
-    districtCands = { key: key, list: list, stuck: stuck, noPlan: noPlan, rooms: rooms, maxUnits: maxUnits,
+    districtCands = { key: key, list: list, stuck: stuck, noPlan: noPlan, pinnedOut: pinnedOut, rooms: rooms, maxUnits: maxUnits,
                       alloc: allocate(list, maxUnits) };
     return districtCands;
   }
 
-  function districtCurveSvg(cands, target) {
-    var W = 520, H = 150, px = 44, py = 12, pb = 28, a = cands.alloc, T = cands.maxUnits;
-    if (!T) return "";
-    var lMax = Math.max(1, a.atLeast[0] === Infinity ? 1 : Math.max.apply(null, Array.prototype.slice.call(a.atLeast).filter(isFinite)));
-    function X(u) { return px + (u / T) * (W - px - 12); }
-    function Y(l) { return py + (1 - l / lMax) * (H - py - pb); }
-    var h = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans Condensed, sans-serif" font-size="10">';
-    h += '<line x1="' + px + '" y1="' + Y(0) + '" x2="' + (W - 12) + '" y2="' + Y(0) + '" stroke="var(--rule)"/>';
-    h += '<line x1="' + px + '" y1="' + py + '" x2="' + px + '" y2="' + Y(0) + '" stroke="var(--rule)"/>';
-    var d = "", first = true;
-    for (var t = 0; t <= T; t++) {
-      if (!isFinite(a.atLeast[t])) continue;
-      d += (first ? "M" : "L") + X(t).toFixed(1) + " " + Y(a.atLeast[t]).toFixed(1);
-      first = false;
-    }
-    h += '<path d="' + d + '" fill="none" stroke="var(--ink)" stroke-width="1.4"/>';
-    if (isFinite(a.atLeast[target])) {
-      h += '<line x1="' + X(target).toFixed(1) + '" y1="' + py + '" x2="' + X(target).toFixed(1) + '" y2="' + Y(0) + '" stroke="var(--fail)" stroke-dasharray="3 2"/>';
-      h += '<circle cx="' + X(target).toFixed(1) + '" cy="' + Y(a.atLeast[target]).toFixed(1) + '" r="4" fill="var(--fail)"/>';
-    }
-    h += '<text x="' + (px - 5) + '" y="' + (Y(lMax) + 3) + '" text-anchor="end" fill="var(--ink-3)">' + Math.round(lMax).toLocaleString("en-CA") + '</text>';
-    h += '<text x="' + (px - 5) + '" y="' + (Y(0) + 3) + '" text-anchor="end" fill="var(--ink-3)">0</text>';
-    h += '<text x="' + px + '" y="' + (H - 5) + '" fill="var(--ink-3)">tenants displaced ↑</text>';
-    h += '<text x="' + (W - 12) + '" y="' + (H - 5) + '" text-anchor="end" fill="var(--ink-3)">self-contained units required → ' + T.toLocaleString("en-CA") + '</text>';
-    h += '</svg>';
-    return h;
+  // Where the tenants go: one bar for every room in scope, as modelled.
+  function stockBarHtml(parts) {
+    var total = parts.reduce(function (t, p) { return t + p.n; }, 0);
+    if (!total) return "";
+    var W = 520, H = 26, x = 0;
+    var h = '<div class="curve"><svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans Condensed, sans-serif" font-size="10" style="max-height:26px">';
+    parts.forEach(function (p) {
+      if (!p.n) return;
+      var w = p.n / total * W;
+      h += '<rect x="' + x.toFixed(1) + '" y="0" width="' + w.toFixed(1) + '" height="' + H + '" fill="' + p.colour + '"/>';
+      if (w > 34) h += '<text x="' + (x + w / 2).toFixed(1) + '" y="' + (H / 2 + 3.5) + '" text-anchor="middle" fill="' + (p.dark ? "var(--surface)" : "var(--ink)") + '">' + p.n.toLocaleString("en-CA") + '</text>';
+      x += w;
+    });
+    h += '</svg></div><div class="legend" style="margin-top:6px">';
+    parts.forEach(function (p) { if (p.n) h += '<span><i class="swatch" style="background:' + p.colour + '"></i>' + p.label + ' · ' + pct(p.n / total) + '</span>'; });
+    return h + '</div>';
   }
 
   function renderDistrict() {
@@ -4512,12 +4657,28 @@
     document.getElementById("d-target-v").textContent = T.toLocaleString("en-CA") + " of " + cands.maxUnits.toLocaleString("en-CA") + " possible";
     document.getElementById("d-target-hint").textContent = "0 leaves the stock as it is; 100% converts every building that can be converted. " + cands.rooms.toLocaleString("en-CA") + " rooms are in scope.";
 
-    SCEN = { byIndex: {}, scope: inp.scope };
+    var capWorks = Math.max(10, num(document.getElementById("d-cap-works").value) || 300);
+    var chosenList = cands.list.filter(function (c) { return res.chosen[c.key]; }).map(function (c) {
+      return { key: c.key, i: c.i, original: c.original, point: res.chosen[c.key] };
+    });
+    var phases = sequence(chosenList, capWorks), phaseOf = {};
+    phases.forEach(function (ph) { ph.items.forEach(function (c) { phaseOf[c.key] = ph.number; }); });
+    var slider = document.getElementById("d-phase");
+    slider.max = phases.length;
+    if (scenPhase === null || scenPhase > phases.length) { scenPhase = null; slider.value = phases.length; }
+    else slider.value = scenPhase;
+    document.getElementById("d-phase-v").textContent = phases.length
+      ? (scenPhase === null ? "all " + phases.length + " done" : scenPhase === 0 ? "none started" : scenPhase + " of " + phases.length + " in works")
+      : "no conversions";
+    document.getElementById("d-phase-hint").textContent = "Drag to step through the programme: buildings done are coloured by the share of tenants displaced, the phase in works in ochre, the rest grey.";
+
+    SCEN = { byIndex: {}, scope: inp.scope, phase: scenPhase };
     cands.list.forEach(function (c) {
       var pk = res.chosen[c.key];
-      SCEN.byIndex[c.i] = pk ? { state: "converted", units: pk.units, lost: pk.lost, n: c.original } : { state: "untouched", n: c.original };
+      SCEN.byIndex[c.i] = pk ? { state: "converted", units: pk.units, lost: pk.lost, n: c.original, phase: phaseOf[c.key] } : { state: "untouched", n: c.original };
     });
     cands.stuck.forEach(function (i) { SCEN.byIndex[i] = { state: "infeasible", n: SURVEYED[i].rooms }; });
+    cands.pinnedOut.forEach(function (i) { SCEN.byIndex[i] = { state: "pinned-fail", n: PINNED[i].original }; });
 
     var converted = Object.keys(res.chosen).length;
     var stuckRooms = cands.stuck.reduce(function (t, i) { return t + SURVEYED[i].rooms; }, 0);
@@ -4529,8 +4690,32 @@
       + tile(cands.rooms ? pct(res.lost / cands.rooms) : "—", "Of rooms in scope")
       + tile(money(months * rent), "Compensation, s.4.8(i)");
 
-    document.getElementById("d-curve").innerHTML = '<div class="curve">' + districtCurveSvg(cands, T) + '</div>'
-      + '<p class="src">The least displacement the district can reach each unit count at, with the buildings chosen anew at every point. The curve steepens as the mandate reaches buildings with smaller rooms, where each unit costs more of the people already there.</p>';
+    var rehoused = 0, keptSra = 0, untouchedRooms = 0;
+    cands.list.forEach(function (c) {
+      var pk = res.chosen[c.key];
+      if (pk) { rehoused += pk.units; keptSra += pk.kept; } else untouchedRooms += c.original;
+    });
+    var noPlanRooms = cands.noPlan.reduce(function (t, i) { return t + SURVEYED[i].rooms; }, 0);
+    var peak = phases.reduce(function (t, p) { return Math.max(t, p.inWorks); }, 0);
+    document.getElementById("d-curve").innerHTML =
+      '<p class="note" style="margin-top:12px">' + (res.feasible && converted
+        ? '<strong>' + converted + ' of ' + cands.list.length + ' buildings convert over ' + phases.length + ' phase' + (phases.length > 1 ? "s" : "") + '</strong>, delivering '
+          + res.units.toLocaleString("en-CA") + ' units. ' + res.lost.toLocaleString("en-CA") + ' tenants lose their room for good; up to ' + peak.toLocaleString("en-CA") + ' are out at once while their building is in works.'
+        : T > 0 ? '<strong>No combination of buildings reaches this target.</strong>' : '<strong>Nothing converts.</strong> Move the slider to set a mandate.')
+      + '</p><div class="btnrow" style="margin:10px 0 14px"><button type="button" id="d-show-map" title="Colour the map by this scenario and scroll to it">Show on map</button></div>'
+      + '<div class="label">Where the tenants go · every room in scope, as modelled</div>'
+      + stockBarHtml([
+          { n: rehoused, label: "Re-housed in a new unit", colour: "var(--pass)", dark: true },
+          { n: keptSra, label: "Stay in a room kept as SRA", colour: "var(--edge)", dark: true },
+          { n: res.lost, label: "Displaced", colour: "var(--fail)", dark: true },
+          { n: untouchedRooms + noPlanRooms, label: "Building left as it is", colour: "var(--map-unsurveyed)", dark: true },
+          { n: stuckRooms, label: "No compliant conversion", colour: "var(--scen-x)", dark: false }
+        ])
+      + '<p class="src">A converted building re-houses one tenant per unit under the right of first refusal (s.4.8(f)–(g)) and keeps whoever stays in an SRA room; the rest are displaced. Every room is taken as occupied.</p>';
+    document.getElementById("d-show-map").addEventListener("click", function () {
+      if (!scenColour) setScenarioColour(true);
+      mapStage.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
 
     var h = '';
     if (cands.stuck.length) {
@@ -4539,20 +4724,33 @@
     if (cands.noPlan.length) {
       h += '<p class="src">' + cands.noPlan.length + ' in-scope building' + (cands.noPlan.length > 1 ? "s have" : " has") + ' no footprint to draw a floor from and ' + (cands.noPlan.length > 1 ? "are" : "is") + ' left out of the scenario.</p>';
     }
-    var rows = cands.list.filter(function (c) { return res.chosen[c.key]; }).map(function (c) {
-      var pk = res.chosen[c.key], p = typicalPlan(c.i);
-      return { i: c.i, b: SURVEYED[c.i], sf: p.sf, n: c.original, units: pk.units, lost: pk.lost };
-    }).sort(function (a, b) { return (b.lost / b.n) - (a.lost / a.n) || b.lost - a.lost; });
+    var rows = chosenList.map(function (c) {
+      var pk = c.point, p = typicalPlan(c.i);
+      return { i: c.i, b: SURVEYED[c.i], sf: p.sf, n: c.original, units: pk.units, lost: pk.lost, phase: phaseOf[c.key], pinned: !!PINNED[c.i] };
+    }).sort(function (a, b) { return a.phase - b.phase || (b.lost / b.n) - (a.lost / a.n) || b.lost - a.lost; });
+    var pinnedIn = rows.filter(function (r) { return r.pinned; }).length, pinnedAll = Object.keys(PINNED).length;
+    if (pinnedAll) {
+      h += '<p class="src">' + pinnedAll + ' building' + (pinnedAll > 1 ? "s are" : " is") + ' pinned to the scheme drawn in section 02 and taken exactly as drawn, or not at all'
+        + (cands.pinnedOut.length ? '; ' + cands.pinnedOut.length + ' of them fail' + (cands.pinnedOut.length > 1 ? "" : "s") + ' the tests as drawn and cannot convert' : '')
+        + (pinnedIn < pinnedAll - cands.pinnedOut.length ? '; the rest the mandate does not need' : '') + '.</p>';
+    }
     if (rows.length) {
-      h += '<table class="dist"><thead><tr><th>Converted building</th><th class="n">Rooms</th><th class="n">SF each</th><th class="n">Units</th><th class="n">Displaced</th><th class="n">Share</th></tr></thead><tbody>';
+      h += '<table class="dist"><thead><tr><th class="n">Phase</th><th>Converted building</th><th class="n">Rooms</th><th class="n">SF each</th><th class="n">Units</th><th class="n">Displaced</th><th class="n">Share</th></tr></thead><tbody>';
       rows.forEach(function (r) {
-        h += '<tr class="pick" data-i="' + r.i + '"><td>' + esc(r.b.name) + '</td><td class="n">' + r.n + '</td><td class="n">' + Math.round(r.sf) + '</td><td class="n">' + r.units + '</td><td class="n">' + r.lost + '</td><td class="n">' + pct(r.lost / r.n) + '</td></tr>';
+        h += '<tr class="pick" data-i="' + r.i + '"><td class="n">' + r.phase + '</td><td>' + esc(r.b.name) + (r.pinned ? ' <span class="label" style="font-size:9px">pinned</span>' : '') + '</td><td class="n">' + r.n + '</td><td class="n">' + Math.round(r.sf) + '</td><td class="n">' + r.units + '</td><td class="n">' + r.lost + '</td><td class="n">' + pct(r.lost / r.n) + '</td></tr>';
       });
-      h += '</tbody></table><p class="src">Sorted by the share of each building’s tenants displaced. Click a row to load that building in section 02.</p>';
+      h += '</tbody></table><p class="src">In phase order, then by the share of each building’s tenants displaced. Click a row to load that building in section 02.</p>';
     } else if (T > 0) {
       h += '<p class="note" style="margin-top:12px">No combination of buildings reaches this target.</p>';
     }
     document.getElementById("d-out").innerHTML = h;
+    document.getElementById("d-phases").innerHTML = phasesHtml(phases, capWorks);
+    document.querySelectorAll("#d-phases tr.pick").forEach(function (tr) {
+      tr.addEventListener("click", function () {
+        var n = parseInt(tr.getAttribute("data-phase"), 10);
+        scenPhase = n; renderDistrict(); if (!scenColour) setScenarioColour(true);
+      });
+    });
     document.querySelectorAll("#d-out tr.pick").forEach(function (tr) {
       tr.addEventListener("click", function () {
         var i = parseInt(tr.getAttribute("data-i"), 10);
@@ -4572,6 +4770,50 @@
     document.getElementById(id).addEventListener("change", function () { districtReady(); });
   });
   document.getElementById("d-target").addEventListener("input", renderDistrict);
+  document.getElementById("d-cap-works").addEventListener("change", renderDistrict);
+  document.getElementById("d-phase").addEventListener("input", function () {
+    var v = parseInt(this.value, 10), max = parseInt(this.max, 10);
+    scenPhase = v >= max ? null : v;
+    renderDistrict(); if (!scenColour) setScenarioColour(true);
+  });
+
+  function phasesHtml(phases, cap) {
+    if (!phases.length) return "";
+    // the timeline: a bar per phase of tenants out while their building is in
+    // works, the ones who never come back as a red cap, units so far above
+    var W = 520, H = 140, px = 44, py = 22, pb = 26, n = phases.length;
+    var top = Math.max(cap, Math.max.apply(null, phases.map(function (p) { return p.inWorks; })));
+    var slotW = (W - px - 12) / n, barW = Math.max(4, Math.min(34, slotW * 0.62)), dense = n > 14;
+    function Y(v) { return py + (1 - v / top) * (H - py - pb); }
+    var h = '<div class="label" style="margin-top:14px">The programme, phase by phase</div><div class="curve"><svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans Condensed, sans-serif" font-size="10">';
+    h += '<line x1="' + px + '" y1="' + Y(0) + '" x2="' + (W - 12) + '" y2="' + Y(0) + '" stroke="var(--rule)"/>';
+    h += '<line x1="' + px + '" y1="' + Y(cap).toFixed(1) + '" x2="' + (W - 12) + '" y2="' + Y(cap).toFixed(1) + '" stroke="var(--ink-3)" stroke-dasharray="3 2"/>';
+    h += '<text x="' + (px - 5) + '" y="' + (Y(cap) + 3).toFixed(1) + '" text-anchor="end" fill="var(--ink-3)">' + cap.toLocaleString("en-CA") + '</text>';
+    h += '<text x="' + (px - 5) + '" y="' + (Y(0) + 3) + '" text-anchor="end" fill="var(--ink-3)">0</text>';
+    phases.forEach(function (p, k) {
+      var x = px + slotW * (k + 0.5), on = SCEN && SCEN.phase === p.number;
+      var later = SCEN && SCEN.phase !== null && SCEN.phase < p.number;
+      var fill = on ? "var(--edge)" : later ? "var(--rule)" : "var(--ink-3)";
+      h += '<rect x="' + (x - barW / 2).toFixed(1) + '" y="' + Y(p.inWorks).toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + (Y(0) - Y(p.inWorks)).toFixed(1) + '" fill="' + fill + '"' + (p.over ? ' stroke="var(--fail)" stroke-width="1.5"' : '') + '/>';
+      if (p.lost) h += '<rect x="' + (x - barW / 2).toFixed(1) + '" y="' + Y(p.inWorks).toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + Math.max(1.5, Y(p.inWorks - p.lost) - Y(p.inWorks)).toFixed(1) + '" fill="var(--fail)"/>';
+      if (!dense || k % Math.ceil(n / 14) === 0) {
+        h += '<text x="' + x.toFixed(1) + '" y="' + (Y(p.inWorks) - 4).toFixed(1) + '" text-anchor="middle" fill="var(--ink)">' + p.cumUnits.toLocaleString("en-CA") + '</text>';
+        h += '<text x="' + x.toFixed(1) + '" y="' + (H - 12) + '" text-anchor="middle" fill="var(--ink-3)">' + p.number + '</text>';
+      }
+    });
+    h += '<text x="' + px + '" y="' + (H - 1) + '" fill="var(--ink-3)">bar: tenants out while their building is in works · red: of those, displaced for good · above: units delivered so far</text>';
+    h += '</svg></div>';
+    var over = phases.filter(function (p) { return p.over; });
+    h += '<table class="dist"><thead><tr><th class="n">Phase</th><th class="n">Buildings</th><th class="n">Rooms in works</th><th class="n">Units delivered</th><th class="n">Displaced</th><th class="n">Units so far</th><th class="n">Displaced so far</th></tr></thead><tbody>';
+    phases.forEach(function (p) {
+      var on = SCEN && SCEN.phase === p.number;
+      h += '<tr class="pick" data-phase="' + p.number + '"' + (on ? ' style="background:var(--edge-soft)"' : '') + '><td class="n">' + p.number + '</td><td class="n">' + p.items.length + '</td><td class="n"' + (p.over ? ' style="color:var(--fail)"' : '') + '>' + p.inWorks.toLocaleString("en-CA") + '</td><td class="n">' + p.units.toLocaleString("en-CA") + '</td><td class="n">' + p.lost.toLocaleString("en-CA") + '</td><td class="n">' + p.cumUnits.toLocaleString("en-CA") + '</td><td class="n">' + p.cumLost.toLocaleString("en-CA") + '</td></tr>';
+    });
+    h += '</tbody></table><p class="src">' + phases.length + ' phase' + (phases.length > 1 ? "s" : "") + ' at ' + cap.toLocaleString("en-CA") + ' rooms under works at once. '
+      + (over.length ? '<strong>' + over.length + ' building' + (over.length > 1 ? "s are" : " is") + ' larger than the capacity and take' + (over.length > 1 ? "" : "s") + ' a phase alone</strong>, shown in red. ' : '')
+      + 'Click a phase to show it on the map.</p>';
+    return h;
+  }
 
   /* ---- map colour: tenure, or the scenario ---- */
 
@@ -4592,8 +4834,10 @@
     if (scenColour && SCEN) {
       var s = SCEN.byIndex[i];
       if (!s) return hexOf(css("--map-unsurveyed"));
-      if (s.state === "infeasible") return hexOf(css("--scen-x"));
+      if (s.state === "infeasible" || s.state === "pinned-fail") return hexOf(css("--scen-x"));
       if (s.state === "untouched") return hexOf(css("--map-unsurveyed"));
+      if (SCEN.phase != null && s.phase > SCEN.phase) return hexOf(css("--map-unsurveyed"));
+      if (SCEN.phase != null && s.phase === SCEN.phase) return hexOf(css("--edge"));
       return mix(css("--scen-0"), css("--scen-1"), Math.min(1, (s.lost / s.n) / MAX_REDUCTION));
     }
     return hexOf(css(tenureVar(b)));

@@ -18,7 +18,8 @@ from examples.floorplate import AREAS, EXAMPLE  # noqa: E402
 from sro.evaluate import evaluate  # noqa: E402
 from sro.model import Scheme  # noqa: E402
 from sro.optimize import (  # noqa: E402
-    Candidate, allocate, optimise, trade_off, uniform, uniform_trade_off,
+    Candidate, TradeOff, allocate, optimise, sequence, trade_off, uniform,
+    uniform_trade_off,
 )
 
 
@@ -143,6 +144,45 @@ class TestDistrict(unittest.TestCase):
     def test_zero_target_converts_nothing(self):
         a = allocate([self.small, self.large], 0)
         self.assertEqual((a.units, a.lost, a.chosen), (0, 0, {}))
+
+
+class TestSequence(unittest.TestCase):
+    def setUp(self):
+        # (key, rooms, point): harm per unit is lost / units
+        self.gentle = ("gentle", 10, TradeOff(5, 0, 5, 1000.0))   # 0 per unit
+        self.mid = ("mid", 10, TradeOff(5, 2, 3, 1000.0))          # 0.4 per unit
+        self.harsh = ("harsh", 10, TradeOff(5, 5, 0, 1000.0))      # 1 per unit
+        self.big = ("big", 40, TradeOff(20, 4, 16, 4000.0))         # 0.2 per unit
+
+    def test_least_harm_first(self):
+        ph = sequence([self.harsh, self.gentle, self.mid], capacity=10)
+        self.assertEqual([p.keys for p in ph], [["gentle"], ["mid"], ["harsh"]])
+
+    def test_capacity_packs_buildings_into_one_phase(self):
+        ph = sequence([self.harsh, self.gentle, self.mid], capacity=20)
+        self.assertEqual([p.keys for p in ph], [["gentle", "mid"], ["harsh"]])
+        self.assertEqual(ph[0].in_works, 20)
+
+    def test_cumulative_totals_match_the_allocation(self):
+        ph = sequence([self.harsh, self.gentle, self.mid], capacity=10)
+        self.assertEqual(ph[-1].cumulative_units, 15)
+        self.assertEqual(ph[-1].cumulative_lost, 7)
+        self.assertEqual([p.number for p in ph], [1, 2, 3])
+
+    def test_a_building_over_capacity_stands_alone_and_is_flagged(self):
+        ph = sequence([self.big, self.gentle, self.mid], capacity=20)
+        big = [p for p in ph if "big" in p.keys][0]
+        self.assertEqual(big.keys, ["big"])
+        self.assertTrue(big.over_capacity)
+        self.assertFalse(any(p.over_capacity for p in ph if p is not big))
+
+    def test_a_later_small_building_fills_an_earlier_gap(self):
+        # harm order: gentle, big, mid; mid (10) fits beside gentle (10) at 20
+        ph = sequence([self.big, self.gentle, self.mid], capacity=20)
+        self.assertEqual(ph[0].keys, ["gentle", "mid"])
+
+    def test_nothing_chosen_means_no_phases(self):
+        self.assertEqual(sequence([], capacity=10), [])
 
 
 if __name__ == "__main__":

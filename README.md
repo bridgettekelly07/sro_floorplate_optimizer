@@ -23,7 +23,9 @@ The stock map in section 01 has a 3D button. Selecting a building there draws it
 City's 2009 LiDAR recorded for it (*Building Footprints 2009*, field `hgt_agl`), and draws the 143 SRO
 buildings of Appendix B on their own footprints, coloured by tenure as on the flat map. Drag to pan, shift-drag
 or right-drag to orbit, scroll to zoom; hovering names a building and clicking loads it into the sections below,
-exactly as on the flat map.
+exactly as on the flat map. The **Plan** button looks straight down through an orthographic camera, north up,
+so the district reads as a plan without perspective; panning, zooming and picking work as before, and orbiting
+tips it back into perspective.
 
 Each SRO is drawn from the City's LiDAR-measured footprint parts at their own heights, so a rear wing or a lower
 annex stands at its measured height rather than being averaged into one block. The masses are plain; a faint line
@@ -60,9 +62,10 @@ units, then to more converted area. The search is exact and runs under both read
 test the Guidelines offer: **strict**, every unit at 200 SF on its own, and the **average fallback**,
 "an average of 200 SF across all converted rooms will be considered", under which a room converted
 in place below 200 SF is carried by the pairs around it. The fallback is discretionary, so the strict
-result is the safe one and the average result the best case. It also draws the building's trade-off
-curve: the least rooms lost for every unit count the building can legally reach, from the DTES 9.2.7
-floor upward.
+result is the safe one and the average result the best case. The same search, run for every unit
+count the building can legally reach from the DTES 9.2.7 floor upward, gives the building's
+trade-off curve; it is not drawn in section 02 but is what the building contributes to the district
+allocation in section 03.
 
 **The plan is the editor.** The typical floor in section 02 is drawn from the building's state, not from
 the search, so what the user does to it is what the tests run on. A marker in the corridor between two
@@ -73,6 +76,17 @@ and repeats it. The buttons beside the plan restore the least-displacement schem
 or clear every merge, and a single tenancy length stands for every room, since no source gives one per
 room. The tally beside the plan says whether the drawn scheme passes and how far it sits from the
 least-displacement one; section 04 shows the working.
+
+The plan is drawn two ways. **Existing** shows the rooms as they stand, a door each to the corridor
+and a window on the outer wall; the shared washrooms are not drawn, since the outline holds no
+record of them. **Proposed** gives every unit the program of SRA Guidelines p.5–6, a complete
+bathroom and a kitchen run with a 24″ refrigerator, and one door. The source dimensions only the
+refrigerator; the pods are conventional minimums (5′ × 8′ bath, 8′ × 2′ kitchen, 3′ door) and are
+stated as such on the plan. They sit at the corridor wall so the window wall stays free: the
+bathroom at one end of the unit, the door beside it, the kitchen run along the corridor wall after
+the door or, where the unit is too narrow for that, up the far party wall. A unit that cannot take
+the run either way is flagged: it fails on program before it fails on area, which the area tests
+alone would not show.
 
 **The stock** (section 02's plan). Appendix B gives each building a room count and nothing else, so
 the tool reads a typical floor from the City's footprint: a double-loaded corridor along the long axis
@@ -88,13 +102,41 @@ the stock shares, not a survey of that building.
 **The district** (section 03). Each building contributes its trade-off curve; the mandate is a number
 of self-contained units the stock must produce; the optimizer chooses which buildings convert, and
 how far each goes, so the target is met with the fewest tenants displaced. It is a multiple-choice
-knapsack solved exactly, and one pass yields the whole curve of least displacement against units
-required, which is drawn. A building converts at a point on its own curve or not at all, because a
+knapsack solved exactly, and one pass yields the least displacement for every mandate at once, so the
+slider answers instantly. The result is shown three ways rather than as an abstract curve: a sentence
+and a **Show on map** button, since the map coloured by the scenario is the primary representation;
+a single bar of every room in scope, split into tenants re-housed in a new unit, tenants staying in
+a room kept as SRA, tenants displaced, rooms in buildings left alone, and rooms in buildings with no
+compliant conversion; and, under the phasing, a timeline where each phase is a bar of the tenants
+out while their building is in works, with the ones who never return as a red cap and the units
+delivered so far written above. A building converts at a point on its own curve or not at all, because a
 partial conversion below 50% fails DTES 9.2.7; a building whose rooms are too small for any scheme of
 adjacent merges to leave half the count standing cannot contribute, is counted and listed, and is
 drawn in solid ink on the map. The map's **Scenario** button colours every building by the share of
 its tenants displaced. Compensation is totalled at the survey's average tenancy (4.6 years, the
 4-month bracket of s.4.8(i)) and the survey's average rent for the tenure in scope.
+
+**The two sections are joined both ways.** Clicking a building in the district table loads it in
+section 02, and section 02 says what the scenario currently does with the building on screen (its
+phase, units and displacement, or that it is left alone). Editing a building in section 02 **pins**
+it: the district then takes that building exactly as drawn, or not at all, in place of its search
+result, so a designer's decision overrides the optimizer for that building and the district
+re-allocates around it. A pinned drawing that fails the tests cannot convert and is reported. Reset
+or Unpin hands the building back to the search.
+
+**The order** (section 03, below the bar). The allocation says which buildings convert; the
+sequence says when. Works empty a building: every tenant is re-housed for the duration under
+s.4.8(f), whether or not they return, so a building in works is every one of its rooms, and the
+most that can convert at once is set by the relocation housing on hand. That capacity, *rooms
+under works at once*, is an input (300 by default) and an assumption: nothing in the sources fixes
+it. The chosen buildings are taken in rising order of tenants displaced per unit delivered and each
+goes into the earliest phase with room for it, so that if the programme stops early the conversions
+made are the ones that cost least; a building larger than the capacity takes a phase alone and is
+flagged. Each phase reports its buildings, the rooms in works (the temporary relocations), the
+units delivered and the permanent displacement, with running totals, and a slider steps the map
+through the programme: buildings done are coloured by the share of their tenants displaced, the
+phase in works in ochre, the rest grey. The sequence is a packing, not a search: the allocation
+already fixed the set, and the order within it follows one stated rule.
 
 Three findings the search makes visible, all of which follow from the thresholds rather than from
 any modelling choice:
@@ -147,7 +189,7 @@ at a time; the building-wide arithmetic lives in the browser tool. The tool is a
 - Affordability and rent-setting mechanics generally (Section 5 of the Guidelines, and the TRPP's rent calculations), excluding the SRA By-law's own compensation schedule (s.4.8(i)), which is in scope above
 - Whether a proposed scheme is physically buildable beyond adjacency. Rooms are held in corridor order and the search merges only consecutive rooms on one side of one corridor; structure, plumbing and light are not modelled
 - The typical floor of any particular building. Appendix B gives a count, the City gives an outline, and the plan drawn between them is the stock's type, not a survey; measured plans replace it through the floorplate editor
-- Sequencing: the district scenario says which buildings convert and what it costs, not in what order or over how long, and it does not model where displaced tenants go
+- Where displaced tenants go: the sequence counts the rooms in works against a relocation capacity, but it does not model the relocation housing itself, its rents, or how long a phase takes
 
 
 ## Input → Operation → Output
@@ -176,7 +218,7 @@ at a time; the building-wide arithmetic lives in the browser tool. The tool is a
 python3 -m sro.cli --example case1              # the hand-worked cases
 python3 -m sro.cli --example case2 --svg out.svg
 python3 -m sro.cli --input floorplate.json --json
-python3 -m unittest discover -s tests           # 43 tests: the answer key below, and the search
+python3 -m unittest discover -s tests           # 49 tests: the answer key below, the search, the phasing
 ```
 
 Stdlib only, no install. `web/index.html` is the same operation as a browser tool,
@@ -203,11 +245,11 @@ the rooms, dragging a room through a boundary clears the joints it crosses.
 | `sro/rules.py` | the thresholds and the quoted clause behind each one; nothing here is user input |
 | `sro/model.py` | `Room`, `Floorplate`, `Scheme`, `Unit` |
 | `sro/evaluate.py` | the operation: the three tests, displacement, compensation |
-| `sro/optimize.py` | the search: least-loss scheme per building, the trade-off curve, the district allocation |
+| `sro/optimize.py` | the search: least-loss scheme per building, the trade-off curve, the district allocation, the phasing |
 | `sro/plan.py` | before/after floor plan geometry, emitted as SVG |
 | `sro/report.py`, `sro/cli.py` | text and JSON output |
 | `tests/test_hand_worked.py` | the hand-worked example, asserted |
-| `tests/test_optimize.py` | the search finds Case 1 and nothing else; closed form against search; the district knapsack |
+| `tests/test_optimize.py` | the search finds Case 1 and nothing else; closed form against search; the district knapsack; the phasing |
 | `web/index.html` | the interactive version: the stock in 3D, a typical plan per building, the search, the district scenario, the floorplate editor, same tests |
 
 ## Hand-Worked Example

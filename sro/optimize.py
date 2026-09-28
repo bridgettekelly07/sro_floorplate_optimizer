@@ -31,6 +31,8 @@ Two levels:
 * :func:`allocate` -- the district: given each building's trade-off curve,
   which buildings convert, and how far, to reach a mandated number of
   self-contained units at the least displacement.
+* :func:`sequence` -- the order: the chosen conversions packed into phases
+  under a relocation capacity, least harm first.
 """
 
 from __future__ import annotations
@@ -418,6 +420,59 @@ def allocate(candidates: Sequence[Candidate], target_units: int) -> Allocation:
                 t = hit
                 break
     return Allocation(T, units, int(round(layers[-1][T])), chosen, True)
+
+
+@dataclass(frozen=True)
+class Phase:
+    """One phase of works: the buildings converted together.
+
+    ``in_works`` is every room in those buildings, since a building's tenants
+    are all re-housed for the duration of its conversion (s.4.8(f)); ``lost``
+    is the permanent displacement the phase produces.
+    """
+    number: int
+    keys: List[str]
+    in_works: int
+    units: int
+    lost: int
+    cumulative_units: int
+    cumulative_lost: int
+    over_capacity: bool = False
+
+
+def sequence(chosen: Sequence[Tuple[str, int, TradeOff]], capacity: int) -> List[Phase]:
+    """Order the chosen conversions into phases under a relocation capacity.
+
+    ``chosen`` holds (key, original rooms, the point taken) for every building
+    the allocation converts. ``capacity`` is the most rooms that can be under
+    works at once: the relocation housing the City can supply for one phase.
+
+    Least harm first: buildings are taken in rising order of tenants displaced
+    per unit delivered, so if the programme stops early the conversions made
+    are the ones that cost least. Each building goes into the earliest phase
+    with room for it. A building larger than the capacity gets a phase of its
+    own and is flagged.
+    """
+    cap = max(1, capacity)
+    order = sorted(chosen, key=lambda c: (c[2].lost / c[2].units if c[2].units else math.inf,
+                                          -c[2].units, c[1], c[0]))
+    bins: List[dict] = []
+    for key, original, point in order:
+        slot = next((b for b in bins if b["in_works"] + original <= cap and not b["over"]), None)
+        if slot is None:
+            slot = {"keys": [], "in_works": 0, "units": 0, "lost": 0, "over": original > cap}
+            bins.append(slot)
+        slot["keys"].append(key)
+        slot["in_works"] += original
+        slot["units"] += point.units
+        slot["lost"] += point.lost
+    out: List[Phase] = []
+    cu = cl = 0
+    for n, b in enumerate(bins, 1):
+        cu += b["units"]
+        cl += b["lost"]
+        out.append(Phase(n, b["keys"], b["in_works"], b["units"], b["lost"], cu, cl, b["over"]))
+    return out
 
 
 def _forward_layers(candidates, T):
