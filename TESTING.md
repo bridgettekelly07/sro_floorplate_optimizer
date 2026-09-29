@@ -90,6 +90,26 @@ Things that must be true; if any is not, something is wrong.
 - Pinning a building as drawn changes the district total by exactly that building's difference.
 - Arcs on the map land on buildings with spare rooms; a 14-room building does not absorb 40 people.
 
+## A test sample in the browser: the Ivanhoe Hotel
+
+Run 2026-09-29 on the market stock at the default scenario. The Ivanhoe (1038 Main St, 92 rooms, read from
+its footprint as 4 residential storeys × 23 rooms of 116 SF) was loaded from the district table and each
+step's result was predicted before it was taken.
+
+| Step | Input | Predicted from the sources | What the tool did |
+|---|---|---|---|
+| Load | click the Ivanhoe | rooms of 116 SF cannot pass strict; on the average fallback, pairs at 232 SF can carry rooms converted in place | least-displacement scheme: 48 units, 8 kept, 36 displaced (39.1%); all three tests pass, size on the average fallback |
+| Clear | split every unit | every room converts in place at 116 SF: size fails (average 116), room count and replacement pass (92 of 92) | "Fails the size test"; 92 units below 200 SF listed; 0 displaced; Not compliant |
+| Pin | (the edit above pins the building) | a non-compliant drawing cannot convert, so the district loses it | "pinned as drawn, but the drawing fails the tests, so it cannot convert"; district falls from 33 of 67 buildings and 1,033 units to 32 of 66 and 1,009 |
+| Strict | apply the strict search | pairs only: 11 units on a 23-room floor, 44 of 92 = 47.8% < 50%, so no compliant scheme | "No scheme of adjacent merges is compliant under the strict reading"; drawing left as it was |
+| Average | apply the average search | back to the loaded scheme | 48 / 8 / 36, all pass; district back to 33 of 67 and 1,033 units |
+| Mandate 100% → 50% | move the slider with the Ivanhoe selected | at 100% it converts; at 50% the mandate does not need it | "phase 8 · 52 units · 40 displaced" then "left as it is" |
+
+One defect surfaced and was fixed in the same session: the building panel's "In the district scenario" line
+did not refresh when the mandate slider moved, so it kept saying "phase 8" after the district had dropped the
+building. Cause: the district re-rendered without re-rendering the building panel. Change: the district
+render now re-renders the building panel when a building is selected.
+
 ## A problem, its cause, and what changed
 
 The one-pass ordering rule for the district programme put a swing building (one whose conversion adds spare
