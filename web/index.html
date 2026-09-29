@@ -381,6 +381,15 @@
   }
   @media (max-width: 620px) { .map-3d-hint { display: none; } }
   .map-side { border-left: 1px solid var(--rule); padding: 14px; min-width: 0; }
+  /* the scenario drawer: the district scenario lives beside the map when Scenario is on */
+  .map-wrap.scen { grid-template-columns: minmax(0,1fr) minmax(0,460px); }
+  .map-wrap.scen .map-stage { align-self: start; position: sticky; top: 0; }
+  .map-wrap.scen .map-side > :not(.legend):not(#scen-drawer) { display: none; }
+  #scen-drawer .step { padding: 12px 0 8px; }
+  #scen-drawer .tally { grid-template-columns: repeat(3, minmax(0,1fr)); }
+  #scen-drawer table.dist { font-size: 11px; }
+  #scen-drawer table.dist td, #scen-drawer table.dist th { padding: 3px 4px; }
+  @media (max-width: 1100px) { .map-wrap.scen { grid-template-columns: minmax(0,1fr); } .map-wrap.scen .map-stage { position: static; } }
   @media (max-width: 900px) { .map-side { border-left: none; border-top: 1px solid var(--rule); } }
   .map-zoom {
     position: absolute; right: 10px; top: 10px; z-index: 2;
@@ -594,6 +603,86 @@
           <span><i class="swatch" style="background:var(--map-unsurveyed);border-radius:50%"></i>Not surveyed</span>
           <span><i class="swatch" style="background:var(--map-foot)"></i>Footprint</span>
         </div>
+        <div id="scen-drawer" hidden>
+        <div class="step">
+          <div class="label"><span class="step-n">1</span>The mandate</div>
+          <div class="field">
+            <label for="d-scope">Which buildings it reaches</label>
+            <select id="d-scope">
+              <option value="market">Market SROs</option>
+              <option value="all">All of Appendix B</option>
+              <option value="nonmarket">Non-market SROs</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="d-target">How many self-contained units it requires &middot; <span id="d-target-v"></span></label>
+            <input type="range" id="d-target" min="0" max="100" step="1" value="50">
+            <span class="hint-s" id="d-target-hint"></span>
+          </div>
+          <p class="src">The tool then picks which buildings convert, and how far each goes, so the
+            mandate is met while the fewest tenants lose their room.</p>
+        </div>
+        <div class="step">
+          <div class="label"><span class="step-n">2</span>Watch it happen</div>
+          <div class="field">
+            <label for="d-phase">Phase shown on the map &middot; <span id="d-phase-v"></span></label>
+            <input type="range" id="d-phase" min="0" max="1" step="1" value="1">
+            <span class="hint-s" id="d-phase-hint"></span>
+          </div>
+        </div>
+        <div class="step">
+        <div class="label">What happens</div>
+        <div id="d-head"></div>
+        <div class="tally" id="d-tally"></div>
+        <div id="d-curve" style="margin-top:14px"></div>
+        <div id="d-phases"></div>
+        <div id="d-out"></div>
+        </div>
+        <div class="step">
+          <div class="label"><span class="step-n">3</span>The works</div>
+          <div class="field">
+            <label for="d-cap-works">Relocation housing the City supplies &middot; tenants at once</label>
+            <input type="number" id="d-cap-works" min="0" max="5000" step="10" value="300">
+            <span class="hint-s">A building in works empties every room (s.4.8(f)). Its tenants wait in spare rooms nearby first, then here. An assumption.</span>
+          </div>
+          <div class="pair">
+            <div class="field"><label for="d-vac">Vacant rooms, %</label>
+              <input type="number" id="d-vac" min="0" max="50" step="1" value="5"></div>
+            <div class="field"><label for="d-new">New units opening, per phase</label>
+              <input type="number" id="d-new" min="0" max="2000" step="5" value="0"></div>
+          </div>
+          <p class="src">Converting removes homes, so tenants can only move between buildings where
+            there is slack: vacant rooms, homes a converted building has to spare, new supply. The
+            ledger follows every tenant, nearest slack first. Buildings whose conversion adds slack
+            go first; the rest, gentlest first. Vacancy and new supply are assumptions the sources
+            do not give.</p>
+        </div>
+        <details class="assume">
+          <summary>Assumptions behind the numbers</summary>
+          <div class="field">
+            <label for="d-read">Size test</label>
+            <select id="d-read">
+              <option value="average">Average fallback</option>
+              <option value="strict">Strict &middot; every unit 200 SF</option>
+            </select>
+            <span class="hint-s">The Guidelines allow an average of 200 SF across converted rooms, at the City&rsquo;s discretion; strict is the safe reading.</span>
+          </div>
+          <div class="pair">
+            <div class="field"><label for="d-cap">Largest room assumed, SF</label>
+              <input type="number" id="d-cap" min="100" max="420" step="5" value="180"></div>
+            <div class="field"><label for="d-circ">Circulation share, %</label>
+              <input type="number" id="d-circ" min="0" max="60" step="1" value="25"></div>
+          </div>
+          <p class="src">Room size is read from each footprint: its area less the circulation share,
+            divided by the rooms Appendix B counts on a floor, and capped where a footprint holds far
+            more than its count suggests, since the City counts the designated rooms and not the
+            commercial or common floor around them.</p>
+          <p class="src">A building converts at a scheme of its own or not at all: a partial conversion
+            below 50% fails DTES 9.2.7. Every room is taken as occupied, so rooms lost equals tenants
+            displaced; the survey&rsquo;s average tenancy of 4.6 years places each of them in the
+            4-month bracket of s.4.8(i). A building edited in section 02 is taken exactly as drawn.</p>
+        </details>
+        </div>
         <form id="b-form" hidden>
           <div class="field">
             <label for="f-name">Building name</label>
@@ -663,95 +752,6 @@
         <p class="src" id="bp-foot"></p>
       </div>
       <div id="bp-side"></div>
-    </div>
-  </section>
-
-  <div class="sec-head">
-    <span class="sec-num">03</span><h2>District scenario</h2>
-    <span class="note">How far a conversion mandate reaches, and who it moves</span>
-  </div>
-
-  <section class="panel" style="margin-bottom:18px">
-    <div class="cols" style="grid-template-columns:minmax(0,300px) minmax(0,1fr)">
-      <div>
-        <div class="step">
-          <div class="label"><span class="step-n">1</span>The mandate</div>
-          <div class="field">
-            <label for="d-scope">Which buildings it reaches</label>
-            <select id="d-scope">
-              <option value="market">Market SROs</option>
-              <option value="all">All of Appendix B</option>
-              <option value="nonmarket">Non-market SROs</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="d-target">How many self-contained units it requires &middot; <span id="d-target-v"></span></label>
-            <input type="range" id="d-target" min="0" max="100" step="1" value="50">
-            <span class="hint-s" id="d-target-hint"></span>
-          </div>
-          <p class="src">The tool then picks which buildings convert, and how far each goes, so the
-            mandate is met while the fewest tenants lose their room.</p>
-        </div>
-        <div class="step">
-          <div class="label"><span class="step-n">2</span>The works</div>
-          <div class="field">
-            <label for="d-cap-works">Relocation housing the City supplies &middot; tenants at once</label>
-            <input type="number" id="d-cap-works" min="0" max="5000" step="10" value="300">
-            <span class="hint-s">A building in works empties every room (s.4.8(f)). Its tenants wait in spare rooms nearby first, then here. An assumption.</span>
-          </div>
-          <div class="pair">
-            <div class="field"><label for="d-vac">Vacant rooms, %</label>
-              <input type="number" id="d-vac" min="0" max="50" step="1" value="5"></div>
-            <div class="field"><label for="d-new">New units opening, per phase</label>
-              <input type="number" id="d-new" min="0" max="2000" step="5" value="0"></div>
-          </div>
-          <p class="src">Converting removes homes, so tenants can only move between buildings where
-            there is slack: vacant rooms, homes a converted building has to spare, new supply. The
-            ledger follows every tenant, nearest slack first. Buildings whose conversion adds slack
-            go first; the rest, gentlest first. Vacancy and new supply are assumptions the sources
-            do not give.</p>
-        </div>
-        <div class="step">
-          <div class="label"><span class="step-n">3</span>Watch it happen</div>
-          <div class="field">
-            <label for="d-phase">Phase shown on the map &middot; <span id="d-phase-v"></span></label>
-            <input type="range" id="d-phase" min="0" max="1" step="1" value="1">
-            <span class="hint-s" id="d-phase-hint"></span>
-          </div>
-        </div>
-        <details class="assume">
-          <summary>Assumptions behind the numbers</summary>
-          <div class="field">
-            <label for="d-read">Size test</label>
-            <select id="d-read">
-              <option value="average">Average fallback</option>
-              <option value="strict">Strict &middot; every unit 200 SF</option>
-            </select>
-            <span class="hint-s">The Guidelines allow an average of 200 SF across converted rooms, at the City&rsquo;s discretion; strict is the safe reading.</span>
-          </div>
-          <div class="pair">
-            <div class="field"><label for="d-cap">Largest room assumed, SF</label>
-              <input type="number" id="d-cap" min="100" max="420" step="5" value="180"></div>
-            <div class="field"><label for="d-circ">Circulation share, %</label>
-              <input type="number" id="d-circ" min="0" max="60" step="1" value="25"></div>
-          </div>
-          <p class="src">Room size is read from each footprint: its area less the circulation share,
-            divided by the rooms Appendix B counts on a floor, and capped where a footprint holds far
-            more than its count suggests, since the City counts the designated rooms and not the
-            commercial or common floor around them.</p>
-          <p class="src">A building converts at a scheme of its own or not at all: a partial conversion
-            below 50% fails DTES 9.2.7. Every room is taken as occupied, so rooms lost equals tenants
-            displaced; the survey&rsquo;s average tenancy of 4.6 years places each of them in the
-            4-month bracket of s.4.8(i). A building edited in section 02 is taken exactly as drawn.</p>
-        </details>
-      </div>
-      <div>
-        <div id="d-head"></div>
-        <div class="tally" id="d-tally"></div>
-        <div id="d-curve" style="margin-top:14px"></div>
-        <div id="d-phases"></div>
-        <div id="d-out"></div>
-      </div>
     </div>
   </section>
 
@@ -866,7 +866,7 @@
   </section>
 
   <div class="sec-head">
-    <span class="sec-num">04</span><h2>Conversion tests</h2>
+    <span class="sec-num">03</span><h2>Conversion tests</h2>
     <span class="note">Run on the building selected above, at its least-displacement scheme</span>
   </div>
 
@@ -2001,7 +2001,7 @@
     syncUnitSize(ev);
   }
 
-  // the largest proposed unit drives section 04, so the rent test follows the
+  // the largest proposed unit drives the rent test, so it follows the
   // scheme actually drawn rather than a number typed twice
   var unitTouched = false;
   function syncUnitSize(ev) {
@@ -4507,7 +4507,7 @@
         ? (ev.lost === o.lost && ev.compliant ? 'It loses ' + ev.lost + ' rooms, the fewest any compliant scheme of adjacent merges can.'
            : 'The least-displacement scheme under the ' + (strict ? "strict" : "average") + ' reading loses ' + o.lost + ' rooms' + (ev.compliant ? '; this one loses ' + ev.lost + '.' : '.'))
         : 'No scheme of adjacent merges is compliant under the ' + (strict ? "strict" : "average") + ' reading.')
-      + ' The working is in section 04.</p>';
+      + ' The working is in section 03.</p>';
     h += '<div class="btnrow" style="margin-top:10px">'
       + '<button type="button" data-opt="average" title="Apply the search result under the Guidelines’ average fallback">Least displacement</button>'
       + '<button type="button" data-opt="strict" title="Apply the search result with every unit at 200 SF">… strict</button>'
@@ -4867,7 +4867,7 @@
           + ', and <strong>' + leave.toLocaleString("en-CA") + ' leave the district for good</strong>. Up to ' + peak.toLocaleString("en-CA") + ' are out at once while their building is in works.'
           + (leave ? ' Opening ' + leave.toLocaleString("en-CA") + ' more new units across the phases would let nobody leave.' : ' Nobody has to leave the district.')
         : T > 0 ? '<strong>No combination of buildings reaches this target.</strong>' : '<strong>Nothing converts.</strong> Move the slider to set a mandate.')
-      + '</p><div class="btnrow" style="margin:0 0 14px"><button type="button" id="d-show-map" title="Colour the map by this scenario and scroll to it">Show on map</button></div>';
+      + '</p>';
     document.getElementById("d-curve").innerHTML =
       '<div class="label out-head">Who moves · every tenant in scope, as modelled</div>'
       + stockBarHtml([
@@ -4878,10 +4878,6 @@
           { n: stuckTenants, label: "No compliant conversion", colour: "var(--scen-x)", dark: false }
         ])
       + '<p class="src">Tenants are rooms less the vacancy assumed. A converted building takes back one tenant per home it has after works (s.4.8(f)–(g)); the rest go to the nearest spare room, to new supply, or out of the district.</p>';
-    document.getElementById("d-show-map").addEventListener("click", function () {
-      if (!scenColour) setScenarioColour(true);
-      mapStage.scrollIntoView({ behavior: "smooth", block: "center" });
-    });
 
     var h = '<div class="label out-head">Which buildings</div>';
     if (cands.stuck.length) {
@@ -5034,6 +5030,8 @@
     document.getElementById("z-scen").classList.toggle("on", on);
     document.getElementById("legend-scen").hidden = !on;
     document.getElementById("legend-tenure").hidden = on;
+    document.getElementById("scen-drawer").hidden = !on;
+    document.querySelector(".map-wrap").classList.toggle("scen", on);
     if (on && !SCEN) renderDistrict();
     drawMap();
     if (M3.on) m3build();

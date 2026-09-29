@@ -65,7 +65,7 @@ in place below 200 SF is carried by the pairs around it. The fallback is discret
 result is the safe one and the average result the best case. The same search, run for every unit
 count the building can legally reach from the DTES 9.2.7 floor upward, gives the building's
 trade-off curve; it is not drawn in section 02 but is what the building contributes to the district
-allocation in section 03.
+allocation in the map's scenario drawer.
 
 **The plan is the editor.** The typical floor in section 02 is drawn from the building's state, not from
 the search, so what the user does to it is what the tests run on. A marker in the corridor between two
@@ -75,7 +75,7 @@ floor is the typical floor, so an edit applies to all of them, and the search li
 and repeats it. The buttons beside the plan restore the least-displacement scheme under either reading
 or clear every merge, and a single tenancy length stands for every room, since no source gives one per
 room. The tally beside the plan says whether the drawn scheme passes and how far it sits from the
-least-displacement one; section 04 shows the working.
+least-displacement one; section 03 shows the working.
 
 The plan is drawn two ways. **Existing** shows the rooms as they stand, a door each to the corridor
 and a window on the outer wall; the shared washrooms are not drawn, since the outline holds no
@@ -99,12 +99,13 @@ which assumptions produced it. Rooms that would fall outside the outline are dro
 out narrower than 8 ft are flagged. The outline is measured; everything drawn inside it is the type
 the stock shares, not a survey of that building.
 
-**The district** (section 03). Each building contributes its trade-off curve; the mandate is a number
+**The district** (the scenario drawer beside the map, opened by the map's **Scenario** button). Each building contributes its trade-off curve; the mandate is a number
 of self-contained units the stock must produce; the optimizer chooses which buildings convert, and
 how far each goes, so the target is met with the fewest tenants displaced. It is a multiple-choice
 knapsack solved exactly, and one pass yields the least displacement for every mandate at once, so the
-slider answers instantly. The result is shown three ways rather than as an abstract curve: a sentence
-and a **Show on map** button, since the map coloured by the scenario is the primary representation;
+slider answers instantly. The scenario lives beside the map, in a drawer the **Scenario** button opens, so the
+controls and the map they change share one frame. The result is shown three ways rather than as an abstract curve: a sentence,
+with the map coloured by the scenario as the primary representation;
 a single bar of every room in scope, split into tenants re-housed in a new unit, tenants staying in
 a room kept as SRA, tenants displaced, rooms in buildings left alone, and rooms in buildings with no
 compliant conversion; and, under the phasing, a timeline where each phase is a bar of the tenants
@@ -124,7 +125,7 @@ result, so a designer's decision overrides the optimizer for that building and t
 re-allocates around it. A pinned drawing that fails the tests cannot convert and is reported. Reset
 or Unpin hands the building back to the search.
 
-**The order, as a housing ledger** (section 03, below the bar). The allocation says which
+**The order, as a housing ledger** (in the drawer, below the bar). The allocation says which
 buildings convert; the ledger says when, and follows every tenant. Converting a building removes
 homes, so moving tenants between SROs can only help where the district has slack: vacant rooms,
 homes a converted building has to spare (where its vacancy exceeded the rooms it lost), and new
