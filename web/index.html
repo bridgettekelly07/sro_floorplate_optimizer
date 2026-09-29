@@ -532,14 +532,17 @@
   .editbar { position: fixed; right: 14px; bottom: 14px; z-index: 50; display: flex; align-items: center; gap: 8px;
     background: var(--surface); border: 1px solid var(--rule); padding: 6px 8px; font-size: 12px; }
   .editbar .hint-s { color: var(--ink-3); }
-  body.editing [data-copy] { outline: 1px dashed transparent; outline-offset: 2px; cursor: text; }
-  body.editing [data-copy]:hover { outline-color: var(--edge); }
+  .editbanner { position: fixed; left: 0; right: 0; top: 0; z-index: 60; background: var(--edge); color: #1d2320; font-size: 12.5px; padding: 6px 14px; text-align: center; }
+  body.editing h1, body.editing h2, body.editing h3, body.editing h4, body.editing p, body.editing label, body.editing li, body.editing summary,
+  body.editing .label, body.editing .note, body.editing .hint-s, body.editing .src, body.editing .tally div, body.editing .legend span { outline: 1px dashed color-mix(in srgb, var(--edge) 55%, transparent); outline-offset: 2px; cursor: text; }
+  body.editing [data-copy]:hover, body.editing p:hover, body.editing label:hover { outline-color: var(--edge); }
   body.editing [data-copy][contenteditable="true"] { outline: 1px solid var(--pass); background: var(--pass-soft); }
   body.editing [data-copy].edited { border-left: 2px solid var(--pass); padding-left: 4px; }
-  body.editing [data-sort] > * { cursor: grab; }
-  body.editing [data-sort] > *.drag-over-before { box-shadow: 0 -3px 0 0 var(--edge); }
-  body.editing [data-sort] > *.drag-over-after { box-shadow: 0 3px 0 0 var(--edge); }
-  body.editing [data-sort] > *.dragging { opacity: 0.4; }
+  .mv-handle { position: absolute; z-index: 55; display: none; width: 18px; height: 18px; line-height: 16px; text-align: center; font-size: 12px;
+    color: #1d2320; background: var(--edge); border-radius: 3px; cursor: grab; user-select: none; touch-action: none; }
+  body.editing .dragging { opacity: 0.45; outline: 2px solid var(--edge); }
+  body.moving { user-select: none; cursor: grabbing; }
+  body.moving * { cursor: grabbing !important; }
   .plan-stage .empty { color: var(--ink-3); font-size: 13px; padding: 40px 20px; text-align: center; }
   .curve { border: 1px solid var(--rule); background: var(--surface); }
   .curve svg { display: block; width: 100%; height: auto; }
@@ -932,10 +935,11 @@
     </div>
   </section>
 
+  <div class="editbanner" id="ed-banner" hidden>Editing the tool. <b>Tap any text</b> to rewrite it (tap elsewhere to keep it, Escape to put it back; double-tap a button). <b>Press and hold a block</b>, or take its ⋮⋮ handle, and slide it to move it within its panel. Changes stay in this browser until you <b>Export edits</b> and have them baked in.</div>
   <div class="editbar" id="editbar">
-    <button type="button" id="ed-toggle" title="Double-click any text to rewrite it; drag the blocks of a panel to reorder them. Saved in this browser; export to make it the tool.">Edit text &amp; layout</button>
+    <button type="button" id="ed-toggle" title="Tap any text to rewrite it; hold a block to move it within its panel. Saved in this browser; export to make it the tool.">Edit text &amp; layout</button>
     <span id="ed-tools" hidden>
-      <span class="hint-s">Double-click text to edit · drag a block to move it</span>
+      <span class="hint-s">Tap text to edit · hold a block to move it</span>
       <button type="button" id="ed-export" title="Download your edits as a file to bake into the tool">Export edits</button>
       <button type="button" id="ed-reset" title="Forget every edit in this browser">Undo all</button>
     </span>
@@ -5441,7 +5445,8 @@
      exported to be baked into the source. Text the tool generates from numbers
      hashes differently every time, so it stays as the tool writes it. */
   var EDIT = { on: false, copy: {}, order: {} };
-  var COPY_SEL = 'h1, h2, h4, .note, p.src, .label, label, .hint-s, .stage-foot span, .legend span, footer p, summary, .sec-head .note, .empty, th, button, .map-3d-hint';
+  var COPY_SEL = 'h1, h2, h3, h4, p, label, li, td, th, summary, button, .label, .note, .hint-s, .src, .empty, .map-3d-hint, .loaded, .meta, .legend span, .stage-foot span, .tally div, .sec-head .note';
+  var SORT_SEL = '[data-sort], .panel, .cols > div, .map-side, .tally, .legend, .btnrow, .editpanel';
   function hashText(t) { var h = 5381; for (var i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0; return (h >>> 0).toString(36); }
   function loadEdits() {
     try { EDIT.copy = JSON.parse(localStorage.getItem("sro.copy") || "{}"); } catch (e) { EDIT.copy = {}; }
@@ -5454,7 +5459,8 @@
     var list = [];
     Array.prototype.forEach.call((root || document).querySelectorAll(COPY_SEL), function (el) {
       if (el.closest && el.closest(".editbar")) return;
-      if (el.querySelector && el.querySelector("input, select, svg, table")) return;   // a container, not a piece of copy
+      if (el.querySelector && el.querySelector("input, select, svg, table, canvas, .tally, .panel")) return;   // a container, not a piece of copy
+      if (!el.textContent.trim()) return;
       list.push(el);
     });
     return list;
@@ -5470,7 +5476,20 @@
       if (o && el.innerHTML !== o.html && el.getAttribute("contenteditable") !== "true") { el.innerHTML = o.html; el.classList.add("edited"); }
     });
   }
-  function keyOf(el) { return el.dataset.key || el.id || null; }
+  function keyOf(el) {
+    if (el.dataset.key || el.id) return el.dataset.key || el.id;
+    if (!el.dataset.autoKey) el.dataset.autoKey = "k" + hashText(el.tagName + (el.className || "") + el.innerHTML.replace(/\d[\d,.%]*/g, "#").replace(/\s+/g, " ").trim().slice(0, 400));
+    return el.dataset.autoKey;
+  }
+  function sortContainers() {
+    var list = [];
+    Array.prototype.forEach.call(document.querySelectorAll(SORT_SEL), function (c) {
+      if (c.closest(".editbar") || c.closest(".plan-stage") || c.id === "map-stage" || c.children.length < 2) return;
+      if (!c.id) c.id = "sort-" + hashText((c.className || c.tagName) + Array.prototype.map.call(c.children, function (k) { return k.tagName; }).join(","));
+      list.push(c);
+    });
+    return list;
+  }
   function applyOrder(container) {
     var want = EDIT.order[container.id];
     if (!want || !want.length) return;
@@ -5480,7 +5499,7 @@
     want.forEach(function (key) { var el = byKey[key]; if (el) { container.appendChild(el); placed[key] = true; } });
     kids.forEach(function (k) { var key = keyOf(k); if (!key || !placed[key]) container.appendChild(k); });
   }
-  function applyAllOrder() { Array.prototype.forEach.call(document.querySelectorAll("[data-sort]"), applyOrder); }
+  function applyAllOrder() { sortContainers().forEach(applyOrder); }
   var editTimer = null;
   function scheduleEdits() {
     if (editTimer) return;
@@ -5491,18 +5510,40 @@
     document.body.classList.toggle("editing", on);
     document.getElementById("ed-toggle").classList.toggle("on", on);
     document.getElementById("ed-tools").hidden = !on;
-    if (on) { applyCopy(); armDrag(); }
-    else Array.prototype.forEach.call(document.querySelectorAll('[contenteditable="true"]'), function (el) { el.blur(); });
+    document.getElementById("ed-banner").hidden = !on;
+    if (on) { applyCopy(); }
+    else { Array.prototype.forEach.call(document.querySelectorAll('[contenteditable="true"]'), function (el) { el.blur(); }); showHandle(null); }
   }
-  document.addEventListener("dblclick", function (e) {
-    if (!EDIT.on) return;
-    var el = e.target.closest && e.target.closest("[data-copy]");
-    if (!el || el.tagName === "BUTTON" && el.closest(".editbar")) return;
-    e.preventDefault();
+  // --- editing text: a tap on any words makes them editable; a tap elsewhere keeps the change ---
+  function textTarget(t) {
+    if (!t || t.nodeType !== 1) return null;
+    if (t.closest(".editbar, .editbanner, .plan-stage, #map-stage, .mv-handle") || t.closest('[contenteditable="true"]')) return null;
+    if (t.closest("input, select, textarea")) return null;
+    var el = t.closest("[data-copy]") || t.closest(COPY_SEL);
+    if (!el && t.textContent.trim() && !t.querySelector("input, select, svg, canvas, .tally, .panel")) el = t;
+    if (!el) return null;
+    if (el.tagName === "BUTTON" || el.closest("button")) return null;      // buttons keep working; edit them by double-click
+    return el;
+  }
+  function beginEdit(el) {
+    if (!el.dataset.copy) { el.dataset.copyOrig = el.innerHTML; el.dataset.copy = "c" + hashText(el.innerHTML.replace(/\s+/g, " ").trim()); }
     el.setAttribute("contenteditable", "true");
     el.focus();
-    var sel = window.getSelection(), range = document.createRange();
-    range.selectNodeContents(el); sel.removeAllRanges(); sel.addRange(range);
+    try { var sel = window.getSelection(), range = document.createRange(); range.selectNodeContents(el); range.collapse(false); sel.removeAllRanges(); sel.addRange(range); } catch (x) {}
+  }
+  document.addEventListener("click", function (e) {
+    if (!EDIT.on || moving) return;
+    var el = textTarget(e.target);
+    if (!el) return;
+    e.preventDefault(); e.stopPropagation();
+    beginEdit(el);
+  }, true);
+  document.addEventListener("dblclick", function (e) {
+    if (!EDIT.on) return;
+    var b = e.target.closest && e.target.closest("button");
+    if (!b || b.closest(".editbar")) return;
+    e.preventDefault(); e.stopPropagation();
+    beginEdit(b);
   }, true);
   document.addEventListener("focusout", function (e) {
     var el = e.target;
@@ -5519,40 +5560,76 @@
     if (e.key === "Escape") { el.innerHTML = EDIT.copy[el.dataset.copy] ? EDIT.copy[el.dataset.copy].html : el.dataset.copyOrig; el.blur(); }
     if (e.key === "Enter" && !e.shiftKey && el.tagName !== "P") { e.preventDefault(); el.blur(); }
   });
-  // moving the blocks of a container
-  var dragKey = null, dragFrom = null;
-  function armDrag() {
-    Array.prototype.forEach.call(document.querySelectorAll("[data-sort]"), function (c) {
-      Array.prototype.forEach.call(c.children, function (k) {
-        if (!keyOf(k) || k.dataset.armed) return;
-        k.dataset.armed = "1";
-        k.setAttribute("draggable", "true");
-        k.addEventListener("dragstart", function (e) {
-          if (!EDIT.on || (e.target.getAttribute && e.target.getAttribute("contenteditable") === "true")) { e.preventDefault(); return; }
-          dragKey = keyOf(k); dragFrom = c; k.classList.add("dragging"); e.dataTransfer.effectAllowed = "move";
-          try { e.dataTransfer.setData("text/plain", dragKey); } catch (x) {}
-        });
-        k.addEventListener("dragend", function () { k.classList.remove("dragging"); clearMarks(c); });
-        k.addEventListener("dragover", function (e) {
-          if (!dragKey || dragFrom !== c || k === dragFrom.querySelector('[data-key="' + dragKey + '"], #' + dragKey)) return;
-          e.preventDefault();
-          var r = k.getBoundingClientRect(), before = e.clientY < r.top + r.height / 2;
-          clearMarks(c); k.classList.add(before ? "drag-over-before" : "drag-over-after");
-        });
-        k.addEventListener("drop", function (e) {
-          if (!dragKey || dragFrom !== c) return;
-          e.preventDefault();
-          var moving = Array.prototype.filter.call(c.children, function (x) { return keyOf(x) === dragKey; })[0];
-          if (!moving || moving === k) return;
-          var r = k.getBoundingClientRect(), before = e.clientY < r.top + r.height / 2;
-          c.insertBefore(moving, before ? k : k.nextSibling);
-          EDIT.order[c.id] = Array.prototype.map.call(c.children, keyOf).filter(Boolean);
-          saveEdits(); clearMarks(c); dragKey = null;
-        });
-      });
-    });
+
+  // --- moving blocks: press and hold a block, or take its handle, then slide it within its panel ---
+  var moving = null, holdTimer = null, handle = null;
+  function blockOf(t) {
+    if (!t || t.nodeType !== 1 || t.closest(".editbar, .editbanner, .plan-stage, #map-stage")) return null;
+    var cs = sortContainers();
+    for (var el = t; el && el !== document.body; el = el.parentElement) {
+      if (el.parentElement && cs.indexOf(el.parentElement) >= 0 && keyOf(el)) return el;
+    }
+    return null;
   }
-  function clearMarks(c) { Array.prototype.forEach.call(c.children, function (x) { x.classList.remove("drag-over-before", "drag-over-after"); }); }
+  function showHandle(block) {
+    if (!handle) { handle = document.createElement("div"); handle.className = "mv-handle"; handle.title = "Drag to move this block"; handle.textContent = "⋮⋮"; document.body.appendChild(handle); }
+    if (!block) { handle.style.display = "none"; handle.__block = null; return; }
+    var r = block.getBoundingClientRect();
+    handle.style.display = "block"; handle.style.left = (window.scrollX + r.left - 2) + "px"; handle.style.top = (window.scrollY + r.top - 2) + "px";
+    handle.__block = block;
+  }
+  function startMove(block, e) {
+    if (!block) return;
+    var active = document.activeElement;
+    if (active && active.getAttribute("contenteditable") === "true") active.blur();
+    moving = { block: block, container: block.parentElement, pointerId: e.pointerId };
+    block.classList.add("dragging"); document.body.classList.add("moving");
+    showHandle(null);
+  }
+  function moveTo(e) {
+    if (!moving) return;
+    var under = document.elementFromPoint(e.clientX, e.clientY), c = moving.container;
+    if (!under) return;
+    var sib = null;
+    for (var el = under; el && el !== document.body; el = el.parentElement) { if (el.parentElement === c && el !== moving.block) { sib = el; break; } }
+    if (!sib) return;
+    var r = sib.getBoundingClientRect(), before = e.clientY < r.top + r.height / 2;
+    var ref = before ? sib : sib.nextSibling;
+    if (ref !== moving.block && ref !== moving.block.nextSibling) c.insertBefore(moving.block, ref);
+  }
+  function endMove() {
+    if (!moving) return;
+    var c = moving.container;
+    moving.block.classList.remove("dragging"); document.body.classList.remove("moving");
+    EDIT.order[c.id] = Array.prototype.map.call(c.children, keyOf).filter(Boolean);
+    saveEdits();
+    moving = null;
+  }
+  document.addEventListener("pointerdown", function (e) {
+    if (!EDIT.on) return;
+    if (e.target === handle) { e.preventDefault(); startMove(handle.__block, e); return; }
+    var block = blockOf(e.target);
+    if (!block) return;
+    clearTimeout(holdTimer);
+    var sx = e.clientX, sy = e.clientY;
+    holdTimer = setTimeout(function () { holdTimer = null; startMove(block, e); }, 450);
+    var cancel = function (ev) {
+      if (ev.type === "pointermove" && Math.hypot(ev.clientX - sx, ev.clientY - sy) < 6) return;
+      clearTimeout(holdTimer); holdTimer = null;
+      document.removeEventListener("pointermove", cancel); document.removeEventListener("pointerup", cancel); document.removeEventListener("pointercancel", cancel);
+    };
+    document.addEventListener("pointermove", cancel); document.addEventListener("pointerup", cancel); document.addEventListener("pointercancel", cancel);
+  }, true);
+  document.addEventListener("pointermove", function (e) {
+    if (!EDIT.on) return;
+    if (moving) { e.preventDefault(); moveTo(e); return; }
+    if (e.pointerType === "mouse" && !holdTimer) { var b = blockOf(e.target); if (b || e.target !== handle) showHandle(b); }
+  }, { passive: false, capture: true });
+  document.addEventListener("pointerup", function () { if (moving) endMove(); }, true);
+  document.addEventListener("pointercancel", function () { if (moving) endMove(); }, true);
+  document.addEventListener("touchmove", function (e) { if (moving) e.preventDefault(); }, { passive: false });
+  document.addEventListener("scroll", function () { if (handle && handle.__block) showHandle(handle.__block); }, true);
+  function armDrag() { /* nothing to arm: blocks are found under the pointer */ }
   document.getElementById("ed-toggle").addEventListener("click", function () { setEditing(!EDIT.on); });
   document.getElementById("ed-reset").addEventListener("click", function () {
     if (!confirm("Forget every edit to the text and layout in this browser?")) return;
