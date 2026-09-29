@@ -765,6 +765,40 @@
       </div>
       <div id="bp-side"></div>
     </div>
+    <div class="cols" style="margin-top:18px;padding-top:14px;border-top:1px solid var(--rule-soft)">
+      <div>
+        <div class="label" style="margin-bottom:10px">Tests · run on the plan above <span id="overall" style="margin-left:8px"></span></div>
+        <div class="btnrow" style="margin-bottom:12px" hidden>
+          <button type="button" id="opt-strict" title="Search every scheme of adjacent merges for the one that loses the fewest rooms, every unit at 200 SF">Least-displacement scheme</button>
+          <button type="button" id="opt-avg" title="The same search under the average fallback">&hellip; under the average fallback</button>
+        </div>
+        <p class="src" id="opt-note" hidden></p>
+        <div class="tally" id="tally"></div>
+        <div id="tests" style="margin-top:14px"></div>
+        <div id="flags"></div>
+        <p class="note">Passing is a precondition, not an approval. The Guidelines say qualifying rooms
+          <strong>will be considered</strong> for release from the by-law, and a conversion permit is
+          still required under SRA By-law s.4.1.</p>
+        <div id="displacement" hidden></div>
+      </div>
+      <div>
+        <details class="assume" style="border-top:none;padding-top:0;margin-top:0">
+          <summary>Rooms as a table · <span id="fp-summary"></span></summary>
+        <div class="btnrow" style="margin-bottom:12px">
+          <button type="button" id="add">+ Add room</button>
+          <button type="button" id="dup" disabled>Duplicate</button>
+          <button type="button" id="del" disabled>Remove</button>
+        </div>
+        <table class="inv">
+          <thead><tr><th>Room</th><th>Area SF</th><th>Tenancy yr</th><th>SRA</th></tr></thead>
+          <tbody id="inv"></tbody>
+        </table>
+        <p class="note">Tenancy drives the compensation schedule and cannot be drawn, so it is typed.
+          Marking a room <strong>SRA</strong> leaves it unconverted: it survives the project as a
+          designated room, and its partitions cannot be removed.</p>
+        </details>
+      </div>
+    </div>
   </section>
 
   <div class="sec-head" hidden>
@@ -876,62 +910,6 @@
       <div id="afford-out"></div>
     </div>
   </section>
-
-  <div class="sec-head">
-    <span class="sec-num">03</span><h2>Conversion tests</h2>
-    <span class="note">Run on the building selected above, at its least-displacement scheme</span>
-  </div>
-
-  <div class="cols">
-    <div>
-      <section class="panel">
-        <div class="panel-head">
-          <h2>Tests</h2>
-          <span class="label" id="overall"></span>
-        </div>
-        <div class="btnrow" style="margin-bottom:12px" hidden>
-          <button type="button" id="opt-strict" title="Search every scheme of adjacent merges for the one that loses the fewest rooms, every unit at 200 SF">Least-displacement scheme</button>
-          <button type="button" id="opt-avg" title="The same search under the average fallback">&hellip; under the average fallback</button>
-        </div>
-        <p class="src" id="opt-note" hidden></p>
-        <div class="tally" id="tally"></div>
-        <div id="tests" style="margin-top:14px"></div>
-        <div id="flags"></div>
-        <p class="note">Passing is a precondition, not an approval. The Guidelines say qualifying rooms
-          <strong>will be considered</strong> for release from the by-law, and a conversion permit is
-          still required under SRA By-law s.4.1.</p>
-      </section>
-
-      <section class="panel" hidden>
-        <div class="panel-head">
-          <h2>Displacement &amp; compensation</h2>
-          <span class="label">SRA By-law s.4.8</span>
-        </div>
-        <div id="displacement"></div>
-      </section>
-    </div>
-
-    <div>
-      <section class="panel">
-        <div class="panel-head">
-          <h2>Inventory</h2>
-          <span class="label num" id="fp-summary"></span>
-        </div>
-        <div class="btnrow" style="margin-bottom:12px">
-          <button type="button" id="add">+ Add room</button>
-          <button type="button" id="dup" disabled>Duplicate</button>
-          <button type="button" id="del" disabled>Remove</button>
-        </div>
-        <table class="inv">
-          <thead><tr><th>Room</th><th>Area SF</th><th>Tenancy yr</th><th>SRA</th></tr></thead>
-          <tbody id="inv"></tbody>
-        </table>
-        <p class="note">Tenancy drives the compensation schedule and cannot be drawn, so it is typed.
-          Marking a room <strong>SRA</strong> leaves it unconverted: it survives the project as a
-          designated room, and its partitions cannot be removed.</p>
-      </section>
-    </div>
-  </div>
 
   <footer>
     <p><strong>Scope.</strong> The tool evaluates a scheme you propose, and it searches for the compliant
@@ -4624,7 +4602,7 @@
         ? (ev.lost === o.lost && ev.compliant ? 'It loses ' + ev.lost + ' rooms, the fewest any compliant scheme of adjacent merges can.'
            : 'The least-displacement scheme under the ' + (strict ? "strict" : "average") + ' reading loses ' + o.lost + ' rooms' + (ev.compliant ? '; this one loses ' + ev.lost + '.' : '.'))
         : 'No scheme of adjacent merges is compliant under the ' + (strict ? "strict" : "average") + ' reading.')
-      + ' The working is in section 03.</p>';
+      + ' The working is below the plan.</p>';
     h += '<div class="btnrow" style="margin-top:10px">'
       + '<button type="button" data-opt="average" title="Apply the search result under the Guidelines’ average fallback">Least displacement</button>'
       + '<button type="button" data-opt="strict" title="Apply the search result with every unit at 200 SF">… strict</button>'

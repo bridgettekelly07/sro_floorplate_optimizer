@@ -75,7 +75,7 @@ floor is the typical floor, so an edit applies to all of them, and the search li
 and repeats it. The buttons beside the plan restore the least-displacement scheme under either reading
 or clear every merge, and a single tenancy length stands for every room, since no source gives one per
 room. The tally beside the plan says whether the drawn scheme passes and how far it sits from the
-least-displacement one; section 03 shows the working.
+least-displacement one; the tests below the plan show the working, each with its citation.
 
 The plan is drawn two ways. **Existing** shows the rooms as they stand, a door each to the corridor
 and a window on the outer wall; the shared washrooms are not drawn, since the outline holds no
