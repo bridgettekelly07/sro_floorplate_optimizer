@@ -4454,7 +4454,9 @@
       // in a converted room the pods sit at the corridor wall, so the area reads in the band by the window
       var band = r.d - POD.bath[1], cy = r.v + r.d / 2;
       if (unitOf[r.idx] !== undefined && band >= 1.1) cy = r.side === 0 ? r.v + band / 2 : r.v + POD.bath[1] + band / 2;
-      h += '<text x="' + X(r.u + r.w / 2) + '" y="' + Y(cy + fs * 0.35) + '" font-size="' + fs.toFixed(2) + '" text-anchor="middle" fill="var(--ink)" pointer-events="none">' + Math.round(r.sf) + ' SF</text>';
+      // a room merged into a larger unit carries its own area small; the unit's total is the big label
+      var merged = unitOf[r.idx] !== undefined && groups[unitOf[r.idx]].length > 1;
+      h += '<text x="' + X(r.u + r.w / 2) + '" y="' + Y(cy + fs * 0.35) + '" font-size="' + (merged ? fs * 0.55 : fs).toFixed(2) + '" text-anchor="middle" fill="var(--' + (merged ? "ink-3" : "ink") + ')" pointer-events="none">' + Math.round(r.sf) + ' SF</text>';
       var ny = r.side === 0 ? r.v + fs * 0.9 : r.v + r.d - fs * 0.35;
       h += '<text x="' + X(r.u + 0.25) + '" y="' + Y(ny) + '" font-size="' + (fs * 0.7).toFixed(2) + '" fill="var(--ink-3)" pointer-events="none">' + r.n + (proposed && r.keep ? " SRA" : "") + '</text>';
     });
@@ -4503,6 +4505,11 @@
         // the unit's name sits just inside the kitchen run, clear of the area in the window band
         var yy = r.side === 0 ? r.v + r.d - POD.kitchen[1] - 0.2 : r.v + POD.kitchen[1] + fs * 0.7 + 0.15;
         h += '<text x="' + X(u1 - 0.25) + '" y="' + Y(yy) + '" font-size="' + (fs * 0.7).toFixed(2) + '" text-anchor="end" fill="var(--' + (short ? "edge" : "pass") + ')" pointer-events="none">' + letter(u) + ' · ' + Math.round(unitArea[r.idx]) + ' SF</text>';
+        if (mates.length > 1) {
+          // the merged unit's total, big and centred in the band by the window, where a room's area would be
+          var ucy = r.d - POD.bath[1] >= 1.1 ? (r.side === 0 ? r.v + (r.d - POD.bath[1]) / 2 : r.v + POD.bath[1] + (r.d - POD.bath[1]) / 2) : r.v + r.d / 2;
+          h += '<text x="' + X((u0 + u1) / 2) + '" y="' + Y(ucy + fs * 0.35 + fs * 0.5) + '" font-size="' + fs.toFixed(2) + '" font-weight="600" text-anchor="middle" fill="var(--' + (short ? "edge" : "pass") + ')" pointer-events="none">' + Math.round(unitArea[r.idx]) + ' SF</text>';
+        }
       }
     });
     g.podFlags = podFlags;
