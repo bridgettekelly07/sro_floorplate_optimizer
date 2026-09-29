@@ -640,6 +640,13 @@
             <div class="field"><label for="d-new">New units opening, per phase</label>
               <input type="number" id="d-new" min="0" max="2000" step="5" value="0"></div>
           </div>
+          <div class="field">
+            <label for="d-place">Where a building&rsquo;s tenants go first</label>
+            <select id="d-place">
+              <option value="nearest">The nearest spare rooms, however scattered</option>
+              <option value="concentrate">Together, in as few buildings as possible within a ten-minute walk</option>
+            </select>
+          </div>
           <p class="src">Tenants move only where there is slack: vacant rooms, spare homes, new supply.</p>
           <div class="btnrow"><button type="button" id="d-search" title="Try moving buildings between phases to lower the cost: fewer leave, fewer with nowhere to wait, fewer phases, less distance">Search for a better order</button>
             <span class="hint-s" id="d-search-note"></span></div>
@@ -4106,6 +4113,7 @@
   // cannot take back need a permanent place: district slack, new supply, or
   // they leave the district for good. Mirrors sro/optimize: heuristicPhases,
   // runProgramme, programme, programmeCost, searchProgramme.
+  var WALK_M = 600;   // how far "together" reaches before it falls back to nearest: about a ten-minute walk
   function stTenants(s) { return Math.max(0, s.rooms - s.vacant); }
   function stHomes(s) { return s.units + s.kept; }
   function stLost(s) { return s.rooms - stHomes(s); }
@@ -4138,7 +4146,7 @@
   }
 
   // follow the tenants through a given partition of the conversions into phases
-  function runProgramme(stock, phases, relocation, newPerPhase) {
+  function runProgramme(stock, phases, relocation, newPerPhase, placement) {
     var by = {}, free = {};
     stock.forEach(function (s) { by[s.key] = s; free[s.key] = s.vacant; });
     var newPool = 0, steps = [], cumUnits = 0, cumLeft = 0;
@@ -4149,7 +4157,11 @@
       var moves = [], borrowed = {}, t = { permDistrict: 0, permNew: 0, permLeft: 0, tempDistrict: 0, tempRelocation: 0, tempLeft: 0, relocation: relocation };
       function place(src, n, permanent) {
         var left = n;
-        var dests = Object.keys(free).filter(function (k) { return !inWorks[k] && free[k] > 0; }).sort(function (a, b) { return stDist(src, by[a]) - stDist(src, by[b]); });
+        // nearest: the nearest spare room, however scattered; concentrate: the building that can hold the most of them
+        var room = function (k) { return free[k] - (borrowed[k] || 0); };
+        var dests = Object.keys(free).filter(function (k) { return !inWorks[k] && room(k) > 0; }).sort(placement === "concentrate"
+          ? function (a, b) { var fa = stDist(src, by[a]) > WALK_M ? 1 : 0, fb = stDist(src, by[b]) > WALK_M ? 1 : 0; return fa - fb || Math.min(room(b), n) - Math.min(room(a), n) || stDist(src, by[a]) - stDist(src, by[b]); }
+          : function (a, b) { return stDist(src, by[a]) - stDist(src, by[b]); });
         for (var q = 0; q < dests.length && left > 0; q++) {
           var k = dests[q], take = Math.min(left, free[k] - (borrowed[k] || 0));
           if (take <= 0) continue;
@@ -4187,8 +4199,8 @@
     return steps;
   }
 
-  function programme(stock, relocation, newPerPhase) {
-    return runProgramme(stock, heuristicPhases(stock, relocation, newPerPhase), relocation, newPerPhase);
+  function programme(stock, relocation, newPerPhase, placement) {
+    return runProgramme(stock, heuristicPhases(stock, relocation, newPerPhase), relocation, newPerPhase, placement);
   }
 
   // what a programme costs, in the order that matters: leave for good, nowhere to wait, phases, metres
@@ -4203,9 +4215,9 @@
   // another phase or a new one, or swap two across phases; keep what lowers the
   // cost. The rule cannot separate a swing building from the one that needs
   // its spare homes, since those exist only after the phase ends; this can.
-  function searchProgramme(stock, relocation, newPerPhase, budget) {
+  function searchProgramme(stock, relocation, newPerPhase, budget, placement) {
     var phases = heuristicPhases(stock, relocation, newPerPhase).map(function (p) { return p.slice(); });
-    var best = runProgramme(stock, phases, relocation, newPerPhase), bestCost = programmeCost(best), baseline = bestCost, evals = 1;
+    var best = runProgramme(stock, phases, relocation, newPerPhase, placement), bestCost = programmeCost(best), baseline = bestCost, evals = 1;
     function clean(ph) { return ph.filter(function (p) { return p.length; }); }
     function copy(ph) { return ph.map(function (p) { return p.slice(); }); }
     var improved = true;
@@ -4222,7 +4234,7 @@
             trial[i].splice(trial[i].indexOf(k), 1);
             if (j === n) trial.push([k]); else trial[j].push(k);
             trial = clean(trial);
-            var steps = runProgramme(stock, trial, relocation, newPerPhase), c = programmeCost(steps);
+            var steps = runProgramme(stock, trial, relocation, newPerPhase, placement), c = programmeCost(steps);
             evals++;
             if (costLess(c, bestCost)) { phases = trial; best = steps; bestCost = c; improved = true; break outer; }
           }
@@ -4237,7 +4249,7 @@
               if (evals >= budget) break swaps;
               var t2 = copy(phases), ka = phases[i2][a2], kb = phases[j2][b2];
               t2[i2][a2] = kb; t2[j2][b2] = ka;
-              var st2 = runProgramme(stock, t2, relocation, newPerPhase), c2 = programmeCost(st2);
+              var st2 = runProgramme(stock, t2, relocation, newPerPhase, placement), c2 = programmeCost(st2);
               evals++;
               if (costLess(c2, bestCost)) { phases = t2; best = st2; bestCost = c2; improved = true; break swaps; }
             }
@@ -4944,6 +4956,7 @@
     var relocation = Math.max(0, num(document.getElementById("d-cap-works").value) || 0);
     var vac = Math.max(0, Math.min(50, num(document.getElementById("d-vac").value) == null ? 5 : num(document.getElementById("d-vac").value))) / 100;
     var newPer = Math.max(0, num(document.getElementById("d-new").value) || 0);
+    var placement = document.getElementById("d-place").value === "concentrate" ? "concentrate" : "nearest";
     var chosenList = cands.list.filter(function (c) { return res.chosen[c.key]; }).map(function (c) {
       return { key: c.key, i: c.i, original: c.original, point: res.chosen[c.key] };
     });
@@ -4958,9 +4971,9 @@
     cands.list.forEach(function (c) { stockRow(c.i, c.original, res.chosen[c.key]); });
     cands.stuck.forEach(function (i) { stockRow(i, SURVEYED[i].rooms, null); });
     // the rule's order, unless a search for this exact scenario has found a better partition
-    var sig = JSON.stringify([inp.scope, inp.strict, T, relocation, vac, newPer, Object.keys(PINNED).sort(), stock.map(function (s) { return [s.key, s.units, s.kept]; })]);
+    var sig = JSON.stringify([inp.scope, inp.strict, T, relocation, vac, newPer, placement, Object.keys(PINNED).sort(), stock.map(function (s) { return [s.key, s.units, s.kept]; })]);
     var searched = SEARCHED && SEARCHED.sig === sig ? SEARCHED : null;
-    var phases = searched ? runProgramme(stock, searched.phases, relocation, newPer) : programme(stock, relocation, newPer), phaseOf = {};
+    var phases = searched ? runProgramme(stock, searched.phases, relocation, newPer, placement) : programme(stock, relocation, newPer, placement), phaseOf = {};
     var searchNote = document.getElementById("d-search-note");
     if (searched) {
       var b0 = searched.baselineCost, c0 = searched.cost;
@@ -4969,7 +4982,7 @@
       searchNote.textContent = "Searched " + searched.evaluations.toLocaleString("en-CA") + " orders: "
         + (parts.length ? parts.join(", ") + " than the rule." : "the rule’s was already as good.");
     } else searchNote.textContent = "";
-    LAST_STOCK = { stock: stock, relocation: relocation, newPer: newPer, sig: sig };
+    LAST_STOCK = { stock: stock, relocation: relocation, newPer: newPer, placement: placement, sig: sig };
     phases.forEach(function (ph) { ph.items.forEach(function (s) { phaseOf[s.key] = ph.number; }); });
     function tenantsOf(s) { return Math.max(0, s.rooms - s.vacant); }
     var slider = document.getElementById("d-phase");
@@ -5101,7 +5114,7 @@
     document.getElementById(id).addEventListener("change", function () { districtReady(); });
   });
   document.getElementById("d-target").addEventListener("input", renderDistrict);
-  ["d-cap-works", "d-vac", "d-new"].forEach(function (id) {
+  ["d-cap-works", "d-vac", "d-new", "d-place"].forEach(function (id) {
     document.getElementById(id).addEventListener("change", renderDistrict);
   });
   document.getElementById("d-search").addEventListener("click", function () {
@@ -5109,7 +5122,7 @@
     var btn = this, note = document.getElementById("d-search-note");
     btn.disabled = true; note.textContent = "Searching…";
     setTimeout(function () {
-      var r = searchProgramme(LAST_STOCK.stock, LAST_STOCK.relocation, LAST_STOCK.newPer, 2500);
+      var r = searchProgramme(LAST_STOCK.stock, LAST_STOCK.relocation, LAST_STOCK.newPer, 2500, LAST_STOCK.placement);
       SEARCHED = { sig: LAST_STOCK.sig, phases: r.phases, evaluations: r.evaluations, baselineCost: r.baselineCost, cost: r.cost };
       btn.disabled = false;
       renderDistrict();

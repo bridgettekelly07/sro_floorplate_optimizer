@@ -343,8 +343,11 @@ homes a converted building has to spare (where its vacancy exceeded the rooms it
 units opening elsewhere. Three inputs the sources do not give are therefore stated as assumptions:
 the vacancy rate (5% by default), the relocation housing the City can supply at once (300 tenants),
 and new supply opening per phase (none). Works empty a building (s.4.8(f)), so everyone in it is
-placed for the duration, nearest slack first, then in the relocation housing, and otherwise has
-nowhere to wait; those the building cannot take back afterwards (its tenants less its homes after
+placed for the duration in slack inside the district, then in the relocation housing, and otherwise has
+nowhere to wait — by one of two stated rules: *nearest* takes the nearest spare room, however scattered
+that leaves a building's tenants; *together* takes the building that can hold the most of them first,
+nearest among equals, within 600 m (about a ten-minute walk, an assumption), so they stay in as few
+buildings as possible, and falls back to nearest beyond that; those the building cannot take back afterwards (its tenants less its homes after
 works) are placed for good in the nearest slack, then in new supply, and the rest leave the
 district. A phase takes as many buildings as the slack of the moment can hold. The order follows a
 stated rule: buildings whose conversion adds slack go first, since they make room for the phases

@@ -592,9 +592,22 @@ def heuristic_phases(stock: Sequence[Stock], relocation: int, new_per_phase: int
     return phases
 
 
+PLACEMENTS = ("nearest", "concentrate")
+WALK_M = 600.0   # how far "together" will reach before it falls back to nearest: about a ten-minute walk
+
+
 def run_programme(stock: Sequence[Stock], phases: Sequence[Sequence[str]], relocation: int,
-                  new_per_phase: int = 0) -> List[Step]:
-    """Follow the tenants through a given partition of the conversions into phases."""
+                  new_per_phase: int = 0, placement: str = "nearest") -> List[Step]:
+    """Follow the tenants through a given partition of the conversions into phases.
+
+    ``placement`` is where a building's tenants go first: ``nearest`` takes the
+    nearest spare room, however scattered; ``concentrate`` takes the building
+    that can hold the most of them within ``WALK_M`` metres, nearest first
+    among equals, so they stay together in as few buildings as possible; beyond
+    that walk it falls back to nearest.
+    """
+    if placement not in PLACEMENTS:
+        raise ValueError(f"placement must be one of {PLACEMENTS}")
     by = {s.key: s for s in stock}
     free: Dict[str, int] = {s.key: s.vacant for s in stock}
     new_pool = 0
@@ -617,7 +630,13 @@ def run_programme(stock: Sequence[Stock], phases: Sequence[Sequence[str]], reloc
             nonlocal new_pool
             kind = "perm" if permanent else "temp"
             left = n
-            dests = sorted((k for k in free if k not in in_works and free[k] > 0), key=lambda k: _dist(src.xy, by[k].xy))
+            room = lambda k: free[k] - borrowed.get(k, 0)
+            if placement == "concentrate":
+                # within a walk (WALK_M), the building that holds the most of them; beyond it, nearest
+                dests = sorted((k for k in free if k not in in_works and room(k) > 0),
+                               key=lambda k: (_dist(src.xy, by[k].xy) > WALK_M, -min(room(k), n), _dist(src.xy, by[k].xy)))
+            else:
+                dests = sorted((k for k in free if k not in in_works and free[k] > 0), key=lambda k: _dist(src.xy, by[k].xy))
             for k in dests:
                 if left <= 0:
                     break
@@ -669,7 +688,7 @@ def run_programme(stock: Sequence[Stock], phases: Sequence[Sequence[str]], reloc
 
 
 def programme(stock: Sequence[Stock], relocation: int, new_per_phase: int = 0,
-              vacancy: Optional[float] = None) -> List[Step]:
+              vacancy: Optional[float] = None, placement: str = "nearest") -> List[Step]:
     """Sequence the conversions by the stated rule and follow the tenants.
 
     ``relocation`` is the tenants the City can house outside the district at
@@ -679,7 +698,7 @@ def programme(stock: Sequence[Stock], relocation: int, new_per_phase: int = 0,
     rooms.
     """
     stock = _with_vacancy(stock, vacancy)
-    return run_programme(stock, heuristic_phases(stock, relocation, new_per_phase), relocation, new_per_phase)
+    return run_programme(stock, heuristic_phases(stock, relocation, new_per_phase), relocation, new_per_phase, placement)
 
 
 def programme_cost(steps: Sequence[Step]) -> Tuple[int, int, int, float]:
@@ -699,7 +718,7 @@ class Programme:
 
 
 def search_programme(stock: Sequence[Stock], relocation: int, new_per_phase: int = 0,
-                     vacancy: Optional[float] = None, budget: int = 4000) -> Programme:
+                     vacancy: Optional[float] = None, budget: int = 4000, placement: str = "nearest") -> Programme:
     """Improve on the stated rule by local search over the partition into phases.
 
     From the heuristic partition, try moving one building to another phase
@@ -711,7 +730,7 @@ def search_programme(stock: Sequence[Stock], relocation: int, new_per_phase: int
     """
     stock = _with_vacancy(stock, vacancy)
     phases = [list(p) for p in heuristic_phases(stock, relocation, new_per_phase)]
-    best = run_programme(stock, phases, relocation, new_per_phase)
+    best = run_programme(stock, phases, relocation, new_per_phase, placement)
     best_cost = programme_cost(best)
     baseline = best_cost
     evals = 1
@@ -738,7 +757,7 @@ def search_programme(stock: Sequence[Stock], relocation: int, new_per_phase: int
                     else:
                         trial[j].append(k)
                     trial = clean(trial)
-                    steps = run_programme(stock, trial, relocation, new_per_phase)
+                    steps = run_programme(stock, trial, relocation, new_per_phase, placement)
                     evals += 1
                     c = programme_cost(steps)
                     if c < best_cost:
@@ -760,7 +779,7 @@ def search_programme(stock: Sequence[Stock], relocation: int, new_per_phase: int
                         trial = [list(p) for p in phases]
                         trial[i][trial[i].index(a)] = b
                         trial[j][trial[j].index(b)] = a
-                        steps = run_programme(stock, trial, relocation, new_per_phase)
+                        steps = run_programme(stock, trial, relocation, new_per_phase, placement)
                         evals += 1
                         c = programme_cost(steps)
                         if c < best_cost:

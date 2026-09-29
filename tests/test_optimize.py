@@ -292,6 +292,22 @@ class TestSearchProgramme(unittest.TestCase):
         self.assertEqual(c[:3], tuple(d["cost"][:3]))
         self.assertAlmostEqual(c[3], d["cost"][3], places=1)
 
+    def test_concentrate_keeps_a_building_s_tenants_together(self):
+        # B's 8 tenants can wait in four small lenders next door (2 rooms each) or one
+        # larger lender a little further away (8 rooms)
+        b = Stock("B", 8, 0, 8, 0, (0.0, 0.0))
+        small = [Stock("s%d" % k, 10, 2, 0, 0, (10.0 + k, 0.0), convert=False) for k in range(4)]
+        big = Stock("big", 20, 8, 0, 0, (40.0, 0.0), convert=False)
+        nearest = run_programme([b] + small + [big], [["B"]], relocation=0, placement="nearest")
+        together = run_programme([b] + small + [big], [["B"]], relocation=0, placement="concentrate")
+        self.assertEqual(sorted(m.dst for m in nearest[0].moves), ["s0", "s1", "s2", "s3"])
+        self.assertEqual([m.dst for m in together[0].moves], ["big"])
+        self.assertEqual(together[0].temp_district, 8)
+
+    def test_an_unknown_placement_is_refused(self):
+        with self.assertRaises(ValueError):
+            run_programme([self.swing], [["A"]], relocation=0, placement="random")
+
     def test_any_partition_can_be_run(self):
         steps = run_programme([self.swing, self.tight], [["B"], ["A"]], relocation=100)
         self.assertEqual([s.keys for s in steps], [["B"], ["A"]])
