@@ -390,6 +390,11 @@
   #scen-drawer table.dist { font-size: 11px; }
   #scen-drawer table.dist td, #scen-drawer table.dist th { padding: 3px 4px; }
   #scen-drawer table.dist td.n { white-space: nowrap; }
+  .scen-strip { border: 1px solid var(--rule); border-left: 4px solid var(--pick, var(--rule)); padding: 10px 12px; margin-bottom: 12px; font-size: 12.5px; }
+  .scen-strip h4 { margin: 0 0 4px; font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+  .scen-strip h4 .close { margin-left: auto; font: inherit; border: none; background: none; color: var(--ink-3); cursor: pointer; padding: 0 4px; }
+  .scen-strip .meta { color: var(--ink-3); font-size: 11.5px; margin-bottom: 6px; }
+  .scen-strip .btnrow { margin-top: 8px; }
   @media (max-width: 1100px) { .map-wrap.scen { grid-template-columns: minmax(0,1fr); } .map-wrap.scen .map-stage { position: static; } }
   @media (max-width: 900px) { .map-side { border-left: none; border-top: 1px solid var(--rule); } }
   .map-zoom {
@@ -605,6 +610,7 @@
           <span><i class="swatch" style="background:var(--map-foot)"></i>Footprint</span>
         </div>
         <div id="scen-drawer" hidden>
+        <div id="scen-strip" class="scen-strip" hidden></div>
         <div class="step">
           <div class="label"><span class="step-n">1</span>The mandate</div>
           <div class="field">
@@ -2282,7 +2288,33 @@
     t.hidden = false;
   }
 
+  // the selected building at the top of the scenario drawer: what the scenario does with it
+  function renderScenStrip() {
+    var el = document.getElementById("scen-strip");
+    if (!el) return;
+    var b = surveySel !== null ? SURVEYED[surveySel] : null;
+    if (!b) { el.hidden = true; return; }
+    var sc = SCEN && SCEN.byIndex[surveySel], pin = PINNED[surveySel];
+    el.style.setProperty("--pick", mapColour(b, surveySel));
+    var what = !SCEN ? "not yet run" : !sc ? "not in the stock the mandate reaches"
+      : sc.state === "converted" ? "Converts in phase " + sc.phase + " · " + sc.units + " units · " + sc.lost + " rooms lost" + movesText(surveySel, sc.phase)
+      : sc.state === "infeasible" ? "No compliant conversion: rooms too small"
+      : sc.state === "pinned-fail" ? "Pinned as drawn, but the drawing fails the tests"
+      : "Left as it is by this mandate";
+    el.innerHTML = '<h4>' + esc(b.name) + (pin ? ' <span class="label" style="font-size:9px">pinned</span>' : '') + '<button type="button" class="close" aria-label="Close">&times;</button></h4>'
+      + '<div class="meta">' + esc(b.addr || "") + ' · ' + (b.tenure === "market" ? "market" : b.tenure ? "non-market" : "not surveyed") + ' · ' + (b.rooms || "–") + ' rooms</div>'
+      + '<div>' + what + '</div>'
+      + '<div class="btnrow"><button type="button" id="strip-open">Open in section 02</button></div>';
+    el.hidden = false;
+    el.querySelector(".close").addEventListener("click", function () { surveySel = null; renderStock(); });
+    el.querySelector("#strip-open").addEventListener("click", function () {
+      var p = document.getElementById("bp-plan");
+      if (p) p.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }
+
   function renderCard() {
+    renderScenStrip();
     var card = document.getElementById("side-card"), empty = document.getElementById("side-empty");
     if (!card) return;
     var b = surveySel !== null ? SURVEYED[surveySel] : null;
@@ -4926,8 +4958,7 @@
       tr.addEventListener("click", function () {
         var i = parseInt(tr.getAttribute("data-i"), 10);
         if (surveySel !== i) selectSurveyed(i);
-        var el = document.getElementById("bp-plan");
-        if (el && el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", block: "center" });
+        document.getElementById("scen-strip").scrollIntoView({ behavior: "smooth", block: "nearest" });
       });
     });
     if (scenColour) { drawMap(); if (M3.on) m3build(); }
