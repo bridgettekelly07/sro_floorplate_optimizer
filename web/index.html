@@ -612,24 +612,34 @@
         </div>
         <div id="scen-drawer" hidden>
         <div id="scen-strip" class="scen-strip" hidden></div>
-        <div class="step">
-          <div class="label"><span class="step-n">1</span>The mandate</div>
-          <div class="field">
-            <label for="d-scope">Which buildings it reaches</label>
-            <select id="d-scope">
-              <option value="market">Market SROs</option>
-              <option value="all">All of Appendix B</option>
-              <option value="nonmarket">Non-market SROs</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="d-target">How many self-contained units it requires &middot; <span id="d-target-v"></span></label>
-            <input type="range" id="d-target" min="0" max="100" step="1" value="50">
-            <span class="hint-s" id="d-target-hint"></span>
-          </div>
+        <div class="label">The mandate</div>
+        <div class="field">
+          <label for="d-scope">Which buildings it reaches</label>
+          <select id="d-scope">
+            <option value="market">Market SROs</option>
+            <option value="all">All of Appendix B</option>
+            <option value="nonmarket">Non-market SROs</option>
+          </select>
         </div>
-        <div class="step">
-          <div class="label"><span class="step-n">2</span>The works</div>
+        <div class="field">
+          <label for="d-target">How many self-contained units it requires &middot; <span id="d-target-v"></span></label>
+          <input type="range" id="d-target" min="0" max="100" step="1" value="50">
+          <span class="hint-s" id="d-target-hint"></span>
+        </div>
+        <div class="label out-head">What happens</div>
+        <div id="d-head"></div>
+        <div class="tally" id="d-tally"></div>
+        <div id="d-curve" style="margin-top:14px"></div>
+        <div class="label out-head">Phase by phase</div>
+        <div class="field">
+          <label for="d-phase">Phase shown on the map &middot; <span id="d-phase-v"></span></label>
+          <input type="range" id="d-phase" min="0" max="1" step="1" value="1">
+          <span class="hint-s" id="d-phase-hint"></span>
+        </div>
+        <div id="d-phases"></div>
+        <div id="d-out"></div>
+        <details class="assume">
+          <summary>Assumptions and levers</summary>
           <div class="field">
             <label for="d-cap-works">Relocation housing the City supplies &middot; tenants at once</label>
             <input type="number" id="d-cap-works" min="0" max="5000" step="10" value="300">
@@ -648,7 +658,8 @@
               <option value="concentrate">Together, in as few buildings as possible within a ten-minute walk</option>
             </select>
           </div>
-          <p class="src">Tenants move only where there is slack: vacant rooms, spare homes, new supply.</p>
+          <div class="btnrow" style="margin-bottom:12px"><button type="button" id="d-search" title="Try moving buildings between phases to lower the cost: fewer leave, fewer with nowhere to wait, fewer phases, less distance">Search for a better order</button>
+            <span class="hint-s" id="d-search-note"></span></div>
           <div class="field">
             <label>Swing buildings you add</label>
             <div id="d-swing-list" class="hint-s" style="margin-bottom:8px">None yet.</div>
@@ -662,38 +673,6 @@
             </div>
             <span class="hint-s" id="sw-hint">Space the stock does not have: an empty lot to build on, or a vacant building. Its homes take people to wait or to stay, from the phase it opens. Your assumption, drawn on the map.</span>
           </div>
-          <div class="btnrow"><button type="button" id="d-search" title="Try moving buildings between phases to lower the cost: fewer leave, fewer with nowhere to wait, fewer phases, less distance">Search for a better order</button>
-            <span class="hint-s" id="d-search-note"></span></div>
-        </div>
-        <div class="step">
-          <div class="label"><span class="step-n">3</span>Watch it happen</div>
-          <div class="field">
-            <label for="d-phase">Phase shown on the map &middot; <span id="d-phase-v"></span></label>
-            <input type="range" id="d-phase" min="0" max="1" step="1" value="1">
-            <span class="hint-s" id="d-phase-hint"></span>
-          </div>
-        </div>
-        <div class="step">
-        <div class="label">What happens</div>
-        <div id="d-head"></div>
-        <div class="tally" id="d-tally"></div>
-        <div id="d-curve" style="margin-top:14px"></div>
-        <div id="d-phases"></div>
-        <div id="d-out"></div>
-        </div>
-<details class="assume">
-          <summary>Assumptions behind the numbers</summary>
-          <p class="src">The mandate is met by choosing which buildings convert, and how far each goes,
-            so that the fewest tenants lose their room; a building converts at a scheme of its own or
-            not at all, since a partial conversion below 50% fails DTES 9.2.7. A building edited in
-            section 02 is taken exactly as drawn.</p>
-          <p class="src">Works empty a building (s.4.8(f)). Converting removes homes, so tenants can
-            only move between buildings where there is slack: vacant rooms, homes a converted
-            building has to spare, and new supply. The ledger follows every tenant, nearest slack
-            first, then the relocation housing; those who cannot return are placed for good the same
-            way, and the rest leave the district. Buildings whose conversion adds slack go first,
-            then the gentlest. Vacancy, relocation housing and new supply are assumptions the
-            sources do not give.</p>
           <div class="field">
             <label for="d-read">Size test</label>
             <select id="d-read">
@@ -708,12 +687,21 @@
             <div class="field"><label for="d-circ">Circulation share, %</label>
               <input type="number" id="d-circ" min="0" max="60" step="1" value="25"></div>
           </div>
+          <p class="src">The mandate is met by choosing which buildings convert, and how far each goes,
+            so that the fewest tenants lose their room; a building converts at a scheme of its own or
+            not at all, since a partial conversion below 50% fails DTES 9.2.7. A building edited in
+            section 02 is taken exactly as drawn.</p>
+          <p class="src">Works empty a building (s.4.8(f)). Converting removes homes, so tenants can
+            only move between buildings where there is slack: vacant rooms, homes a converted
+            building has to spare, and new supply. The ledger follows every tenant, nearest slack
+            first, then the relocation housing; those who cannot return are placed for good the same
+            way, and the rest leave the district. Buildings whose conversion adds slack go first,
+            then the gentlest. Vacancy, relocation housing and new supply are assumptions the
+            sources do not give.</p>
           <p class="src">Room size is read from each footprint: its area less the circulation share,
             divided by the rooms Appendix B counts on a floor, and capped where a footprint holds far
-            more than its count suggests, since the City counts the designated rooms and not the
-            commercial or common floor around them.</p>
-          <p class="src">Tenants are rooms less the vacancy assumed. The survey&rsquo;s average tenancy
-            of 4.6 years places everyone who cannot return in the 4-month bracket of s.4.8(i).</p>
+            more than its count suggests. Tenants are rooms less the vacancy assumed; the survey&rsquo;s
+            average tenancy of 4.6 years places everyone who cannot return in the 4-month bracket of s.4.8(i).</p>
         </details>
         </div>
         <form id="b-form" hidden>
@@ -5261,7 +5249,7 @@
     outEl.innerHTML = '<details class="assume out-head"' + (wasOpen ? ' open' : '') + '><summary>Which buildings · ' + rows.length + ' convert'
       + (cands.stuck.length ? ' · ' + cands.stuck.length + ' cannot' : '') + '</summary>' + h + '</details>';
     document.getElementById("d-phases").innerHTML = phasesHtml(phases, relocation);
-    document.querySelectorAll("#d-phases tr.pick").forEach(function (tr) {
+    document.querySelectorAll("#d-phases [data-phase]").forEach(function (tr) {
       tr.addEventListener("click", function () {
         var n = parseInt(tr.getAttribute("data-phase"), 10);
         scenPhase = n; renderDistrict(); if (!scenColour) setScenarioColour(true);
@@ -5317,15 +5305,18 @@
 
   function phasesHtml(phases, relocation) {
     if (!phases.length) return "";
-    // the timeline: a bar per phase of everyone out of their building, stacked by
-    // where they go; units delivered so far written above
+    // one bar per phase: everyone out of their building, stacked by what happens to them
     var W = 520, H = 150, px = 44, py = 22, pb = 26, n = phases.length;
     var top = Math.max(1, relocation, Math.max.apply(null, phases.map(function (p) { return p.out; })));
     var slotW = (W - px - 12) / n, barW = Math.max(4, Math.min(34, slotW * 0.62)), dense = n > 14;
     function Y(v) { return py + (1 - v / top) * (H - py - pb); }
-    var segs = [["tempDistrict", "var(--pass-soft)"], ["tempRelocation", "var(--ink-3)"], ["tempLeft", "var(--rule)"],
-                ["permDistrict", "var(--pass)"], ["permNew", "var(--edge)"], ["permLeft", "var(--fail)"]];
-    var h = '<div class="label out-head">When · the programme, phase by phase</div><div class="curve"><svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans Condensed, sans-serif" font-size="10">';
+    var segs = [
+      { key: "wait", colour: "var(--ink-3)", label: "Wait out the works, then return", of: function (p) { return p.tempDistrict + p.tempRelocation; } },
+      { key: "nowhere", colour: "var(--rule)", label: "Nowhere to wait", of: function (p) { return p.tempLeft; } },
+      { key: "housed", colour: "var(--pass)", label: "Re-housed nearby or in new supply, for good", of: function (p) { return p.permDistrict + p.permNew; } },
+      { key: "leave", colour: "var(--fail)", label: "Leave the district for good", of: function (p) { return p.permLeft; } }];
+    var present = segs.filter(function (sg) { return phases.some(function (p) { return sg.of(p) > 0; }); });
+    var h = '<div class="curve"><svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans Condensed, sans-serif" font-size="10">';
     h += '<line x1="' + px + '" y1="' + Y(0) + '" x2="' + (W - 12) + '" y2="' + Y(0) + '" stroke="var(--rule)"/>';
     if (relocation) {
       h += '<line x1="' + px + '" y1="' + Y(relocation).toFixed(1) + '" x2="' + (W - 12) + '" y2="' + Y(relocation).toFixed(1) + '" stroke="var(--ink-3)" stroke-dasharray="3 2"/>';
@@ -5335,39 +5326,23 @@
     phases.forEach(function (p, k) {
       var x = px + slotW * (k + 0.5), on = SCEN && SCEN.phase === p.number, later = SCEN && SCEN.phase !== null && SCEN.phase < p.number;
       var base = 0;
+      h += '<g data-phase="' + p.number + '" style="cursor:pointer"><title>Phase ' + p.number + ' · ' + p.items.length + ' building' + (p.items.length > 1 ? 's' : '') + ' · ' + p.out.toLocaleString("en-CA") + ' out · ' + p.cumUnits.toLocaleString("en-CA") + ' units so far</title>';
       segs.forEach(function (sg) {
-        var v = p[sg[0]];
+        var v = sg.of(p);
         if (!v) return;
-        h += '<rect x="' + (x - barW / 2).toFixed(1) + '" y="' + Y(base + v).toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + (Y(base) - Y(base + v)).toFixed(1) + '" fill="' + sg[1] + '"' + (later ? ' opacity="0.35"' : '') + '/>';
+        h += '<rect x="' + (x - barW / 2).toFixed(1) + '" y="' + Y(base + v).toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + (Y(base) - Y(base + v)).toFixed(1) + '" fill="' + sg.colour + '"' + (later ? ' opacity="0.35"' : '') + '/>';
         base += v;
       });
-      if (on) h += '<rect x="' + (x - barW / 2 - 2).toFixed(1) + '" y="' + (Y(p.out) - 2).toFixed(1) + '" width="' + (barW + 4).toFixed(1) + '" height="' + (Y(0) - Y(p.out) + 4).toFixed(1) + '" fill="none" stroke="var(--edge)" stroke-width="1.5"/>';
+      if (on) h += '<rect x="' + (x - barW / 2 - 2).toFixed(1) + '" y="' + (Y(p.out) - 2).toFixed(1) + '" width="' + (barW + 4).toFixed(1) + '" height="' + (Y(0) - Y(p.out) + 4).toFixed(1) + '" fill="none" stroke="var(--scen-works)" stroke-width="1.5"/>';
       if (!dense || k % Math.ceil(n / 14) === 0) {
         h += '<text x="' + x.toFixed(1) + '" y="' + (Y(p.out) - 5).toFixed(1) + '" text-anchor="middle" fill="var(--ink)">' + p.cumUnits.toLocaleString("en-CA") + '</text>';
         h += '<text x="' + x.toFixed(1) + '" y="' + (H - 12) + '" text-anchor="middle" fill="var(--ink-3)">' + p.number + '</text>';
       }
+      h += '</g>';
     });
-    h += '<text x="' + px + '" y="' + (H - 1) + '" fill="var(--ink-3)">bar: everyone out of their building that phase · above: units so far · dashed: relocation housing</text>';
+    h += '<text x="' + px + '" y="' + (H - 1) + '" fill="var(--ink-3)">bar: everyone out that phase · above: units so far · dashed: relocation housing · click a bar to show it</text>';
     h += '</svg></div>';
-    h += '<div class="legend" style="margin-top:6px">'
-      + '<span><i class="swatch" style="background:var(--pass-soft)"></i>Wait in a spare room nearby, then return</span>'
-      + '<span><i class="swatch" style="background:var(--ink-3)"></i>Wait in relocation housing, then return</span>'
-      + '<span><i class="swatch" style="background:var(--rule)"></i>Nowhere to wait</span>'
-      + '<span><i class="swatch" style="background:var(--pass)"></i>Move to a spare room nearby for good</span>'
-      + '<span><i class="swatch" style="background:var(--edge)"></i>Move into new supply</span>'
-      + '<span><i class="swatch" style="background:var(--fail)"></i>Leave the district for good</span></div>';
-    h += '<table class="dist"><thead><tr><th class="n">Phase</th><th class="n">Out</th><th class="n">Wait: nearby / relocation / nowhere</th><th class="n">For good: nearby / new / leave</th><th class="n">Units so far</th></tr></thead><tbody>';
-    phases.forEach(function (p) {
-      var on = SCEN && SCEN.phase === p.number, f = function (v) { return v ? v.toLocaleString("en-CA") : "–"; };
-      var red = function (v) { return v ? '<span style="color:var(--fail)">' + f(v) + '</span>' : f(v); };
-      h += '<tr class="pick" data-phase="' + p.number + '"' + (on ? ' style="background:var(--edge-soft)"' : '') + '><td class="n">' + p.number + ' <span style="color:var(--ink-3)">· ' + p.items.length + ' bldg' + (p.items.length > 1 ? 's' : '') + '</span></td><td class="n">' + f(p.out) + '</td>'
-        + '<td class="n">' + f(p.tempDistrict) + ' / ' + f(p.tempRelocation) + ' / ' + red(p.tempLeft) + '</td>'
-        + '<td class="n">' + f(p.permDistrict) + ' / ' + f(p.permNew) + ' / ' + red(p.permLeft) + '</td><td class="n">' + f(p.cumUnits) + '</td></tr>';
-    });
-    var nowhere = phases.reduce(function (t, p) { return t + p.tempLeft; }, 0);
-    h += '</tbody></table><p class="src">A phase takes as many buildings as the slack of the moment can hold'
-      + (nowhere ? '; <strong>' + nowhere.toLocaleString("en-CA") + ' have nowhere to wait</strong> where one building alone exceeds it' : '')
-      + '. Click a phase to show it on the map.</p>';
+    h += '<div class="legend" style="margin-top:6px">' + present.map(function (sg) { return '<span><i class="swatch" style="background:' + sg.colour + '"></i>' + sg.label + '</span>'; }).join("") + '</div>';
     return h;
   }
 

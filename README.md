@@ -311,7 +311,8 @@ of self-contained units the stock must produce; the optimizer chooses which buil
 how far each goes, so the target is met with the fewest tenants displaced. It is a multiple-choice
 knapsack solved exactly, and one pass yields the least displacement for every mandate at once, so the
 slider answers instantly. The scenario lives beside the map, in a drawer the **Scenario** button opens, so the
-controls and the map they change share one frame. The result is shown three ways rather than as an abstract curve: a sentence,
+controls and the map they change share one frame: the mandate, what happens, the phases, and everything
+else folded under *Assumptions and levers*. The result is shown three ways rather than as an abstract curve: a sentence,
 with the map coloured by the scenario as the primary representation;
 a single bar of every room in scope, split into tenants re-housed in a new unit, tenants staying in
 a room kept as SRA, tenants displaced, rooms in buildings left alone, and rooms in buildings with no
