@@ -1,8 +1,45 @@
 # SRO Conversion & Displacement in the DTES
 
-Interactive tool translating Vancouver's SRA-Designated Room conversion rules into an explicit operation, checked against a hand-worked example and visualized in Rhino, and then run the other way: a search for the compliant scheme that displaces the fewest tenants, building by building across the district's SRO stock.
+A tool that translates Vancouver's rules for converting SRA-designated rooms into self-contained units
+into one explicit operation: given a floor of rooms and a proposed scheme of merges, it tests the scheme
+against the three numeric provisions the City applies, cites the clause behind each result, and counts the
+tenants the scheme displaces. It was checked against a hand-worked example before any code existed. The same
+operation then runs the other way, as a search for the compliant scheme that displaces the fewest tenants, and
+at the scale of the district's whole SRO stock; that extension rests on assumptions the sources do not give,
+and they are stated where they are made.
 
-## Sources
+**The provision.** SRA Guidelines p.4 (200 SF per converted unit, or an average of 200 SF at the City's
+discretion; at most a 50% reduction in rooms), DTES Plan Policy 9.2.7 (at least 50% of rooms replaced as
+self-contained units) and SRA By-law No. 8733 s.4.8 (relocation and compensation), read together.
+
+**The question.** A conversion that makes rooms large enough must merge them, and merging rooms displaces
+the people in them. Where, exactly, do the City's tests let that trade-off sit, and what does a given scheme
+cost in people?
+
+## Start here: one example to run
+
+Stdlib only, nothing to install.
+
+```
+python3 -m sro.cli --example case2              # a scheme that passes two tests and fails the third
+python3 -m sro.cli --example case1 --svg out.svg # the only compliant scheme on the example floor, drawn
+python3 -m sro.cli --input floorplate.json --json # your own floor: rooms in corridor order, a scheme of merges
+python3 -m unittest discover -s tests           # 61 tests: the answer key, the search, the ledger, browser parity
+node server.js                                  # the browser tool at http://localhost:8777
+```
+
+`examples/floorplate.py` holds the example floor and its three cases. A JSON input looks like this:
+
+```json
+{ "rooms": [ { "id": "1", "area_sf": 100, "tenancy_years": 5 }, { "id": "2", "area_sf": 110, "tenancy_years": 6 } ],
+  "scheme": { "groups": [ ["1", "2"] ] } }
+```
+
+Read the result top to bottom: the units the scheme makes, each test with its clause and working, the overall
+verdict, the small-loss route under s.4.3A if it applies, and the compensation range. `TESTING.md` records
+the three cases in the form the assignment asks for, with what the tool actually did.
+
+## The sources
 
 See [`source/citation.md`](source/citation.md) for document versions and authority notes, and [`source/source_extract.md`](source/source_extract.md) for the annotated passages this tool is built from.
 
@@ -16,160 +53,6 @@ All three primary sources were before Council for amendment at that hearing, as 
 - **The guideline named is not obviously the one used.** Recommendation H amends the Guidelines for the *Upgrade* of designated rooms; this tool is built on the Guidelines for *Converting* them. The 200 SF and 50% thresholds appear nowhere in the summary.
 
 Both are settled by checking the enacted texts against `sro/rules.py`, where every threshold sits with its citation.
-
-## The district in 3D
-
-The stock map in section 01 has a 3D button. Selecting a building there draws its typical floor in section 02 with the square footage of every room, and the least-displacement scheme over it. It raises every building footprint on the map to the height the
-City's 2009 LiDAR recorded for it (*Building Footprints 2009*, field `hgt_agl`), and draws the 143 SRO
-buildings of Appendix B on their own footprints, coloured by tenure as on the flat map. Drag to pan, shift-drag
-or right-drag to orbit, scroll to zoom; hovering names a building and clicking loads it into the sections below,
-exactly as on the flat map. The **Plan** button looks straight down through an orthographic camera, north up,
-so the district reads as a plan without perspective; panning, zooming and picking work as before, and orbiting
-tips it back into perspective.
-
-Each SRO is drawn from the City's LiDAR-measured footprint parts at their own heights, so a rear wing or a lower
-annex stands at its measured height rather than being averaged into one block. The masses are plain; a faint line
-around each part at every floor level marks the storeys, spaced from that part's own height at the 3.4 m floor to
-floor the tool assumes throughout. (An earlier version generated street elevations from the type the stock shares;
-that code is kept behind a flag but no longer drawn.) Where the building is on the Vancouver Heritage Register the
-record gives its evaluation group, the register's own name for it and any designation.
-
-The ground under the buildings is the City's 2002 shoreline, joined into a land polygon and clipped to the map, with
-the water as the plane beneath it; the City's parks as flat polygons; and the streets and lanes as surfaces drawn
-from their centrelines at a pavement width by street use (13, 11 and 8.5 m for arterial, secondary and residential,
-5 m for lanes) with a 2.5 m sidewalk band either side. The centrelines, shoreline, parks and lanes are measured; the
-widths are a drawing convention, not a survey of curbs.
-
-Appendix B gives a room count and never a storey count or a floor area. The height fills the first gap: a
-building's storeys are read from its LiDAR height at an assumed 3.4 m floor to floor, and that count is what
-the floorplate model starts from (the Ivanhoe Hotel's 18.2 m reads as five storeys). It is an estimate and is
-labelled as one; the older assumption of about 22 rooms to a floor remains for the nine buildings the City has
-no height for. See [`source/citation.md`](source/citation.md) for how the heights were matched.
-
-## The optimizer
-
-The evaluator answers "does this scheme pass?". The optimizer answers the question the mandate
-actually poses: *of every scheme this building admits, which one passes while moving the fewest
-people?* It works at three scales, and each is in the browser tool.
-
-**One building** (section 02). Rooms sit in corridor order,
-and a unit is a run of consecutive rooms, so the search is a dynamic programme along each row of
-rooms: at every room, leave it as an SRA room or close a unit there. Rows on opposite sides of a
-corridor and on different floors are searched separately and combined, because rooms never merge
-across a corridor or a slab. The objective is rooms lost, which with every room occupied is exactly
-the number of tenants the right of first refusal cannot re-house (s.4.8(f)–(g)). Ties go to more
-units, then to more converted area. The search is exact and runs under both readings of the size
-test the Guidelines offer: **strict**, every unit at 200 SF on its own, and the **average fallback**,
-"an average of 200 SF across all converted rooms will be considered", under which a room converted
-in place below 200 SF is carried by the pairs around it. The fallback is discretionary, so the strict
-result is the safe one and the average result the best case. The same search, run for every unit
-count the building can legally reach from the DTES 9.2.7 floor upward, gives the building's
-trade-off curve; it is not drawn in section 02 but is what the building contributes to the district
-allocation in the map's scenario drawer.
-
-**The plan is the editor.** The typical floor in section 02 is drawn from the building's state, not from
-the search, so what the user does to it is what the tests run on. A marker in the corridor between two
-rooms merges them into one unit or splits them; dragging the wall between two rooms shifts area from one
-to the other, the row keeping its length; clicking a room keeps it as an SRA room or releases it. Every
-floor is the typical floor, so an edit applies to all of them, and the search likewise runs on one floor
-and repeats it. The buttons beside the plan restore the least-displacement scheme under either reading
-or clear every merge, and a single tenancy length stands for every room, since no source gives one per
-room. The tally beside the plan says whether the drawn scheme passes and how far it sits from the
-least-displacement one; the tests below the plan show the working, each with its citation.
-
-The plan is drawn two ways. **Existing** shows the rooms as they stand, a door each to the corridor
-and a window on the outer wall; the shared washrooms are not drawn, since the outline holds no
-record of them. **Proposed** gives every unit the program of SRA Guidelines p.5–6, a complete
-bathroom and a kitchen run with a 24″ refrigerator, and one door. The source dimensions only the
-refrigerator; the pods are conventional minimums (5′ × 8′ bath, 8′ × 2′ kitchen, 3′ door) and are
-stated as such on the plan. They sit at the corridor wall so the window wall stays free: the
-bathroom at one end of the unit, the door beside it, the kitchen run along the corridor wall after
-the door or, where the unit is too narrow for that, up the far party wall. A unit that cannot take
-the run either way is flagged: it fails on program before it fails on area, which the area tests
-alone would not show.
-
-**The stock** (section 02's plan). Appendix B gives each building a room count and nothing else, so
-the tool reads a typical floor from the City's footprint: a double-loaded corridor along the long axis
-of the outline, rooms in equal bays on both sides, a stair bay at one end, over a retail ground floor
-(the same assumption the storey count on the map makes). Room size is the footprint less a circulation
-share, divided by the rooms Appendix B counts on a floor, capped where the outline holds far more
-floor than its count suggests, since the City counts designated rooms and not the commercial or
-common floor around them. Both figures are inputs (25% and 180 SF by default) and every plan says
-which assumptions produced it. Rooms that would fall outside the outline are dropped; rooms that come
-out narrower than 8 ft are flagged. The outline is measured; everything drawn inside it is the type
-the stock shares, not a survey of that building.
-
-**The district** (the scenario drawer beside the map, opened by the map's **Scenario** button). Each building contributes its trade-off curve; the mandate is a number
-of self-contained units the stock must produce; the optimizer chooses which buildings convert, and
-how far each goes, so the target is met with the fewest tenants displaced. It is a multiple-choice
-knapsack solved exactly, and one pass yields the least displacement for every mandate at once, so the
-slider answers instantly. The scenario lives beside the map, in a drawer the **Scenario** button opens, so the
-controls and the map they change share one frame. The result is shown three ways rather than as an abstract curve: a sentence,
-with the map coloured by the scenario as the primary representation;
-a single bar of every room in scope, split into tenants re-housed in a new unit, tenants staying in
-a room kept as SRA, tenants displaced, rooms in buildings left alone, and rooms in buildings with no
-compliant conversion; and, under the phasing, a timeline where each phase is a bar of the tenants
-out while their building is in works, with the ones who never return as a red cap and the units
-delivered so far written above. A building converts at a point on its own curve or not at all, because a
-partial conversion below 50% fails DTES 9.2.7; a building whose rooms are too small for any scheme of
-adjacent merges to leave half the count standing cannot contribute, is counted and listed, and is
-drawn in solid ink on the map. The map's **Scenario** button colours every building by the share of
-its tenants displaced. Compensation is totalled at the survey's average tenancy (4.6 years, the
-4-month bracket of s.4.8(i)) and the survey's average rent for the tenure in scope.
-
-**The two sections are joined both ways.** Clicking a building in the district table loads it in
-section 02, and section 02 says what the scenario currently does with the building on screen (its
-phase, units and displacement, or that it is left alone). Editing a building in section 02 **pins**
-it: the district then takes that building exactly as drawn, or not at all, in place of its search
-result, so a designer's decision overrides the optimizer for that building and the district
-re-allocates around it. A pinned drawing that fails the tests cannot convert and is reported. Reset
-or Unpin hands the building back to the search.
-
-**The order, as a housing ledger** (in the drawer, below the bar). The allocation says which
-buildings convert; the ledger says when, and follows every tenant. Converting a building removes
-homes, so moving tenants between SROs can only help where the district has slack: vacant rooms,
-homes a converted building has to spare (where its vacancy exceeded the rooms it lost), and new
-units opening elsewhere. Three inputs the sources do not give are therefore stated as assumptions:
-the vacancy rate (5% by default), the relocation housing the City can supply at once (300 tenants),
-and new supply opening per phase (none). Works empty a building (s.4.8(f)), so everyone in it is
-placed for the duration, nearest slack first, then in the relocation housing, and otherwise has
-nowhere to wait; those the building cannot take back afterwards (its tenants less its homes after
-works) are placed for good in the nearest slack, then in new supply, and the rest leave the
-district. A phase takes as many buildings as the slack of the moment can hold. The order follows a
-stated rule: buildings whose conversion adds slack go first, since they make room for the phases
-after them, then least harm per unit. The rule has a known blind spot: it can put a swing building
-in the *same* phase as the building that needs its spare homes, and those homes exist only after
-the phase ends. **Search for a better order** therefore runs a local search over the partition into
-phases (move one building to another phase or a new one, swap two across phases; keep what lowers
-the cost) with the cost in the order that matters: tenants who leave the district for good, tenants
-with nowhere to wait, phases, metres walked. It reports how many evaluations it made and what it
-saved against the rule; on the tested case it separates the two buildings and nobody leaves. It is
-a local search, so it improves on the rule but does not prove an optimum. The result is a timeline of who
-goes where each phase, a table with the same figures, the moves drawn on the map as arcs between
-roofs (ochre to wait, red for good) for the phase shown, and a headline that says how many new
-units would let nobody leave. The Python module (`sro/optimize.py`, `programme`) and the browser
-implement the same ledger; the swing-building case, the capacity, the nearest-first placement and
-the conservation of every tenant are asserted in `tests/test_optimize.py`.
-
-Three findings the search makes visible, all of which follow from the thresholds rather than from
-any modelling choice:
-
-- **Below 100 SF a room has no compliant conversion under either reading.** Two rooms cannot reach
-  200 SF, so units need three, and three-room units cannot leave 50% of the count standing. For those
-  buildings the mandate means replacement, not conversion.
-- **Under the strict reading an odd row of sub-200 rooms strands a room.** Every unit is a pair, so a
-  row of nine makes four and leaves one; the building reaches 50% only if another row makes up the
-  difference. Under the fallback the stranded room converts in place and the pairs carry the average.
-- **Larger rooms displace fewer people.** At 100 SF the least-loss scheme is Case 1: half the tenants
-  leave. At 150 SF under the fallback, two of ten leave; at 200 SF nobody does. The district curve
-  steepens as the mandate reaches buildings with smaller rooms, which is where it costs the most.
-
-Two assumptions are the optimizer's own and are stated here because nothing in the sources fixes
-them: a unit takes at most three rooms (`MAX_MERGE`), without which the search favours one huge
-merge carrying the average for many rooms converted in place; and every room is occupied, so rooms
-lost equals tenants displaced. The Python module (`sro/optimize.py`) and the browser tool implement
-the same search; the closed form for a building of uniform rooms is checked against the search in
-`tests/test_optimize.py`, and every scheme the search returns is checked against the evaluator.
 
 ## Explanation
 
@@ -193,7 +76,7 @@ at a time; the building-wide arithmetic lives in the browser tool. The tool is a
 - Whether the self-contained units produced are ≥ 50% of the original room count (DTES Plan, Policy 9.2.7). This is a separate test from the one above, which a scheme can fail independently
 - How many original rooms are lost outright (original count − new unit count) as a proxy for the scale of tenant relocation, distinguished from the (smaller) number requiring permanent relocation, using the right-of-first-refusal logic in Policy 9.5.3
 - The compensation owed to each displaced tenant, in months' rent, from the tenancy-length schedule in the SRA By-law (s.4.8(i))
-- A simple Rhino floor plan showing the "before" room grid and one "after" combination scheme, with bathroom/kitchen pods sized per Section 4.1
+- A before/after floor plan, the "before" room grid and one "after" combination scheme with bathroom/kitchen pods per Guidelines p.5–6: as SVG from the command line, and as the editable plan in the browser tool
 
 ## Out of Scope
 
@@ -221,51 +104,11 @@ at a time; the building-wide arithmetic lives in the browser tool. The tool is a
 - Right-of-first-refusal as an available alternative when affordable replacement accommodation isn't otherwise available (9.5.3)
 - Compensation schedule of 4–24 months' rent, indexed to tenancy length (SRA By-law s.4.8(i))
 
-**Operation (planned):** from the original inventory and the proposed combination scheme, derive each converted unit's net area and the resulting unit count, then evaluate the numeric tests independently, each citing its own source clause, and compute rooms lost outright vs. an estimate of permanent displacement.
+**Operation:** from the original inventory and the proposed combination scheme, derive each converted unit's net area and the resulting unit count, then evaluate the numeric tests independently, each citing its own source clause, and compute rooms lost outright vs. an estimate of permanent displacement.
 
-**Output (planned):** pass/fail on each test with its citation, room-loss count, permanently-displaced estimate, required compensation in months' rent per displaced tenant, and a Rhino before/after floor plan.
+**Output:** pass/fail on each test with its citation, room-loss count, permanently-displaced estimate, required compensation in months' rent per displaced tenant as a range, and a before/after floor plan.
 
-## Running the Tool
-
-```
-python3 -m sro.cli --example case1              # the hand-worked cases
-python3 -m sro.cli --example case2 --svg out.svg
-python3 -m sro.cli --input floorplate.json --json
-python3 -m unittest discover -s tests           # 61 tests: the answer key below, the search, the phasing, the ledger, browser parity
-```
-
-Stdlib only, no install. `web/index.html` is the same operation as a browser tool,
-with the floorplate built as a manipulable 3D model (three.js r160 from cdnjs; it
-falls back to the inventory table if WebGL is unavailable). Existing rooms sit on the
-near side of the corridor and are the input: drag one along the corridor to reorder,
-drag the partition between two rooms to shift area from one to the other, and add or
-remove rooms from the inventory panel. Moving a partition conserves the floor's total
-area, which is what moving a partition actually does; the corridor and back walls are
-the envelope and are fixed, the left end wall is the datum, and the right end wall
-moves so the floor can be extended. Shift-dragging any partition does the same thing
-— one room grows and the floor grows with it. A partition inside a merged pair can
-still be moved, and doing so leaves the unit's area unchanged, which is the clearest
-demonstration that the room-count tests turn on unit totals rather than partition
-positions. The
-proposed scheme is derived on the far side, with the bathroom and kitchen pods drawn
-inside each unit. Merges are made by clicking a marker in the corridor *between* two
-rooms, so every scheme the model can express is one of adjacent rooms — the adjacency
-a list of areas cannot record. Because a merge belongs to the boundary rather than to
-the rooms, dragging a room through a boundary clears the joints it crosses.
-
-| File | What it holds |
-|---|---|
-| `sro/rules.py` | the thresholds and the quoted clause behind each one; nothing here is user input |
-| `sro/model.py` | `Room`, `Floorplate`, `Scheme`, `Unit` |
-| `sro/evaluate.py` | the operation: the three tests, displacement, compensation |
-| `sro/optimize.py` | the search: least-loss scheme per building, the trade-off curve, the district allocation, the phasing |
-| `sro/plan.py` | before/after floor plan geometry, emitted as SVG |
-| `sro/report.py`, `sro/cli.py` | text and JSON output |
-| `tests/test_hand_worked.py` | the hand-worked example, asserted |
-| `tests/test_optimize.py` | the search finds Case 1 and nothing else; closed form against search; the district knapsack; the phasing |
-| `web/index.html` | the interactive version: the stock in 3D, a typical plan per building, the search, the district scenario, the floorplate editor, same tests |
-
-## Hand-Worked Example
+## Hand-worked example, the answer key
 
 These three cases were worked by hand from the source documents before any code existed. They are the answer key: when the tool runs, its output is checked against the expected results below, so that correctness does not depend on the model's own answer. The "Tool output" rows below record what the code actually returns; each is asserted in `tests/test_hand_worked.py`.
 
@@ -398,3 +241,202 @@ s.4.8(i) is owed to every **"permanent resident"** whose tenancy is terminated, 
 - The SRA By-law's 3-room exemption (s.4.3A) operates independently of the percentage-based tests. Does a small building's proposal need to check both the percentage tests *and* this absolute-count exemption?
 - **The replacement test counts units, but Policy 9.2.7 counts social housing units.** The engagement handout proposes changing what that term covers, and the tool has no notion of tenure or rent, so every unit it counts is assumed to qualify. **Its replacement percentage is therefore an upper bound.** Resolving this needs the enacted definition and a tenure attribute on each unit, neither of which the current inputs carry.
 - Whether the s.4.8(i) compensation schedule the tool encodes is still the operative one. Recommendation E amends the SRA By-law "to improve tenant protections," and the schedule sits inside that section. The tool's figures are checked against the by-law text in hand, not against the amendment.
+## The building tool: one floor, edited and searched
+
+
+The evaluator answers "does this scheme pass?". The optimizer answers the question the mandate
+actually poses: *of every scheme this building admits, which one passes while moving the fewest
+people?* It works at three scales, and each is in the browser tool.
+
+**One building** (section 02). Rooms sit in corridor order,
+and a unit is a run of consecutive rooms, so the search is a dynamic programme along each row of
+rooms: at every room, leave it as an SRA room or close a unit there. Rows on opposite sides of a
+corridor and on different floors are searched separately and combined, because rooms never merge
+across a corridor or a slab. The objective is rooms lost, which with every room occupied is exactly
+the number of tenants the right of first refusal cannot re-house (s.4.8(f)–(g)). Ties go to more
+units, then to more converted area. The search is exact and runs under both readings of the size
+test the Guidelines offer: **strict**, every unit at 200 SF on its own, and the **average fallback**,
+"an average of 200 SF across all converted rooms will be considered", under which a room converted
+in place below 200 SF is carried by the pairs around it. The fallback is discretionary, so the strict
+result is the safe one and the average result the best case. The same search, run for every unit
+count the building can legally reach from the DTES 9.2.7 floor upward, gives the building's
+trade-off curve; it is not drawn in section 02 but is what the building contributes to the district
+allocation in the map's scenario drawer.
+
+**The plan is the editor.** The typical floor in section 02 is drawn from the building's state, not from
+the search, so what the user does to it is what the tests run on. A marker in the corridor between two
+rooms merges them into one unit or splits them; dragging the wall between two rooms shifts area from one
+to the other, the row keeping its length; clicking a room keeps it as an SRA room or releases it. Every
+floor is the typical floor, so an edit applies to all of them, and the search likewise runs on one floor
+and repeats it. The buttons beside the plan restore the least-displacement scheme under either reading
+or clear every merge, and a single tenancy length stands for every room, since no source gives one per
+room. The tally beside the plan says whether the drawn scheme passes and how far it sits from the
+least-displacement one; the tests below the plan show the working, each with its citation.
+
+The plan is drawn two ways. **Existing** shows the rooms as they stand, a door each to the corridor
+and a window on the outer wall; the shared washrooms are not drawn, since the outline holds no
+record of them. **Proposed** gives every unit the program of SRA Guidelines p.5–6, a complete
+bathroom and a kitchen run with a 24″ refrigerator, and one door. The source dimensions only the
+refrigerator; the pods are conventional minimums (5′ × 8′ bath, 8′ × 2′ kitchen, 3′ door) and are
+stated as such on the plan. They sit at the corridor wall so the window wall stays free: the
+bathroom at one end of the unit, the door beside it, the kitchen run along the corridor wall after
+the door or, where the unit is too narrow for that, up the far party wall. A unit that cannot take
+the run either way is flagged: it fails on program before it fails on area, which the area tests
+alone would not show.
+
+**The stock** (section 02's plan). Appendix B gives each building a room count and nothing else, so
+the tool reads a typical floor from the City's footprint: a double-loaded corridor along the long axis
+of the outline, rooms in equal bays on both sides, a stair bay at one end, over a retail ground floor
+(the same assumption the storey count on the map makes). Room size is the footprint less a circulation
+share, divided by the rooms Appendix B counts on a floor, capped where the outline holds far more
+floor than its count suggests, since the City counts designated rooms and not the commercial or
+common floor around them. Both figures are inputs (25% and 180 SF by default) and every plan says
+which assumptions produced it. Rooms that would fall outside the outline are dropped; rooms that come
+out narrower than 8 ft are flagged. The outline is measured; everything drawn inside it is the type
+the stock shares, not a survey of that building.
+
+## The district: an extension of the operation, on stated assumptions
+
+Everything above tests one floor against the sources. What follows applies the same operation to the
+whole stock and asks a question the sources do not: what a conversion *mandate* costs in people, and
+in what order it could be carried out. Three kinds of assumption enter here and are the tool's own,
+not the City's: how a typical floor is read from a footprint (a double-loaded corridor, 25% circulation,
+rooms capped at 180 SF); that every room is occupied except a stated vacancy rate (5%); and the housing
+available to move people through (relocation housing for 300, no new supply). A reviewer checking
+claims against sources should treat this part as an argument built on the operation, not as a reading
+of the documents.
+
+**The district** (the scenario drawer beside the map, opened by the map's **Scenario** button). Each building contributes its trade-off curve; the mandate is a number
+of self-contained units the stock must produce; the optimizer chooses which buildings convert, and
+how far each goes, so the target is met with the fewest tenants displaced. It is a multiple-choice
+knapsack solved exactly, and one pass yields the least displacement for every mandate at once, so the
+slider answers instantly. The scenario lives beside the map, in a drawer the **Scenario** button opens, so the
+controls and the map they change share one frame. The result is shown three ways rather than as an abstract curve: a sentence,
+with the map coloured by the scenario as the primary representation;
+a single bar of every room in scope, split into tenants re-housed in a new unit, tenants staying in
+a room kept as SRA, tenants displaced, rooms in buildings left alone, and rooms in buildings with no
+compliant conversion; and, under the phasing, a timeline where each phase is a bar of the tenants
+out while their building is in works, with the ones who never return as a red cap and the units
+delivered so far written above. A building converts at a point on its own curve or not at all, because a
+partial conversion below 50% fails DTES 9.2.7; a building whose rooms are too small for any scheme of
+adjacent merges to leave half the count standing cannot contribute, is counted and listed, and is
+drawn in solid ink on the map. The map's **Scenario** button colours every building by the share of
+its tenants displaced. Compensation is totalled at the survey's average tenancy (4.6 years, the
+4-month bracket of s.4.8(i)) and the survey's average rent for the tenure in scope.
+
+**The two sections are joined both ways.** Clicking a building in the district table loads it in
+section 02, and section 02 says what the scenario currently does with the building on screen (its
+phase, units and displacement, or that it is left alone). Editing a building in section 02 **pins**
+it: the district then takes that building exactly as drawn, or not at all, in place of its search
+result, so a designer's decision overrides the optimizer for that building and the district
+re-allocates around it. A pinned drawing that fails the tests cannot convert and is reported. Reset
+or Unpin hands the building back to the search.
+
+**The order, as a housing ledger** (in the drawer, below the bar). The allocation says which
+buildings convert; the ledger says when, and follows every tenant. Converting a building removes
+homes, so moving tenants between SROs can only help where the district has slack: vacant rooms,
+homes a converted building has to spare (where its vacancy exceeded the rooms it lost), and new
+units opening elsewhere. Three inputs the sources do not give are therefore stated as assumptions:
+the vacancy rate (5% by default), the relocation housing the City can supply at once (300 tenants),
+and new supply opening per phase (none). Works empty a building (s.4.8(f)), so everyone in it is
+placed for the duration, nearest slack first, then in the relocation housing, and otherwise has
+nowhere to wait; those the building cannot take back afterwards (its tenants less its homes after
+works) are placed for good in the nearest slack, then in new supply, and the rest leave the
+district. A phase takes as many buildings as the slack of the moment can hold. The order follows a
+stated rule: buildings whose conversion adds slack go first, since they make room for the phases
+after them, then least harm per unit. The rule has a known blind spot: it can put a swing building
+in the *same* phase as the building that needs its spare homes, and those homes exist only after
+the phase ends. **Search for a better order** therefore runs a local search over the partition into
+phases (move one building to another phase or a new one, swap two across phases; keep what lowers
+the cost) with the cost in the order that matters: tenants who leave the district for good, tenants
+with nowhere to wait, phases, metres walked. It reports how many evaluations it made and what it
+saved against the rule; on the tested case it separates the two buildings and nobody leaves. It is
+a local search, so it improves on the rule but does not prove an optimum. The result is a timeline of who
+goes where each phase, a table with the same figures, the moves drawn on the map as arcs between
+roofs (ochre to wait, red for good) for the phase shown, and a headline that says how many new
+units would let nobody leave. The Python module (`sro/optimize.py`, `programme`) and the browser
+implement the same ledger; the swing-building case, the capacity, the nearest-first placement and
+the conservation of every tenant are asserted in `tests/test_optimize.py`.
+
+Three findings the search makes visible, all of which follow from the thresholds rather than from
+any modelling choice:
+
+- **Below 100 SF a room has no compliant conversion under either reading.** Two rooms cannot reach
+  200 SF, so units need three, and three-room units cannot leave 50% of the count standing. For those
+  buildings the mandate means replacement, not conversion.
+- **Under the strict reading an odd row of sub-200 rooms strands a room.** Every unit is a pair, so a
+  row of nine makes four and leaves one; the building reaches 50% only if another row makes up the
+  difference. Under the fallback the stranded room converts in place and the pairs carry the average.
+- **Larger rooms displace fewer people.** At 100 SF the least-loss scheme is Case 1: half the tenants
+  leave. At 150 SF under the fallback, two of ten leave; at 200 SF nobody does. The district curve
+  steepens as the mandate reaches buildings with smaller rooms, which is where it costs the most.
+
+Two assumptions are the optimizer's own and are stated here because nothing in the sources fixes
+them: a unit takes at most three rooms (`MAX_MERGE`), without which the search favours one huge
+merge carrying the average for many rooms converted in place; and every room is occupied, so rooms
+lost equals tenants displaced. The Python module (`sro/optimize.py`) and the browser tool implement
+the same search; the closed form for a building of uniform rooms is checked against the search in
+`tests/test_optimize.py`, and every scheme the search returns is checked against the evaluator.
+
+### The district in 3D
+
+The stock map in section 01 has a 3D button. Selecting a building there draws its typical floor in section 02 with the square footage of every room, and the least-displacement scheme over it. It raises every building footprint on the map to the height the
+City's 2009 LiDAR recorded for it (*Building Footprints 2009*, field `hgt_agl`), and draws the 143 SRO
+buildings of Appendix B on their own footprints, coloured by tenure as on the flat map. Drag to pan, shift-drag
+or right-drag to orbit, scroll to zoom; hovering names a building and clicking loads it into the sections below,
+exactly as on the flat map. The **Plan** button looks straight down through an orthographic camera, north up,
+so the district reads as a plan without perspective; panning, zooming and picking work as before, and orbiting
+tips it back into perspective.
+
+Each SRO is drawn from the City's LiDAR-measured footprint parts at their own heights, so a rear wing or a lower
+annex stands at its measured height rather than being averaged into one block. The masses are plain; a faint line
+around each part at every floor level marks the storeys, spaced from that part's own height at the 3.4 m floor to
+floor the tool assumes throughout. (An earlier version generated street elevations from the type the stock shares;
+that code is kept behind a flag but no longer drawn.) Where the building is on the Vancouver Heritage Register the
+record gives its evaluation group, the register's own name for it and any designation.
+
+The ground under the buildings is the City's 2002 shoreline, joined into a land polygon and clipped to the map, with
+the water as the plane beneath it; the City's parks as flat polygons; and the streets and lanes as surfaces drawn
+from their centrelines at a pavement width by street use (13, 11 and 8.5 m for arterial, secondary and residential,
+5 m for lanes) with a 2.5 m sidewalk band either side. The centrelines, shoreline, parks and lanes are measured; the
+widths are a drawing convention, not a survey of curbs.
+
+Appendix B gives a room count and never a storey count or a floor area. The height fills the first gap: a
+building's storeys are read from its LiDAR height at an assumed 3.4 m floor to floor, and that count is what
+the floorplate model starts from (the Ivanhoe Hotel's 18.2 m reads as five storeys). It is an estimate and is
+labelled as one; the older assumption of about 22 rooms to a floor remains for the nine buildings the City has
+no height for. See [`source/citation.md`](source/citation.md) for how the heights were matched.
+
+## Files, and the browser tool's editor
+
+Stdlib only, no install. `web/index.html` is the same operation as a browser tool,
+with the floorplate built as a manipulable 3D model (three.js r160 from cdnjs; it
+falls back to the inventory table if WebGL is unavailable). Existing rooms sit on the
+near side of the corridor and are the input: drag one along the corridor to reorder,
+drag the partition between two rooms to shift area from one to the other, and add or
+remove rooms from the inventory panel. Moving a partition conserves the floor's total
+area, which is what moving a partition actually does; the corridor and back walls are
+the envelope and are fixed, the left end wall is the datum, and the right end wall
+moves so the floor can be extended. Shift-dragging any partition does the same thing
+— one room grows and the floor grows with it. A partition inside a merged pair can
+still be moved, and doing so leaves the unit's area unchanged, which is the clearest
+demonstration that the room-count tests turn on unit totals rather than partition
+positions. The
+proposed scheme is derived on the far side, with the bathroom and kitchen pods drawn
+inside each unit. Merges are made by clicking a marker in the corridor *between* two
+rooms, so every scheme the model can express is one of adjacent rooms — the adjacency
+a list of areas cannot record. Because a merge belongs to the boundary rather than to
+the rooms, dragging a room through a boundary clears the joints it crosses.
+
+| File | What it holds |
+|---|---|
+| `sro/rules.py` | the thresholds and the quoted clause behind each one; nothing here is user input |
+| `sro/model.py` | `Room`, `Floorplate`, `Scheme`, `Unit` |
+| `sro/evaluate.py` | the operation: the three tests, displacement, compensation |
+| `sro/optimize.py` | the search: least-loss scheme per building, the trade-off curve, the district allocation, the phasing |
+| `sro/plan.py` | before/after floor plan geometry, emitted as SVG |
+| `sro/report.py`, `sro/cli.py` | text and JSON output |
+| `tests/test_hand_worked.py` | the hand-worked example, asserted |
+| `tests/test_optimize.py` | the search finds Case 1 and nothing else; closed form against search; the district knapsack; the phasing |
+| `web/index.html` | the interactive version: the stock in 3D, a typical plan per building, the search, the district scenario, the floorplate editor, same tests |
+
