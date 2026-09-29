@@ -18,8 +18,8 @@ from examples.floorplate import AREAS, EXAMPLE  # noqa: E402
 from sro.evaluate import evaluate  # noqa: E402
 from sro.model import Scheme  # noqa: E402
 from sro.optimize import (  # noqa: E402
-    Candidate, TradeOff, allocate, optimise, sequence, trade_off, uniform,
-    uniform_trade_off,
+    Candidate, Stock, TradeOff, allocate, optimise, programme, sequence,
+    trade_off, uniform, uniform_trade_off,
 )
 
 
@@ -183,6 +183,65 @@ class TestSequence(unittest.TestCase):
 
     def test_nothing_chosen_means_no_phases(self):
         self.assertEqual(sequence([], capacity=10), [])
+
+
+class TestProgramme(unittest.TestCase):
+    """The housing ledger: where the tenants of each phase go."""
+
+    def setUp(self):
+        # A: 10 rooms, 4 vacant, 8 homes after -> 6 tenants all return, 2 homes to spare
+        self.swing = Stock("A", 10, 4, 8, 0, (0.0, 0.0))
+        # B: 10 rooms, full, 7 homes after -> 3 tenants cannot return
+        self.tight = Stock("B", 10, 0, 7, 0, (100.0, 0.0))
+
+    def test_the_swing_building_goes_first_and_its_spare_homes_absorb_the_next_phase(self):
+        # relocation for six: A's tenants fit a phase, A and B together do not
+        steps = programme([self.swing, self.tight], relocation=6)
+        self.assertEqual([s.keys for s in steps], [["A"], ["B"]])
+        p2 = steps[1]
+        self.assertEqual(p2.perm_need, 3)
+        self.assertEqual(p2.perm_district, 2)       # A's two spare homes
+        self.assertEqual(p2.perm_left, 1)
+        self.assertEqual(steps[-1].cum_perm_left, 1)
+
+    def test_new_supply_absorbs_what_the_district_cannot(self):
+        steps = programme([self.swing, self.tight], relocation=6, new_per_phase=1)
+        p2 = steps[1]
+        self.assertEqual((p2.perm_district, p2.perm_new, p2.perm_left), (2, 1, 0))
+
+    def test_relocation_capacity_sets_the_phase_size(self):
+        three = [Stock(k, 10, 0, 7, 0, (i * 50.0, 0.0)) for i, k in enumerate("XYZ")]
+        steps = programme(three, relocation=15)
+        self.assertEqual(len(steps), 3)
+        # 7 return and wait in relocation housing; 3 have no home to return to and no slack to go to
+        self.assertTrue(all(s.temp_relocation == 7 and s.temp_left == 0 and s.perm_left == 3 for s in steps))
+
+    def test_a_building_larger_than_every_capacity_still_goes_and_the_overflow_is_counted(self):
+        big = Stock("big", 40, 0, 30, 0, (0.0, 0.0))
+        steps = programme([big], relocation=15)
+        self.assertEqual(steps[0].temp_relocation, 15)
+        self.assertEqual(steps[0].temp_left, 15)     # 30 returning tenants, 15 places
+        self.assertEqual(steps[0].perm_left, 10)
+
+    def test_tenants_go_to_the_nearest_slack_and_a_building_not_converting_can_lend_rooms(self):
+        lender = Stock("C", 10, 5, 10, 0, (110.0, 0.0), convert=False)
+        steps = programme([self.swing, self.tight, lender], relocation=100)
+        p2 = [s for s in steps if "B" in s.keys][0]
+        perm = [m for m in p2.moves if m.permanent]
+        self.assertEqual([(m.dst, m.n) for m in perm], [("C", 3)])   # 10 m away beats A at 100 m
+        self.assertEqual(p2.perm_left, 0)
+
+    def test_vacancy_override_rewrites_every_building(self):
+        steps = programme([self.tight], relocation=100, vacancy=0.3)
+        # 10 rooms at 30% vacancy: 7 tenants, 7 homes after -> nobody lost
+        self.assertEqual(steps[0].perm_need, 0)
+        self.assertEqual(steps[0].out, 7)
+
+    def test_totals_are_conserved(self):
+        steps = programme([self.swing, self.tight], relocation=4, new_per_phase=1)
+        for s in steps:
+            self.assertEqual(s.out, sum(by.tenants for by in [self.swing, self.tight] if by.key in s.keys))
+            self.assertEqual(s.temp_district + s.temp_relocation + s.temp_left + s.perm_district + s.perm_new + s.perm_left, s.out)
 
 
 if __name__ == "__main__":

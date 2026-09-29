@@ -475,6 +475,189 @@ def sequence(chosen: Sequence[Tuple[str, int, TradeOff]], capacity: int) -> List
     return out
 
 
+# ---------------------------------------------------------------------------
+# The programme as a housing ledger: where the tenants of each phase go.
+#
+# Converting a building removes homes, so moving tenants between SROs can
+# only help where there is slack: vacant rooms in the stock, homes a converted
+# building has to spare, and new units opening elsewhere. The ledger tracks
+# that slack phase by phase. Everyone in a building under works is out for the
+# duration and is placed, nearest first, in slack inside the district, then in
+# the relocation housing the City supplies, and otherwise leaves the district
+# for the phase. Those the building cannot take back (tenants minus homes
+# after conversion) need a permanent place: slack in the district consumes
+# it, new supply consumes it, and the rest leave the district for good.
+#
+# The order is a heuristic, stated: buildings whose conversion adds slack
+# (vacant rooms exceeding rooms lost) go first, since they make room for the
+# phases after them; among the rest, least harm per unit first.
+# ---------------------------------------------------------------------------
+
+@dataclass(frozen=True)
+class Stock:
+    """A building in the programme."""
+    key: str
+    rooms: int
+    vacant: int                  # rooms with no tenant before works
+    units: int                   # self-contained units after conversion
+    kept: int                    # rooms kept as SRA
+    xy: Tuple[float, float]      # metres, any local frame
+    convert: bool = True
+
+    @property
+    def tenants(self) -> int:
+        return max(0, self.rooms - self.vacant)
+
+    @property
+    def homes_after(self) -> int:
+        return self.units + self.kept
+
+    @property
+    def lost(self) -> int:
+        return self.rooms - self.homes_after
+
+    @property
+    def not_returning(self) -> int:
+        return max(0, self.tenants - self.homes_after)
+
+    @property
+    def spare_after(self) -> int:
+        return max(0, self.homes_after - self.tenants)
+
+
+@dataclass(frozen=True)
+class Move:
+    src: str
+    dst: str                     # a building key, or "relocation", "new", "out"
+    n: int
+    permanent: bool
+    metres: float
+
+
+@dataclass(frozen=True)
+class Step:
+    number: int
+    keys: List[str]
+    out: int                     # tenants out of their building this phase
+    temp_district: int           # of those, housed in slack inside the district
+    temp_relocation: int         # in the City's relocation housing
+    temp_left: int               # nowhere in the district or the relocation housing
+    perm_need: int               # tenants the buildings cannot take back
+    perm_district: int           # absorbed by slack in the district
+    perm_new: int                # absorbed by new supply
+    perm_left: int               # leave the district for good
+    moves: List[Move]
+    cum_units: int
+    cum_perm_left: int
+
+
+def _dist(a, b) -> float:
+    return math.hypot(a[0] - b[0], a[1] - b[1])
+
+
+def programme(stock: Sequence[Stock], relocation: int, new_per_phase: int = 0,
+              vacancy: Optional[float] = None) -> List[Step]:
+    """Sequence the conversions and follow the tenants, phase by phase.
+
+    ``relocation`` is the tenants the City can house outside the district at
+    once. ``new_per_phase`` is new supply opening each phase, taken as within
+    the district. ``vacancy`` overrides every building's vacant count with a
+    share of its rooms. Buildings with ``convert`` false only lend their vacant
+    rooms.
+    """
+    if vacancy is not None:
+        stock = [Stock(s.key, s.rooms, int(round(s.rooms * vacancy)), s.units, s.kept, s.xy, s.convert) for s in stock]
+    by = {s.key: s for s in stock}
+    free: Dict[str, int] = {s.key: s.vacant for s in stock}          # slack per building
+    converted: Dict[str, bool] = {}
+    todo = [s for s in stock if s.convert]
+    new_pool = 0
+    steps: List[Step] = []
+    cum_units = cum_left = 0
+
+    def order_key(s: Stock):
+        harm = s.lost / s.units if s.units else math.inf
+        return (-(s.vacant - s.lost), harm, s.key)
+
+    while todo:
+        todo.sort(key=order_key)
+        new_pool += new_per_phase
+        # temporary room right now: slack outside the phase, relocation, new supply
+        chosen: List[Stock] = []
+        out = 0
+        for s in todo:
+            slack = sum(free[k] for k in free if k != s.key and k not in {c.key for c in chosen}) + new_pool + relocation
+            if chosen and out + s.tenants > slack:
+                continue
+            chosen.append(s)
+            out += s.tenants
+        for s in chosen:
+            todo.remove(s)
+            free[s.key] = 0                     # its vacant rooms go into the works
+        in_works = {s.key for s in chosen}
+        moves: List[Move] = []
+        tally = {"perm_district": 0, "perm_new": 0, "perm_left": 0,
+                 "temp_district": 0, "temp_relocation": 0, "temp_left": 0, "relocation": relocation}
+        # temporary occupants borrow slack for the phase; track what is borrowed so
+        # two buildings in one phase do not both borrow the same room
+        borrowed: Dict[str, int] = {}
+
+        def place(src: Stock, n: int, permanent: bool):
+            nonlocal new_pool
+            kind = "perm" if permanent else "temp"
+            left = n
+            dests = sorted((k for k in free if k not in in_works), key=lambda k: _dist(src.xy, by[k].xy))
+            for k in dests:
+                if left <= 0:
+                    break
+                take = min(left, free[k] - borrowed.get(k, 0))
+                if take <= 0:
+                    continue
+                moves.append(Move(src.key, k, take, permanent, _dist(src.xy, by[k].xy)))
+                if permanent:
+                    free[k] -= take
+                else:
+                    borrowed[k] = borrowed.get(k, 0) + take
+                tally[kind + "_district"] += take
+                left -= take
+            if left > 0 and new_pool - borrowed.get("new", 0) > 0:
+                take = min(left, new_pool - borrowed.get("new", 0))
+                moves.append(Move(src.key, "new", take, permanent, 0.0))
+                if permanent:
+                    new_pool -= take
+                    tally["perm_new"] += take
+                else:
+                    borrowed["new"] = borrowed.get("new", 0) + take
+                    tally["temp_district"] += take
+                left -= take
+            if left > 0 and not permanent and tally["relocation"] > 0:
+                take = min(left, tally["relocation"])
+                moves.append(Move(src.key, "relocation", take, False, 0.0))
+                tally["relocation"] -= take
+                tally["temp_relocation"] += take
+                left -= take
+            if left > 0:
+                moves.append(Move(src.key, "out", left, permanent, 0.0))
+                tally[kind + "_left"] += left
+
+        # permanent placements first, since they consume slack; then the returning tenants borrow it
+        for s in chosen:
+            place(s, s.not_returning, True)
+        for s in chosen:
+            place(s, s.tenants - s.not_returning, False)
+        for s in chosen:
+            converted[s.key] = True
+            free[s.key] = s.spare_after            # homes nobody returns to
+        cum_units += sum(s.units for s in chosen)
+        cum_left += tally["perm_left"]
+        steps.append(Step(len(steps) + 1, [s.key for s in chosen], out,
+                          tally["temp_district"], tally["temp_relocation"], tally["temp_left"],
+                          sum(s.not_returning for s in chosen),
+                          tally["perm_district"], tally["perm_new"], tally["perm_left"],
+                          moves, cum_units, cum_left))
+    return steps
+
+
 def _forward_layers(candidates, T):
     INF = float("inf")
     layers = [[0] + [INF] * T]

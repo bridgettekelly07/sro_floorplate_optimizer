@@ -582,6 +582,8 @@
           <span><i class="swatch" style="background:var(--edge)"></i>In works this phase</span>
           <span><i class="swatch" style="background:var(--map-unsurveyed)"></i>Left as it is, or a later phase</span>
           <span><i class="swatch" style="background:var(--scen-x)"></i>No compliant scheme</span>
+          <span><i class="swatch" style="background:var(--edge);height:2px"></i>Tenants moving to wait</span>
+          <span><i class="swatch" style="background:var(--fail);height:2px"></i>Tenants moving for good</span>
         </div>
         <div class="legend" id="legend-tenure" style="margin:0 0 12px">
           <span><i class="swatch" style="background:var(--map-market);border-radius:50%"></i>Market</span>
@@ -690,12 +692,21 @@
         <div class="step">
           <div class="label"><span class="step-n">2</span>The works</div>
           <div class="field">
-            <label for="d-cap-works">Tenants that can be housed elsewhere at once</label>
-            <input type="number" id="d-cap-works" min="10" max="5000" step="10" value="300">
-            <span class="hint-s">A building in works empties every room (s.4.8(f)); this caps how many can convert in one phase. An assumption.</span>
+            <label for="d-cap-works">Relocation housing the City supplies &middot; tenants at once</label>
+            <input type="number" id="d-cap-works" min="0" max="5000" step="10" value="300">
+            <span class="hint-s">A building in works empties every room (s.4.8(f)). Its tenants wait in spare rooms nearby first, then here. An assumption.</span>
           </div>
-          <p class="src">Chosen buildings go in order, gentlest first: fewest tenants displaced per unit
-            delivered, each into the earliest phase with room for it.</p>
+          <div class="pair">
+            <div class="field"><label for="d-vac">Vacant rooms, %</label>
+              <input type="number" id="d-vac" min="0" max="50" step="1" value="5"></div>
+            <div class="field"><label for="d-new">New units opening, per phase</label>
+              <input type="number" id="d-new" min="0" max="2000" step="5" value="0"></div>
+          </div>
+          <p class="src">Converting removes homes, so tenants can only move between buildings where
+            there is slack: vacant rooms, homes a converted building has to spare, new supply. The
+            ledger follows every tenant, nearest slack first. Buildings whose conversion adds slack
+            go first; the rest, gentlest first. Vacancy and new supply are assumptions the sources
+            do not give.</p>
         </div>
         <div class="step">
           <div class="label"><span class="step-n">3</span>Watch it happen</div>
@@ -2323,7 +2334,7 @@
         + (tp.res === 1 ? "storey" : "storeys") + ' \u00d7 ' + tp.placed + ' rooms of about ' + Math.round(tp.sf)
         + ' SF, read from the footprint' + (b.hgtM ? ' and the ' + b.hgtM + ' m LiDAR height' : '') + '.'
         + (SCEN && SCEN.byIndex[surveySel] ? ' Scenario: ' + (function (sc) {
-            return sc.state === "converted" ? sc.units + " units, " + sc.lost + " tenants displaced, phase " + sc.phase
+            return sc.state === "converted" ? sc.units + " units, " + sc.lost + " rooms lost, phase " + sc.phase + movesText(surveySel, sc.phase)
               : sc.state === "infeasible" ? "no compliant conversion" : "left as it is"; })(SCEN.byIndex[surveySel]) + '.' : '')
         + '</div>';
     } else if (b.surveyed && b.rooms) {
@@ -2459,6 +2470,19 @@
           + '" r="' + r.toFixed(1) + '" fill="' + fill + '" fill-opacity="'
           + (sel ? "0.95" : "0.6") + '" stroke="' + (sel ? "var(--ink)" : "none")
           + '" stroke-width="2" style="cursor:pointer"/>');
+      });
+    }
+
+    // the scenario's moves: where the tenants of the phase shown go
+    if (scenColour && SCEN && SCEN.moves.length) {
+      SCEN.moves.forEach(function (m) {
+        var a = SURVEYED[m.i], b2 = SURVEYED[m.j];
+        if (!a || !b2 || a.lon == null || b2.lon == null) return;
+        var x1 = PROJ.x(a.lon), y1 = PROJ.y(a.lat), x2 = PROJ.x(b2.lon), y2 = PROJ.y(b2.lat);
+        var mx = (x1 + x2) / 2 - (y2 - y1) * 0.18, my = (y1 + y2) / 2 + (x2 - x1) * 0.18;   // a bow, so two-way moves read apart
+        parts.push('<path d="M' + x1.toFixed(1) + ' ' + y1.toFixed(1) + ' Q' + mx.toFixed(1) + ' ' + my.toFixed(1) + ' ' + x2.toFixed(1) + ' ' + y2.toFixed(1)
+          + '" fill="none" stroke="var(--' + (m.permanent ? "fail" : "edge") + ')" stroke-opacity="0.85" stroke-width="' + ((1 + Math.sqrt(m.n)) * z).toFixed(2) + '" stroke-linecap="round" pointer-events="none"/>');
+        parts.push('<circle cx="' + x2.toFixed(1) + '" cy="' + y2.toFixed(1) + '" r="' + (2.2 * z).toFixed(1) + '" fill="var(--' + (m.permanent ? "fail" : "edge") + ')" pointer-events="none"/>');
       });
     }
 
@@ -2684,8 +2708,8 @@
     M3.matSel = new THREE.LineBasicMaterial({ color: 0x000000 });
     M3.matStorey = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.22 });
     M3.gGround = new THREE.Group(); M3.gFoot = new THREE.Group(); M3.gStreets = new THREE.Group();
-    M3.gSro = new THREE.Group(); M3.gSel = new THREE.Group();
-    M3.scene.add(M3.gGround, M3.gFoot, M3.gStreets, M3.gSro, M3.gSel);
+    M3.gSro = new THREE.Group(); M3.gSel = new THREE.Group(); M3.gMoves = new THREE.Group();
+    M3.scene.add(M3.gGround, M3.gFoot, M3.gStreets, M3.gSro, M3.gSel, M3.gMoves);
     M3.sroMeshes = [];
     m3bindPointer();
     if (window.ResizeObserver) new ResizeObserver(function () { if (M3.on) m3resize(); }).observe(mapStage);
@@ -3033,6 +3057,29 @@
     });
   }
 
+  // the scenario's moves as arcs between roofs: ochre to wait, red for good
+  function m3moves() {
+    clear3(M3.gMoves);
+    if (!scenColour || !SCEN || !SCEN.moves.length) return;
+    var at = {};
+    M3.sroMeshes.forEach(function (m) { at[m.userData.s] = m.userData; });
+    var mats = { wait: new THREE.LineBasicMaterial({ color: new THREE.Color(hexOf(css("--edge"))) }),
+                 gone: new THREE.LineBasicMaterial({ color: new THREE.Color(hexOf(css("--fail"))) }) };
+    SCEN.moves.forEach(function (m) {
+      var a = at[m.i], b = at[m.j];
+      if (!a || !b) return;
+      var pts = [], lift = (12 + 3 * Math.sqrt(m.n)) / M3.mPerUnit, dx = b.cx - a.cx, dz = b.cz - a.cz;
+      for (var k = 0; k <= 16; k++) {
+        var t = k / 16, bow = 4 * t * (1 - t);
+        pts.push(new THREE.Vector3(a.cx + dx * t - dz * 0.12 * bow, a.top + (b.top - a.top) * t + lift * bow, a.cz + dz * t + dx * 0.12 * bow));
+      }
+      M3.gMoves.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), m.permanent ? mats.gone : mats.wait));
+      var dot = new THREE.Mesh(new THREE.SphereGeometry(2.2 / M3.mPerUnit, 8, 8), new THREE.MeshBasicMaterial({ color: (m.permanent ? mats.gone : mats.wait).color }));
+      dot.position.set(b.cx, b.top, b.cz);
+      M3.gMoves.add(dot);
+    });
+  }
+
   function m3select() {
     clear3(M3.gSel);
     M3.sroMeshes.forEach(function (m) {
@@ -3048,6 +3095,7 @@
     m3scale();
     if (M3.needFoot) { m3ground(); m3foot(); m3streets(); M3.needFoot = false; }
     m3sro();
+    m3moves();
     m3select();
     m3hint();
     M3.dirty = true;
@@ -3981,30 +4029,91 @@
     };
   }
 
-  // The order: the chosen conversions packed into phases under a relocation
-  // capacity, the most rooms that can be under works at once. A building's
-  // tenants are all re-housed for the duration of its works (s.4.8(f)), so
-  // a building in works is every one of its rooms. Least harm first: rising
-  // tenants displaced per unit delivered, each building into the earliest
-  // phase with room for it; one larger than the capacity stands alone.
-  function sequence(chosen, capacity) {
-    var cap = Math.max(1, capacity);
-    var order = chosen.slice().sort(function (a, b) {
-      var ha = a.point.units ? a.point.lost / a.point.units : Infinity, hb = b.point.units ? b.point.lost / b.point.units : Infinity;
-      return ha - hb || b.point.units - a.point.units || a.original - b.original || (a.key < b.key ? -1 : 1);
-    });
-    var bins = [];
-    order.forEach(function (c) {
-      var slot = null;
-      for (var k = 0; k < bins.length && !slot; k++) if (!bins[k].over && bins[k].inWorks + c.original <= cap) slot = bins[k];
-      if (!slot) { slot = { items: [], inWorks: 0, units: 0, lost: 0, over: c.original > cap }; bins.push(slot); }
-      slot.items.push(c); slot.inWorks += c.original; slot.units += c.point.units; slot.lost += c.point.lost;
-    });
-    var cu = 0, cl = 0;
-    return bins.map(function (b, n) {
-      cu += b.units; cl += b.lost;
-      return { number: n + 1, items: b.items, inWorks: b.inWorks, units: b.units, lost: b.lost, cumUnits: cu, cumLost: cl, over: b.over };
-    });
+  // where the tenants of one building go in its phase, for the card
+  function movesText(i, phase) {
+    if (!SCEN || !SCEN.steps || !SCEN.steps[phase - 1]) return "";
+    var mine = SCEN.steps[phase - 1].moves.filter(function (m) { return m.src === String(i); });
+    if (!mine.length) return "";
+    var name = function (d) {
+      return d === "new" ? "new supply" : d === "relocation" ? "relocation housing" : d === "out" ? "out of the district" : SURVEYED[parseInt(d, 10)].name;
+    };
+    return ". Its tenants: " + mine.map(function (m) {
+      return m.n + (m.permanent ? " to " + name(m.dst) + " for good" : " wait in " + name(m.dst) + (m.dst === "out" ? "" : ", then return"));
+    }).join("; ");
+  }
+
+  // The programme as a housing ledger: where the tenants of each phase go.
+  // Converting a building removes homes, so moving tenants between SROs only
+  // helps where there is slack: vacant rooms, homes a converted building has
+  // to spare, new supply. Everyone in a building under works is placed,
+  // nearest first, in slack inside the district, then in the relocation
+  // housing the City supplies, else leaves for the phase. Those the building
+  // cannot take back need a permanent place: district slack, new supply, or
+  // they leave the district for good. Order: buildings whose conversion adds
+  // slack first, then least harm per unit. Mirrors sro/optimize.programme.
+  function programme(stock, relocation, newPerPhase) {
+    var by = {}, free = {};
+    stock.forEach(function (s) { by[s.key] = s; free[s.key] = s.vacant; });
+    function tenants(s) { return Math.max(0, s.rooms - s.vacant); }
+    function homes(s) { return s.units + s.kept; }
+    function lost(s) { return s.rooms - homes(s); }
+    function notRet(s) { return Math.max(0, tenants(s) - homes(s)); }
+    function spare(s) { return Math.max(0, homes(s) - tenants(s)); }
+    function harm(s) { return s.units ? lost(s) / s.units : Infinity; }
+    function dist(a, b) { return Math.hypot(a.xy[0] - b.xy[0], a.xy[1] - b.xy[1]); }
+    var todo = stock.filter(function (s) { return s.convert; });
+    var newPool = 0, steps = [], cumUnits = 0, cumLeft = 0;
+    while (todo.length) {
+      todo.sort(function (a, b) { return (b.vacant - lost(b)) - (a.vacant - lost(a)) || harm(a) - harm(b) || (a.key < b.key ? -1 : 1); });
+      newPool += newPerPhase;
+      var chosen = [], inWorks = {}, out = 0;
+      todo.forEach(function (s) {
+        var slack = newPool + relocation;
+        Object.keys(free).forEach(function (k) { if (k !== s.key && !inWorks[k]) slack += free[k]; });
+        if (chosen.length && out + tenants(s) > slack) return;
+        chosen.push(s); inWorks[s.key] = true; out += tenants(s);
+      });
+      todo = todo.filter(function (s) { return !inWorks[s.key]; });
+      chosen.forEach(function (s) { free[s.key] = 0; });
+      var moves = [], borrowed = {}, t = { permDistrict: 0, permNew: 0, permLeft: 0, tempDistrict: 0, tempRelocation: 0, tempLeft: 0, relocation: relocation };
+      function place(src, n, permanent) {
+        var left = n;
+        var dests = Object.keys(free).filter(function (k) { return !inWorks[k]; }).sort(function (a, b) { return dist(src, by[a]) - dist(src, by[b]); });
+        for (var q = 0; q < dests.length && left > 0; q++) {
+          var k = dests[q], take = Math.min(left, free[k] - (borrowed[k] || 0));
+          if (take <= 0) continue;
+          moves.push({ src: src.key, dst: k, n: take, permanent: permanent, metres: dist(src, by[k]) });
+          if (permanent) { free[k] -= take; t.permDistrict += take; } else { borrowed[k] = (borrowed[k] || 0) + take; t.tempDistrict += take; }
+          left -= take;
+        }
+        if (left > 0 && newPool - (borrowed.__new || 0) > 0) {
+          var tn = Math.min(left, newPool - (borrowed.__new || 0));
+          moves.push({ src: src.key, dst: "new", n: tn, permanent: permanent, metres: 0 });
+          if (permanent) { newPool -= tn; t.permNew += tn; } else { borrowed.__new = (borrowed.__new || 0) + tn; t.tempDistrict += tn; }
+          left -= tn;
+        }
+        if (left > 0 && !permanent && t.relocation > 0) {
+          var tr = Math.min(left, t.relocation);
+          moves.push({ src: src.key, dst: "relocation", n: tr, permanent: false, metres: 0 });
+          t.relocation -= tr; t.tempRelocation += tr; left -= tr;
+        }
+        if (left > 0) {
+          moves.push({ src: src.key, dst: "out", n: left, permanent: permanent, metres: 0 });
+          if (permanent) t.permLeft += left; else t.tempLeft += left;
+        }
+      }
+      chosen.forEach(function (s) { place(s, notRet(s), true); });
+      chosen.forEach(function (s) { place(s, tenants(s) - notRet(s), false); });
+      chosen.forEach(function (s) { free[s.key] = spare(s); });
+      var units = chosen.reduce(function (a, s) { return a + s.units; }, 0);
+      cumUnits += units; cumLeft += t.permLeft;
+      steps.push({ number: steps.length + 1, items: chosen, out: out, units: units,
+                   tempDistrict: t.tempDistrict, tempRelocation: t.tempRelocation, tempLeft: t.tempLeft,
+                   permNeed: chosen.reduce(function (a, s) { return a + notRet(s); }, 0),
+                   permDistrict: t.permDistrict, permNew: t.permNew, permLeft: t.permLeft,
+                   moves: moves, cumUnits: cumUnits, cumLeft: cumLeft });
+    }
+    return steps;
   }
 
   /* ======================================================================
@@ -4679,12 +4788,25 @@
     document.getElementById("d-target-v").textContent = T.toLocaleString("en-CA") + " of " + cands.maxUnits.toLocaleString("en-CA") + " possible";
     document.getElementById("d-target-hint").textContent = "0 leaves the stock as it is; 100% converts every building that can be converted. " + cands.rooms.toLocaleString("en-CA") + " rooms are in scope.";
 
-    var capWorks = Math.max(10, num(document.getElementById("d-cap-works").value) || 300);
+    var relocation = Math.max(0, num(document.getElementById("d-cap-works").value) || 0);
+    var vac = Math.max(0, Math.min(50, num(document.getElementById("d-vac").value) == null ? 5 : num(document.getElementById("d-vac").value))) / 100;
+    var newPer = Math.max(0, num(document.getElementById("d-new").value) || 0);
     var chosenList = cands.list.filter(function (c) { return res.chosen[c.key]; }).map(function (c) {
       return { key: c.key, i: c.i, original: c.original, point: res.chosen[c.key] };
     });
-    var phases = sequence(chosenList, capWorks), phaseOf = {};
-    phases.forEach(function (ph) { ph.items.forEach(function (c) { phaseOf[c.key] = ph.number; }); });
+    // the ledger's stock: every building in scope with a place on the map, converting or lending rooms
+    var mpu = mPerUnit(), stock = [];
+    function stockRow(i, n, pk) {
+      var b = SURVEYED[i];
+      if (b.lon == null) return;
+      stock.push({ key: String(i), i: i, rooms: n, vacant: Math.round(n * vac), units: pk ? pk.units : 0, kept: pk ? pk.kept : 0,
+                   xy: [PROJ.x(b.lon) * mpu, PROJ.y(b.lat) * mpu], convert: !!pk });
+    }
+    cands.list.forEach(function (c) { stockRow(c.i, c.original, res.chosen[c.key]); });
+    cands.stuck.forEach(function (i) { stockRow(i, SURVEYED[i].rooms, null); });
+    var phases = programme(stock, relocation, newPer), phaseOf = {};
+    phases.forEach(function (ph) { ph.items.forEach(function (s) { phaseOf[s.key] = ph.number; }); });
+    function tenantsOf(s) { return Math.max(0, s.rooms - s.vacant); }
     var slider = document.getElementById("d-phase");
     slider.max = phases.length;
     if (scenPhase === null || scenPhase > phases.length) { scenPhase = null; slider.value = phases.length; }
@@ -4692,9 +4814,17 @@
     document.getElementById("d-phase-v").textContent = phases.length
       ? (scenPhase === null ? "all " + phases.length + " done" : scenPhase === 0 ? "none started" : scenPhase + " of " + phases.length + " in works")
       : "no conversions";
-    document.getElementById("d-phase-hint").textContent = "Drag to step through the programme: buildings done are coloured by the share of tenants displaced, the phase in works in ochre, the rest grey.";
+    document.getElementById("d-phase-hint").textContent = "Drag to step through the programme: buildings done are coloured by the share of tenants displaced, the phase in works in ochre, the rest grey. Lines show where that phase’s tenants go: ochre to wait, red for good.";
 
-    SCEN = { byIndex: {}, scope: inp.scope, phase: scenPhase };
+    SCEN = { byIndex: {}, scope: inp.scope, phase: scenPhase, steps: phases, moves: [] };
+    var shown = scenPhase === null ? phases : scenPhase === 0 ? [] : [phases[scenPhase - 1]];
+    shown.forEach(function (ph) {
+      ph.moves.forEach(function (m) {
+        if (m.dst === "new" || m.dst === "relocation" || m.dst === "out") return;
+        if (scenPhase === null && !m.permanent) return;      // the finished programme: only the moves that last
+        SCEN.moves.push({ i: parseInt(m.src, 10), j: parseInt(m.dst, 10), n: m.n, permanent: m.permanent });
+      });
+    });
     cands.list.forEach(function (c) {
       var pk = res.chosen[c.key];
       SCEN.byIndex[c.i] = pk ? { state: "converted", units: pk.units, lost: pk.lost, n: c.original, phase: phaseOf[c.key] } : { state: "untouched", n: c.original };
@@ -4704,37 +4834,47 @@
 
     var converted = Object.keys(res.chosen).length;
     var stuckRooms = cands.stuck.reduce(function (t, i) { return t + SURVEYED[i].rooms; }, 0);
-    var months = res.lost * compensationMonths(SURVEY.tenancyYears);
+    var sum = function (f) { return phases.reduce(function (t, p) { return t + f(p); }, 0); };
+    var cannotReturn = sum(function (p) { return p.permNeed; }), leave = sum(function (p) { return p.permLeft; });
+    var absorbed = sum(function (p) { return p.permDistrict; }), inNew = sum(function (p) { return p.permNew; });
+    var peak = phases.reduce(function (t, p) { return Math.max(t, p.out); }, 0);
+    var tenantsInScope = stock.reduce(function (t, s) { return t + tenantsOf(s); }, 0);
+    var months = cannotReturn * compensationMonths(SURVEY.tenancyYears);
     var rent = inp.scope === "nonmarket" ? SURVEY.rentNonMarket : SURVEY.rentMarket;
     tally.innerHTML = tile(res.units.toLocaleString("en-CA"), "Units delivered")
-      + tile(converted + " of " + cands.list.length, "Buildings convert")
-      + tile(res.lost.toLocaleString("en-CA"), "Tenants displaced for good" + (cands.rooms ? " · " + pct(res.lost / cands.rooms) : ""))
-      + tile(phases.reduce(function (t, p) { return Math.max(t, p.inWorks); }, 0).toLocaleString("en-CA"), "Out at once, at most")
+      + tile(converted + "/" + cands.list.length, "Buildings convert")
+      + tile(cannotReturn.toLocaleString("en-CA"), "Cannot return home" + (tenantsInScope ? " · " + pct(cannotReturn / tenantsInScope) : ""))
+      + tile(leave.toLocaleString("en-CA"), "Leave the district for good")
+      + tile(peak.toLocaleString("en-CA"), "Out at once, at most")
       + tile(money(months * rent), "Compensation, s.4.8(i)");
 
-    var rehoused = 0, keptSra = 0, untouchedRooms = 0;
-    cands.list.forEach(function (c) {
-      var pk = res.chosen[c.key];
-      if (pk) { rehoused += pk.units; keptSra += pk.kept; } else untouchedRooms += c.original;
+    var returned = 0, stayPut = 0;
+    stock.forEach(function (s) {
+      if (s.convert) returned += Math.min(tenantsOf(s), s.units + s.kept);
+      else if (SCEN.byIndex[s.i] && SCEN.byIndex[s.i].state === "untouched") stayPut += tenantsOf(s);
     });
-    var noPlanRooms = cands.noPlan.reduce(function (t, i) { return t + SURVEYED[i].rooms; }, 0);
-    var peak = phases.reduce(function (t, p) { return Math.max(t, p.inWorks); }, 0);
+    var stuckTenants = stock.filter(function (s) { return SCEN.byIndex[s.i] && SCEN.byIndex[s.i].state === "infeasible"; })
+      .reduce(function (t, s) { return t + tenantsOf(s); }, 0);
+    var noPlanTenants = Math.round(cands.noPlan.reduce(function (t, i) { return t + SURVEYED[i].rooms; }, 0) * (1 - vac));
     document.getElementById("d-head").innerHTML =
       '<p class="note" style="margin:0 0 10px">' + (res.feasible && converted
         ? '<strong>' + converted + ' of ' + cands.list.length + ' buildings convert over ' + phases.length + ' phase' + (phases.length > 1 ? "s" : "") + '</strong>, delivering '
-          + res.units.toLocaleString("en-CA") + ' units. ' + res.lost.toLocaleString("en-CA") + ' tenants lose their room for good; up to ' + peak.toLocaleString("en-CA") + ' are out at once while their building is in works.'
+          + res.units.toLocaleString("en-CA") + ' units. ' + cannotReturn.toLocaleString("en-CA") + ' tenants cannot return to their building: '
+          + absorbed.toLocaleString("en-CA") + ' move into spare rooms nearby' + (inNew ? ', ' + inNew.toLocaleString("en-CA") + ' into new supply' : '')
+          + ', and <strong>' + leave.toLocaleString("en-CA") + ' leave the district for good</strong>. Up to ' + peak.toLocaleString("en-CA") + ' are out at once while their building is in works.'
+          + (leave ? ' Opening ' + leave.toLocaleString("en-CA") + ' more new units across the phases would let nobody leave.' : ' Nobody has to leave the district.')
         : T > 0 ? '<strong>No combination of buildings reaches this target.</strong>' : '<strong>Nothing converts.</strong> Move the slider to set a mandate.')
       + '</p><div class="btnrow" style="margin:0 0 14px"><button type="button" id="d-show-map" title="Colour the map by this scenario and scroll to it">Show on map</button></div>';
     document.getElementById("d-curve").innerHTML =
-      '<div class="label out-head">Who moves · every room in scope, as modelled</div>'
+      '<div class="label out-head">Who moves · every tenant in scope, as modelled</div>'
       + stockBarHtml([
-          { n: rehoused, label: "Re-housed in a new unit", colour: "var(--pass)", dark: true },
-          { n: keptSra, label: "Stay in a room kept as SRA", colour: "var(--edge)", dark: true },
-          { n: res.lost, label: "Displaced", colour: "var(--fail)", dark: true },
-          { n: untouchedRooms + noPlanRooms, label: "Building left as it is", colour: "var(--map-unsurveyed)", dark: true },
-          { n: stuckRooms, label: "No compliant conversion", colour: "var(--scen-x)", dark: false }
+          { n: returned, label: "Return to their building", colour: "var(--pass)", dark: true },
+          { n: absorbed + inNew, label: "Re-housed elsewhere in the district", colour: "var(--edge)", dark: true },
+          { n: leave, label: "Leave the district for good", colour: "var(--fail)", dark: true },
+          { n: stayPut + noPlanTenants, label: "Building left as it is", colour: "var(--map-unsurveyed)", dark: true },
+          { n: stuckTenants, label: "No compliant conversion", colour: "var(--scen-x)", dark: false }
         ])
-      + '<p class="src">A converted building re-houses one tenant per unit under the right of first refusal (s.4.8(f)–(g)) and keeps whoever stays in an SRA room; the rest are displaced. Every room is taken as occupied.</p>';
+      + '<p class="src">Tenants are rooms less the vacancy assumed. A converted building takes back one tenant per home it has after works (s.4.8(f)–(g)); the rest go to the nearest spare room, to new supply, or out of the district.</p>';
     document.getElementById("d-show-map").addEventListener("click", function () {
       if (!scenColour) setScenarioColour(true);
       mapStage.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -4767,7 +4907,7 @@
       h += '<p class="note" style="margin-top:12px">No combination of buildings reaches this target.</p>';
     }
     document.getElementById("d-out").innerHTML = h;
-    document.getElementById("d-phases").innerHTML = phasesHtml(phases, capWorks);
+    document.getElementById("d-phases").innerHTML = phasesHtml(phases, relocation);
     document.querySelectorAll("#d-phases tr.pick").forEach(function (tr) {
       tr.addEventListener("click", function () {
         var n = parseInt(tr.getAttribute("data-phase"), 10);
@@ -4793,48 +4933,65 @@
     document.getElementById(id).addEventListener("change", function () { districtReady(); });
   });
   document.getElementById("d-target").addEventListener("input", renderDistrict);
-  document.getElementById("d-cap-works").addEventListener("change", renderDistrict);
+  ["d-cap-works", "d-vac", "d-new"].forEach(function (id) {
+    document.getElementById(id).addEventListener("change", renderDistrict);
+  });
   document.getElementById("d-phase").addEventListener("input", function () {
     var v = parseInt(this.value, 10), max = parseInt(this.max, 10);
     scenPhase = v >= max ? null : v;
     renderDistrict(); if (!scenColour) setScenarioColour(true);
   });
 
-  function phasesHtml(phases, cap) {
+  function phasesHtml(phases, relocation) {
     if (!phases.length) return "";
-    // the timeline: a bar per phase of tenants out while their building is in
-    // works, the ones who never come back as a red cap, units so far above
-    var W = 520, H = 140, px = 44, py = 22, pb = 26, n = phases.length;
-    var top = Math.max(cap, Math.max.apply(null, phases.map(function (p) { return p.inWorks; })));
+    // the timeline: a bar per phase of everyone out of their building, stacked by
+    // where they go; units delivered so far written above
+    var W = 520, H = 150, px = 44, py = 22, pb = 26, n = phases.length;
+    var top = Math.max(1, relocation, Math.max.apply(null, phases.map(function (p) { return p.out; })));
     var slotW = (W - px - 12) / n, barW = Math.max(4, Math.min(34, slotW * 0.62)), dense = n > 14;
     function Y(v) { return py + (1 - v / top) * (H - py - pb); }
+    var segs = [["tempDistrict", "var(--pass-soft)"], ["tempRelocation", "var(--ink-3)"], ["tempLeft", "var(--rule)"],
+                ["permDistrict", "var(--pass)"], ["permNew", "var(--edge)"], ["permLeft", "var(--fail)"]];
     var h = '<div class="label out-head">When · the programme, phase by phase</div><div class="curve"><svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans Condensed, sans-serif" font-size="10">';
     h += '<line x1="' + px + '" y1="' + Y(0) + '" x2="' + (W - 12) + '" y2="' + Y(0) + '" stroke="var(--rule)"/>';
-    h += '<line x1="' + px + '" y1="' + Y(cap).toFixed(1) + '" x2="' + (W - 12) + '" y2="' + Y(cap).toFixed(1) + '" stroke="var(--ink-3)" stroke-dasharray="3 2"/>';
-    h += '<text x="' + (px - 5) + '" y="' + (Y(cap) + 3).toFixed(1) + '" text-anchor="end" fill="var(--ink-3)">' + cap.toLocaleString("en-CA") + '</text>';
+    if (relocation) {
+      h += '<line x1="' + px + '" y1="' + Y(relocation).toFixed(1) + '" x2="' + (W - 12) + '" y2="' + Y(relocation).toFixed(1) + '" stroke="var(--ink-3)" stroke-dasharray="3 2"/>';
+      h += '<text x="' + (px - 5) + '" y="' + (Y(relocation) + 3).toFixed(1) + '" text-anchor="end" fill="var(--ink-3)">' + relocation.toLocaleString("en-CA") + '</text>';
+    }
     h += '<text x="' + (px - 5) + '" y="' + (Y(0) + 3) + '" text-anchor="end" fill="var(--ink-3)">0</text>';
     phases.forEach(function (p, k) {
-      var x = px + slotW * (k + 0.5), on = SCEN && SCEN.phase === p.number;
-      var later = SCEN && SCEN.phase !== null && SCEN.phase < p.number;
-      var fill = on ? "var(--edge)" : later ? "var(--rule)" : "var(--ink-3)";
-      h += '<rect x="' + (x - barW / 2).toFixed(1) + '" y="' + Y(p.inWorks).toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + (Y(0) - Y(p.inWorks)).toFixed(1) + '" fill="' + fill + '"' + (p.over ? ' stroke="var(--fail)" stroke-width="1.5"' : '') + '/>';
-      if (p.lost) h += '<rect x="' + (x - barW / 2).toFixed(1) + '" y="' + Y(p.inWorks).toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + Math.max(1.5, Y(p.inWorks - p.lost) - Y(p.inWorks)).toFixed(1) + '" fill="var(--fail)"/>';
+      var x = px + slotW * (k + 0.5), on = SCEN && SCEN.phase === p.number, later = SCEN && SCEN.phase !== null && SCEN.phase < p.number;
+      var base = 0;
+      segs.forEach(function (sg) {
+        var v = p[sg[0]];
+        if (!v) return;
+        h += '<rect x="' + (x - barW / 2).toFixed(1) + '" y="' + Y(base + v).toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + (Y(base) - Y(base + v)).toFixed(1) + '" fill="' + sg[1] + '"' + (later ? ' opacity="0.35"' : '') + '/>';
+        base += v;
+      });
+      if (on) h += '<rect x="' + (x - barW / 2 - 2).toFixed(1) + '" y="' + (Y(p.out) - 2).toFixed(1) + '" width="' + (barW + 4).toFixed(1) + '" height="' + (Y(0) - Y(p.out) + 4).toFixed(1) + '" fill="none" stroke="var(--edge)" stroke-width="1.5"/>';
       if (!dense || k % Math.ceil(n / 14) === 0) {
-        h += '<text x="' + x.toFixed(1) + '" y="' + (Y(p.inWorks) - 4).toFixed(1) + '" text-anchor="middle" fill="var(--ink)">' + p.cumUnits.toLocaleString("en-CA") + '</text>';
+        h += '<text x="' + x.toFixed(1) + '" y="' + (Y(p.out) - 5).toFixed(1) + '" text-anchor="middle" fill="var(--ink)">' + p.cumUnits.toLocaleString("en-CA") + '</text>';
         h += '<text x="' + x.toFixed(1) + '" y="' + (H - 12) + '" text-anchor="middle" fill="var(--ink-3)">' + p.number + '</text>';
       }
     });
-    h += '<text x="' + px + '" y="' + (H - 1) + '" fill="var(--ink-3)">bar: tenants out while their building is in works · red: of those, displaced for good · above: units delivered so far</text>';
+    h += '<text x="' + px + '" y="' + (H - 1) + '" fill="var(--ink-3)">bar: everyone out of their building that phase · above: units so far · dashed: relocation housing</text>';
     h += '</svg></div>';
-    var over = phases.filter(function (p) { return p.over; });
-    h += '<table class="dist"><thead><tr><th class="n">Phase</th><th class="n">Buildings</th><th class="n">Rooms in works</th><th class="n">Units delivered</th><th class="n">Displaced</th><th class="n">Units so far</th><th class="n">Displaced so far</th></tr></thead><tbody>';
+    h += '<div class="legend" style="margin-top:6px">'
+      + '<span><i class="swatch" style="background:var(--pass-soft)"></i>Wait in a spare room nearby, then return</span>'
+      + '<span><i class="swatch" style="background:var(--ink-3)"></i>Wait in relocation housing, then return</span>'
+      + '<span><i class="swatch" style="background:var(--rule)"></i>Nowhere to wait</span>'
+      + '<span><i class="swatch" style="background:var(--pass)"></i>Move to a spare room nearby for good</span>'
+      + '<span><i class="swatch" style="background:var(--edge)"></i>Move into new supply</span>'
+      + '<span><i class="swatch" style="background:var(--fail)"></i>Leave the district for good</span></div>';
+    h += '<table class="dist" style="font-size:11.5px"><thead><tr><th class="n">Phase</th><th class="n">Bldgs</th><th class="n">Out</th><th class="n">Wait nearby</th><th class="n">Wait in relocation</th><th class="n">Nowhere</th><th class="n">Nearby for good</th><th class="n">New supply</th><th class="n">Leave</th><th class="n">Units so far</th></tr></thead><tbody>';
     phases.forEach(function (p) {
-      var on = SCEN && SCEN.phase === p.number;
-      h += '<tr class="pick" data-phase="' + p.number + '"' + (on ? ' style="background:var(--edge-soft)"' : '') + '><td class="n">' + p.number + '</td><td class="n">' + p.items.length + '</td><td class="n"' + (p.over ? ' style="color:var(--fail)"' : '') + '>' + p.inWorks.toLocaleString("en-CA") + '</td><td class="n">' + p.units.toLocaleString("en-CA") + '</td><td class="n">' + p.lost.toLocaleString("en-CA") + '</td><td class="n">' + p.cumUnits.toLocaleString("en-CA") + '</td><td class="n">' + p.cumLost.toLocaleString("en-CA") + '</td></tr>';
+      var on = SCEN && SCEN.phase === p.number, f = function (v) { return v ? v.toLocaleString("en-CA") : "–"; };
+      h += '<tr class="pick" data-phase="' + p.number + '"' + (on ? ' style="background:var(--edge-soft)"' : '') + '><td class="n">' + p.number + '</td><td class="n">' + p.items.length + '</td><td class="n">' + f(p.out) + '</td><td class="n">' + f(p.tempDistrict) + '</td><td class="n">' + f(p.tempRelocation) + '</td><td class="n"' + (p.tempLeft ? ' style="color:var(--fail)"' : '') + '>' + f(p.tempLeft) + '</td><td class="n">' + f(p.permDistrict) + '</td><td class="n">' + f(p.permNew) + '</td><td class="n"' + (p.permLeft ? ' style="color:var(--fail)"' : '') + '>' + f(p.permLeft) + '</td><td class="n">' + f(p.cumUnits) + '</td></tr>';
     });
-    h += '</tbody></table><p class="src">' + phases.length + ' phase' + (phases.length > 1 ? "s" : "") + ' at ' + cap.toLocaleString("en-CA") + ' rooms under works at once. '
-      + (over.length ? '<strong>' + over.length + ' building' + (over.length > 1 ? "s are" : " is") + ' larger than the capacity and take' + (over.length > 1 ? "" : "s") + ' a phase alone</strong>, shown in red. ' : '')
-      + 'Click a phase to show it on the map.</p>';
+    var nowhere = phases.reduce(function (t, p) { return t + p.tempLeft; }, 0);
+    h += '</tbody></table><p class="src">' + phases.length + ' phase' + (phases.length > 1 ? "s" : "") + '. A phase takes as many buildings as the slack of the moment can hold; '
+      + (nowhere ? '<strong>' + nowhere.toLocaleString("en-CA") + ' tenants have nowhere to wait</strong> in phases where one building alone exceeds it. ' : 'nobody is left without somewhere to wait. ')
+      + 'Click a phase to show it, and its moves, on the map.</p>';
     return h;
   }
 

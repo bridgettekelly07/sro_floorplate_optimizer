@@ -124,19 +124,24 @@ result, so a designer's decision overrides the optimizer for that building and t
 re-allocates around it. A pinned drawing that fails the tests cannot convert and is reported. Reset
 or Unpin hands the building back to the search.
 
-**The order** (section 03, below the bar). The allocation says which buildings convert; the
-sequence says when. Works empty a building: every tenant is re-housed for the duration under
-s.4.8(f), whether or not they return, so a building in works is every one of its rooms, and the
-most that can convert at once is set by the relocation housing on hand. That capacity, *rooms
-under works at once*, is an input (300 by default) and an assumption: nothing in the sources fixes
-it. The chosen buildings are taken in rising order of tenants displaced per unit delivered and each
-goes into the earliest phase with room for it, so that if the programme stops early the conversions
-made are the ones that cost least; a building larger than the capacity takes a phase alone and is
-flagged. Each phase reports its buildings, the rooms in works (the temporary relocations), the
-units delivered and the permanent displacement, with running totals, and a slider steps the map
-through the programme: buildings done are coloured by the share of their tenants displaced, the
-phase in works in ochre, the rest grey. The sequence is a packing, not a search: the allocation
-already fixed the set, and the order within it follows one stated rule.
+**The order, as a housing ledger** (section 03, below the bar). The allocation says which
+buildings convert; the ledger says when, and follows every tenant. Converting a building removes
+homes, so moving tenants between SROs can only help where the district has slack: vacant rooms,
+homes a converted building has to spare (where its vacancy exceeded the rooms it lost), and new
+units opening elsewhere. Three inputs the sources do not give are therefore stated as assumptions:
+the vacancy rate (5% by default), the relocation housing the City can supply at once (300 tenants),
+and new supply opening per phase (none). Works empty a building (s.4.8(f)), so everyone in it is
+placed for the duration, nearest slack first, then in the relocation housing, and otherwise has
+nowhere to wait; those the building cannot take back afterwards (its tenants less its homes after
+works) are placed for good in the nearest slack, then in new supply, and the rest leave the
+district. A phase takes as many buildings as the slack of the moment can hold. The order is a
+heuristic, stated rather than searched: buildings whose conversion adds slack go first, since they
+make room for the phases after them, then least harm per unit. The result is a timeline of who
+goes where each phase, a table with the same figures, the moves drawn on the map as arcs between
+roofs (ochre to wait, red for good) for the phase shown, and a headline that says how many new
+units would let nobody leave. The Python module (`sro/optimize.py`, `programme`) and the browser
+implement the same ledger; the swing-building case, the capacity, the nearest-first placement and
+the conservation of every tenant are asserted in `tests/test_optimize.py`.
 
 Three findings the search makes visible, all of which follow from the thresholds rather than from
 any modelling choice:
@@ -189,7 +194,7 @@ at a time; the building-wide arithmetic lives in the browser tool. The tool is a
 - Affordability and rent-setting mechanics generally (Section 5 of the Guidelines, and the TRPP's rent calculations), excluding the SRA By-law's own compensation schedule (s.4.8(i)), which is in scope above
 - Whether a proposed scheme is physically buildable beyond adjacency. Rooms are held in corridor order and the search merges only consecutive rooms on one side of one corridor; structure, plumbing and light are not modelled
 - The typical floor of any particular building. Appendix B gives a count, the City gives an outline, and the plan drawn between them is the stock's type, not a survey; measured plans replace it through the floorplate editor
-- Where displaced tenants go: the sequence counts the rooms in works against a relocation capacity, but it does not model the relocation housing itself, its rents, or how long a phase takes
+- The relocation housing and the new supply themselves: the ledger counts places, not buildings, rents or how long a phase takes, and its vacancy is one rate across the stock rather than a survey of each building
 
 
 ## Input → Operation → Output
@@ -218,7 +223,7 @@ at a time; the building-wide arithmetic lives in the browser tool. The tool is a
 python3 -m sro.cli --example case1              # the hand-worked cases
 python3 -m sro.cli --example case2 --svg out.svg
 python3 -m sro.cli --input floorplate.json --json
-python3 -m unittest discover -s tests           # 49 tests: the answer key below, the search, the phasing
+python3 -m unittest discover -s tests           # 56 tests: the answer key below, the search, the phasing, the ledger
 ```
 
 Stdlib only, no install. `web/index.html` is the same operation as a browser tool,
