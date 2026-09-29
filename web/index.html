@@ -5034,6 +5034,11 @@
     });
     if (scenColour) { drawMap(); if (M3.on) m3build(); }
     renderCard();
+    if (surveySel !== null && !renderDistrict.inBuilding) {
+      // the building panel says what the scenario does with it, so it follows the scenario
+      renderDistrict.inBuilding = true;
+      try { renderBuilding(); } finally { renderDistrict.inBuilding = false; }
+    }
   }
 
   ["d-scope", "d-read"].forEach(function (id) {
