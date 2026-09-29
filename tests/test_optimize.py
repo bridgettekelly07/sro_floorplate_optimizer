@@ -304,6 +304,18 @@ class TestSearchProgramme(unittest.TestCase):
         self.assertEqual([m.dst for m in together[0].moves], ["big"])
         self.assertEqual(together[0].temp_district, 8)
 
+    def test_a_swing_building_opening_later_is_not_used_before_it_opens(self):
+        # two full buildings needing 2 homes each, converted one per phase; a swing
+        # building of 4 homes opens in phase 2
+        a = Stock("A", 10, 0, 8, 0, (0.0, 0.0)); b = Stock("B", 10, 0, 8, 0, (20.0, 0.0))
+        swing = Stock("S", 4, 4, 0, 0, (10.0, 0.0), convert=False, from_phase=2)
+        steps = run_programme([a, b, swing], [["A"], ["B"]], relocation=10)
+        self.assertEqual((steps[0].perm_district, steps[0].perm_left), (0, 2))   # not open yet
+        self.assertEqual((steps[1].perm_district, steps[1].perm_left), (2, 0))   # open now
+        now = Stock("S", 4, 4, 0, 0, (10.0, 0.0), convert=False, from_phase=1)
+        steps = run_programme([a, b, now], [["A"], ["B"]], relocation=10)
+        self.assertEqual([s.perm_left for s in steps], [0, 0])
+
     def test_an_unknown_placement_is_refused(self):
         with self.assertRaises(ValueError):
             run_programme([self.swing], [["A"]], relocation=0, placement="random")

@@ -503,6 +503,7 @@ class Stock:
     kept: int                    # rooms kept as SRA
     xy: Tuple[float, float]      # metres, any local frame
     convert: bool = True
+    from_phase: int = 1          # its rooms are on hand from this phase on: a swing building opening later
 
     @property
     def tenants(self) -> int:
@@ -558,13 +559,13 @@ def _dist(a, b) -> float:
 def _with_vacancy(stock: Sequence[Stock], vacancy: Optional[float]) -> List[Stock]:
     if vacancy is None:
         return list(stock)
-    return [Stock(s.key, s.rooms, int(round(s.rooms * vacancy)), s.units, s.kept, s.xy, s.convert) for s in stock]
+    return [Stock(s.key, s.rooms, int(round(s.rooms * vacancy)), s.units, s.kept, s.xy, s.convert, s.from_phase) for s in stock]
 
 
 def heuristic_phases(stock: Sequence[Stock], relocation: int, new_per_phase: int = 0) -> List[List[str]]:
     """The stated rule: slack-adding buildings first, then least harm per unit,
     each phase filled until the tenants going out exceed the slack of the moment."""
-    free = {s.key: s.vacant for s in stock}
+    free = {s.key: (s.vacant if s.from_phase <= 1 else 0) for s in stock}
     todo = [s for s in stock if s.convert]
     new_pool = 0
     phases: List[List[str]] = []
@@ -576,6 +577,9 @@ def heuristic_phases(stock: Sequence[Stock], relocation: int, new_per_phase: int
     while todo:
         todo.sort(key=order_key)
         new_pool += new_per_phase
+        for s in stock:
+            if s.from_phase == len(phases) + 1 and s.from_phase > 1:
+                free[s.key] = s.vacant             # a swing building opens this phase
         chosen: List[Stock] = []
         out = 0
         for s in todo:
@@ -609,13 +613,16 @@ def run_programme(stock: Sequence[Stock], phases: Sequence[Sequence[str]], reloc
     if placement not in PLACEMENTS:
         raise ValueError(f"placement must be one of {PLACEMENTS}")
     by = {s.key: s for s in stock}
-    free: Dict[str, int] = {s.key: s.vacant for s in stock}
+    free: Dict[str, int] = {s.key: (s.vacant if s.from_phase <= 1 else 0) for s in stock}
     new_pool = 0
     steps: List[Step] = []
     cum_units = cum_left = 0
     for keys in phases:
         chosen = [by[k] for k in keys]
         new_pool += new_per_phase
+        for s in stock:
+            if s.from_phase == len(steps) + 1 and s.from_phase > 1:
+                free[s.key] = s.vacant             # a swing building opens this phase
         in_works = set(keys)
         for s in chosen:
             free[s.key] = 0                     # its vacant rooms go into the works

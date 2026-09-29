@@ -346,6 +346,15 @@ nearby can house and how many new units within the walk would house them — and
 beat the one-pass rule. **Show this phasing on the map** draws the cluster's moves in place of the
 district's. The walk (600 m) is an assumption, and the plan is only as good as the vacancy rate.
 
+**Swing buildings.** The stock has almost no slack of its own, so the drawer lets you add space it does
+not have: a *swing building* with a name, a number of homes and the phase it opens, placed by clicking
+the map (an empty lot to build on, a vacant building brought in as decant space). It enters the ledger
+as a lender only, its homes taking people to wait or to stay from the phase it opens and not before, in
+the district and in the phasing around a building alike; it is drawn as a green block, kept in the
+browser between sessions, and removable. It is your assumption, and the tool says so. In Python the
+same thing is a `Stock` with `convert=False` and a `from_phase`; a test checks it is not used before
+it opens.
+
 **The order, as a housing ledger** (in the drawer, below the bar). The allocation says which
 buildings convert; the ledger says when, and follows every tenant. Converting a building removes
 homes, so moving tenants between SROs can only help where the district has slack: vacant rooms,
