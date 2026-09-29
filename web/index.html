@@ -528,21 +528,6 @@
     display: flex; align-items: center; justify-content: center; overflow: hidden; }
   .plan-stage svg { display: block; width: 100%; height: auto; max-height: 460px; }
   .plan-stage.ro .room, .plan-stage.ro .wall { pointer-events: none; cursor: default; }
-  /* editing the tool's own words and layout */
-  .editbar { position: fixed; right: 14px; bottom: 14px; z-index: 50; display: flex; align-items: center; gap: 8px;
-    background: var(--surface); border: 1px solid var(--rule); padding: 6px 8px; font-size: 12px; }
-  .editbar .hint-s { color: var(--ink-3); }
-  .editbanner { position: fixed; left: 0; right: 0; top: 0; z-index: 60; background: var(--edge); color: #1d2320; font-size: 12.5px; padding: 6px 14px; text-align: center; }
-  body.editing h1, body.editing h2, body.editing h3, body.editing h4, body.editing p, body.editing label, body.editing li, body.editing summary,
-  body.editing .label, body.editing .note, body.editing .hint-s, body.editing .src, body.editing .tally div, body.editing .legend span { outline: 1px dashed color-mix(in srgb, var(--edge) 55%, transparent); outline-offset: 2px; cursor: text; }
-  body.editing [data-copy]:hover, body.editing p:hover, body.editing label:hover { outline-color: var(--edge); }
-  body.editing [data-copy][contenteditable="true"] { outline: 1px solid var(--pass); background: var(--pass-soft); }
-  body.editing [data-copy].edited { border-left: 2px solid var(--pass); padding-left: 4px; }
-  .mv-handle { position: absolute; z-index: 55; display: none; width: 18px; height: 18px; line-height: 16px; text-align: center; font-size: 12px;
-    color: #1d2320; background: var(--edge); border-radius: 3px; cursor: grab; user-select: none; touch-action: none; }
-  body.editing .dragging { opacity: 0.45; outline: 2px solid var(--edge); }
-  body.moving { user-select: none; cursor: grabbing; }
-  body.moving * { cursor: grabbing !important; }
   .plan-stage .empty { color: var(--ink-3); font-size: 13px; padding: 40px 20px; text-align: center; }
   .curve { border: 1px solid var(--rule); background: var(--surface); }
   .curve svg { display: block; width: 100%; height: auto; }
@@ -625,10 +610,10 @@
           <span><i class="swatch" style="background:var(--map-unsurveyed);border-radius:50%"></i>Not surveyed</span>
           <span><i class="swatch" style="background:var(--map-foot)"></i>Footprint</span>
         </div>
-        <div id="scen-drawer" hidden data-sort>
+        <div id="scen-drawer" hidden>
         <div id="scen-strip" class="scen-strip" hidden></div>
-        <div class="label" data-key="l-mandate">The mandate</div>
-        <div class="field" data-key="scope">
+        <div class="label">The mandate</div>
+        <div class="field">
           <label for="d-scope">Which buildings it reaches</label>
           <select id="d-scope">
             <option value="market">Market SROs</option>
@@ -636,24 +621,24 @@
             <option value="nonmarket">Non-market SROs</option>
           </select>
         </div>
-        <div class="field" data-key="target">
+        <div class="field">
           <label for="d-target">How many self-contained units it requires &middot; <span id="d-target-v"></span></label>
           <input type="range" id="d-target" min="0" max="100" step="1" value="50">
           <span class="hint-s" id="d-target-hint"></span>
         </div>
-        <div class="label out-head" data-key="l-what">What happens</div>
+        <div class="label out-head">What happens</div>
         <div id="d-head"></div>
         <div class="tally" id="d-tally"></div>
         <div id="d-curve" style="margin-top:14px"></div>
-        <div class="label out-head" data-key="l-phase">Phase by phase</div>
-        <div class="field" data-key="phase">
+        <div class="label out-head">Phase by phase</div>
+        <div class="field">
           <label>Phase shown on the map &middot; <span id="d-phase-v"></span></label>
           <div class="btnrow" id="d-phase-btns"></div>
           <span class="hint-s" id="d-phase-hint"></span>
         </div>
         <div id="d-phases"></div>
         <div id="d-out"></div>
-        <details class="assume" data-key="assume">
+        <details class="assume">
           <summary>Assumptions and levers</summary>
           <div class="field">
             <label for="d-cap-works">Relocation housing the City supplies &middot; tenants at once</label>
@@ -787,7 +772,7 @@
         <div id="bp-plan" class="plan-stage"></div>
         <p class="src" id="bp-foot"></p>
       </div>
-      <div id="bp-side" data-sort></div>
+      <div id="bp-side"></div>
     </div>
     <div class="cols" style="margin-top:18px;padding-top:14px;border-top:1px solid var(--rule-soft)">
       <div>
@@ -935,17 +920,7 @@
     </div>
   </section>
 
-  <div class="editbanner" id="ed-banner" hidden>Editing the tool. <b>Tap any text</b> to rewrite it (tap elsewhere to keep it, Escape to put it back; double-tap a button). <b>Press and hold a block</b>, or take its ⋮⋮ handle, and slide it to move it within its panel. Changes stay in this browser until you <b>Export edits</b> and have them baked in.</div>
-  <div class="editbar" id="editbar">
-    <button type="button" id="ed-toggle" title="Tap any text to rewrite it; hold a block to move it within its panel. Saved in this browser; export to make it the tool.">Edit text &amp; layout</button>
-    <span id="ed-tools" hidden>
-      <span class="hint-s">Tap text to edit · hold a block to move it</span>
-      <button type="button" id="ed-export" title="Download your edits as a file to bake into the tool">Export edits</button>
-      <button type="button" id="ed-reset" title="Forget every edit in this browser">Undo all</button>
-    </span>
-  </div>
 
-  <footer>
     <p><strong>Scope.</strong> The tool evaluates a scheme you propose, and it searches for the compliant
       scheme of adjacent merges that loses the fewest rooms, building by building and across the
       district. It does not model the permit process, financial-viability findings,
@@ -4701,13 +4676,13 @@
     var ev = evaluate(), strict = readBuilding === "strict";
     var o = optimumFor(i, strict);
     var fr = floors[0].rooms, meanSf = fr.reduce(function (t, r) { return t + r.area; }, 0) / fr.length;
-    var h = '<div class="tally" data-key="rooms">' + tile(ev.original, "Rooms") + tile(fr.length, "Per floor") + tile(Math.round(meanSf) + " SF", "Each") + '</div>';
-    h += '<div class="tally" style="margin-top:10px" data-key="scheme">' + tile(ev.units.length, "Units") + tile(ev.untouched.length, "Kept as SRA") + tile(ev.displaced, "Tenants displaced") + tile(pct(ev.original ? ev.lost / ev.original : 0), "Of the building") + '</div>';
+    var h = '<div class="tally">' + tile(ev.original, "Rooms") + tile(fr.length, "Per floor") + tile(Math.round(meanSf) + " SF", "Each") + '</div>';
+    h += '<div class="tally" style="margin-top:10px">' + tile(ev.units.length, "Units") + tile(ev.untouched.length, "Kept as SRA") + tile(ev.displaced, "Tenants displaced") + tile(pct(ev.original ? ev.lost / ev.original : 0), "Of the building") + '</div>';
     var fails = [];
     if (!ev.size.pass) fails.push("size");
     if (!ev.count.pass) fails.push("room count");
     if (!ev.replace.pass) fails.push("replacement");
-    h += '<p class="note" style="margin-top:12px" data-key="verdict">' + (ev.compliant
+    h += '<p class="note" style="margin-top:12px">' + (ev.compliant
       ? '<strong>This scheme passes all three tests</strong>' + (ev.size.viaAverage ? ", the size test on the average fallback" : "") + '. '
       : '<strong>This scheme fails the ' + fails.join(" and ") + ' test' + (fails.length > 1 ? "s" : "") + '.</strong> ')
       + (o && o.feasible
@@ -4715,16 +4690,16 @@
            : 'The least-displacement scheme under the ' + (strict ? "strict" : "average") + ' reading loses ' + o.lost + ' rooms' + (ev.compliant ? '; this one loses ' + ev.lost + '.' : '.'))
         : 'No scheme of adjacent merges is compliant under the ' + (strict ? "strict" : "average") + ' reading.')
       + ' The working is below the plan.</p>';
-    h += '<div class="btnrow" style="margin-top:10px" data-key="buttons">'
+    h += '<div class="btnrow" style="margin-top:10px">'
       + '<button type="button" data-opt="average" title="Apply the search result under the Guidelines’ average fallback">Least displacement</button>'
       + '<button type="button" data-opt="strict" title="Apply the search result with every unit at 200 SF">… strict</button>'
       + '<button type="button" id="bp-clear" title="Split every unit and keep nothing">Clear</button>'
       + '<button type="button" id="bp-reset" title="Undo every edit: the typical floor as generated, its least-displacement scheme and the survey tenancy">Reset</button></div>';
-    h += '<div class="field" style="margin-top:12px;max-width:200px" data-key="tenancy"><label for="bp-ten">Tenancy of every room, years</label>'
+    h += '<div class="field" style="margin-top:12px;max-width:200px"><label for="bp-ten">Tenancy of every room, years</label>'
       + '<input type="number" id="bp-ten" min="0" step="0.5" value="' + fr[0].tenancy + '"><span class="hint-s">Survey average 4.6; drives the compensation bracket of s.4.8(i)</span></div>';
     // what the district scenario does with this building, and whether it is pinned to the drawing
     var sc = SCEN && SCEN.byIndex[i], pin = PINNED[i];
-    h += '<p class="note" style="margin-top:12px" data-key="district"><strong>In the district scenario:</strong> '
+    h += '<p class="note" style="margin-top:12px"><strong>In the district scenario:</strong> '
       + (!SCEN ? 'not yet run' : !sc ? 'not in the stock the mandate reaches'
         : sc.state === "converted" ? 'phase ' + sc.phase + ' · ' + sc.units + ' units · ' + sc.lost + ' rooms lost' + movesText(i, sc.phase)
         : sc.state === "infeasible" ? 'no compliant conversion'
@@ -4734,7 +4709,7 @@
              : '. Edit the plan and the district will take this building as drawn.')
       + (sc && sc.state === "converted" ? ' <button type="button" id="bp-map" style="margin-left:6px" title="Colour the map by the scenario and draw where this building’s tenants go">Show its tenants on the map</button>' : '') + '</p>';
     h += neighbourhoodHtml(i);
-    h += '<p class="src" style="margin-top:12px" data-key="help"><b>Click a marker</b> in the corridor to merge the two rooms or split them. <b>Drag a wall</b> to shift area between two rooms. <b>Click a room</b> to keep it as an SRA room, or to release it. Every floor is this floor.</p>';
+    h += '<p class="src" style="margin-top:12px"><b>Click a marker</b> in the corridor to merge the two rooms or split them. <b>Drag a wall</b> to shift area between two rooms. <b>Click a room</b> to keep it as an SRA room, or to release it. Every floor is this floor.</p>';
     side.innerHTML = h;
     side.querySelectorAll("[data-opt]").forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -5005,7 +4980,7 @@
   function neighbourhoodHtml(i) {
     var nb = neighbourhoodPlan(i);
     if (!nb) { CLUSTER = null; return ""; }
-    return '<div data-key="nb">' + neighbourhoodInner(i, nb) + '</div>';
+    return '<div>' + neighbourhoodInner(i, nb) + '</div>';
   }
   function neighbourhoodInner(i, nb) {
     var shown = CLUSTER && CLUSTER.i === i && CLUSTER.shown;
@@ -5437,214 +5412,6 @@
       + "The inventory table on the right still drives every test below.";
   }
   document.getElementById("r-unit-sf").addEventListener("input", function () { unitTouched = true; });
-  /* ---- editing the tool's words and layout in place ----
-     Every static piece of copy gets a stable id from a hash of its original
-     markup; an override is kept per id, so the same wording is put back after
-     a panel re-renders. The blocks of a sortable container carry a key and an
-     order is kept per container. Both live in this browser and can be
-     exported to be baked into the source. Text the tool generates from numbers
-     hashes differently every time, so it stays as the tool writes it. */
-  var EDIT = { on: false, copy: {}, order: {} };
-  var COPY_SEL = 'h1, h2, h3, h4, p, label, li, td, th, summary, button, .label, .note, .hint-s, .src, .empty, .map-3d-hint, .loaded, .meta, .legend span, .stage-foot span, .tally div, .sec-head .note';
-  var SORT_SEL = '[data-sort], .panel, .cols > div, .map-side, .tally, .legend, .btnrow, .editpanel';
-  function hashText(t) { var h = 5381; for (var i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0; return (h >>> 0).toString(36); }
-  function loadEdits() {
-    try { EDIT.copy = JSON.parse(localStorage.getItem("sro.copy") || "{}"); } catch (e) { EDIT.copy = {}; }
-    try { EDIT.order = JSON.parse(localStorage.getItem("sro.order") || "{}"); } catch (e) { EDIT.order = {}; }
-  }
-  function saveEdits() {
-    try { localStorage.setItem("sro.copy", JSON.stringify(EDIT.copy)); localStorage.setItem("sro.order", JSON.stringify(EDIT.order)); } catch (e) {}
-  }
-  function copyElements(root) {
-    var list = [];
-    Array.prototype.forEach.call((root || document).querySelectorAll(COPY_SEL), function (el) {
-      if (el.closest && el.closest(".editbar")) return;
-      if (el.querySelector && el.querySelector("input, select, svg, table, canvas, .tally, .panel")) return;   // a container, not a piece of copy
-      if (!el.textContent.trim()) return;
-      list.push(el);
-    });
-    return list;
-  }
-  // give every piece of copy its id and put any saved wording back
-  function applyCopy(root) {
-    copyElements(root).forEach(function (el) {
-      if (!el.dataset.copy) {
-        el.dataset.copyOrig = el.innerHTML;
-        el.dataset.copy = "c" + hashText(el.innerHTML.replace(/\s+/g, " ").trim());
-      }
-      var o = EDIT.copy[el.dataset.copy];
-      if (o && el.innerHTML !== o.html && el.getAttribute("contenteditable") !== "true") { el.innerHTML = o.html; el.classList.add("edited"); }
-    });
-  }
-  function keyOf(el) {
-    if (el.dataset.key || el.id) return el.dataset.key || el.id;
-    if (!el.dataset.autoKey) el.dataset.autoKey = "k" + hashText(el.tagName + (el.className || "") + el.innerHTML.replace(/\d[\d,.%]*/g, "#").replace(/\s+/g, " ").trim().slice(0, 400));
-    return el.dataset.autoKey;
-  }
-  function sortContainers() {
-    var list = [];
-    Array.prototype.forEach.call(document.querySelectorAll(SORT_SEL), function (c) {
-      if (c.closest(".editbar") || c.closest(".plan-stage") || c.id === "map-stage" || c.children.length < 2) return;
-      if (!c.id) c.id = "sort-" + hashText((c.className || c.tagName) + Array.prototype.map.call(c.children, function (k) { return k.tagName; }).join(","));
-      list.push(c);
-    });
-    return list;
-  }
-  function applyOrder(container) {
-    var want = EDIT.order[container.id];
-    if (!want || !want.length) return;
-    var kids = Array.prototype.slice.call(container.children), byKey = {};
-    kids.forEach(function (k) { var key = keyOf(k); if (key) byKey[key] = k; });
-    var placed = {};
-    want.forEach(function (key) { var el = byKey[key]; if (el) { container.appendChild(el); placed[key] = true; } });
-    kids.forEach(function (k) { var key = keyOf(k); if (!key || !placed[key]) container.appendChild(k); });
-  }
-  function applyAllOrder() { sortContainers().forEach(applyOrder); }
-  var editTimer = null;
-  function scheduleEdits() {
-    if (editTimer) return;
-    editTimer = setTimeout(function () { editTimer = null; applyCopy(); applyAllOrder(); if (EDIT.on) armDrag(); }, 30);
-  }
-  function setEditing(on) {
-    EDIT.on = on;
-    document.body.classList.toggle("editing", on);
-    document.getElementById("ed-toggle").classList.toggle("on", on);
-    document.getElementById("ed-tools").hidden = !on;
-    document.getElementById("ed-banner").hidden = !on;
-    if (on) { applyCopy(); }
-    else { Array.prototype.forEach.call(document.querySelectorAll('[contenteditable="true"]'), function (el) { el.blur(); }); showHandle(null); }
-  }
-  // --- editing text: a tap on any words makes them editable; a tap elsewhere keeps the change ---
-  function textTarget(t) {
-    if (!t || t.nodeType !== 1) return null;
-    if (t.closest(".editbar, .editbanner, .plan-stage, #map-stage, .mv-handle") || t.closest('[contenteditable="true"]')) return null;
-    if (t.closest("input, select, textarea")) return null;
-    var el = t.closest("[data-copy]") || t.closest(COPY_SEL);
-    if (!el && t.textContent.trim() && !t.querySelector("input, select, svg, canvas, .tally, .panel")) el = t;
-    if (!el) return null;
-    if (el.tagName === "BUTTON" || el.closest("button")) return null;      // buttons keep working; edit them by double-click
-    return el;
-  }
-  function beginEdit(el) {
-    if (!el.dataset.copy) { el.dataset.copyOrig = el.innerHTML; el.dataset.copy = "c" + hashText(el.innerHTML.replace(/\s+/g, " ").trim()); }
-    el.setAttribute("contenteditable", "true");
-    el.focus();
-    try { var sel = window.getSelection(), range = document.createRange(); range.selectNodeContents(el); range.collapse(false); sel.removeAllRanges(); sel.addRange(range); } catch (x) {}
-  }
-  document.addEventListener("click", function (e) {
-    if (!EDIT.on || moving) return;
-    var el = textTarget(e.target);
-    if (!el) return;
-    e.preventDefault(); e.stopPropagation();
-    beginEdit(el);
-  }, true);
-  document.addEventListener("dblclick", function (e) {
-    if (!EDIT.on) return;
-    var b = e.target.closest && e.target.closest("button");
-    if (!b || b.closest(".editbar")) return;
-    e.preventDefault(); e.stopPropagation();
-    beginEdit(b);
-  }, true);
-  document.addEventListener("focusout", function (e) {
-    var el = e.target;
-    if (!el.dataset || !el.dataset.copy || el.getAttribute("contenteditable") !== "true") return;
-    el.removeAttribute("contenteditable");
-    var html = el.innerHTML;
-    if (html === el.dataset.copyOrig) { delete EDIT.copy[el.dataset.copy]; el.classList.remove("edited"); }
-    else { EDIT.copy[el.dataset.copy] = { orig: el.dataset.copyOrig, html: html, text: el.textContent.trim() }; el.classList.add("edited"); }
-    saveEdits();
-  }, true);
-  document.addEventListener("keydown", function (e) {
-    var el = document.activeElement;
-    if (!el || el.getAttribute("contenteditable") !== "true") return;
-    if (e.key === "Escape") { el.innerHTML = EDIT.copy[el.dataset.copy] ? EDIT.copy[el.dataset.copy].html : el.dataset.copyOrig; el.blur(); }
-    if (e.key === "Enter" && !e.shiftKey && el.tagName !== "P") { e.preventDefault(); el.blur(); }
-  });
-
-  // --- moving blocks: press and hold a block, or take its handle, then slide it within its panel ---
-  var moving = null, holdTimer = null, handle = null;
-  function blockOf(t) {
-    if (!t || t.nodeType !== 1 || t.closest(".editbar, .editbanner, .plan-stage, #map-stage")) return null;
-    var cs = sortContainers();
-    for (var el = t; el && el !== document.body; el = el.parentElement) {
-      if (el.parentElement && cs.indexOf(el.parentElement) >= 0 && keyOf(el)) return el;
-    }
-    return null;
-  }
-  function showHandle(block) {
-    if (!handle) { handle = document.createElement("div"); handle.className = "mv-handle"; handle.title = "Drag to move this block"; handle.textContent = "⋮⋮"; document.body.appendChild(handle); }
-    if (!block) { handle.style.display = "none"; handle.__block = null; return; }
-    var r = block.getBoundingClientRect();
-    handle.style.display = "block"; handle.style.left = (window.scrollX + r.left - 2) + "px"; handle.style.top = (window.scrollY + r.top - 2) + "px";
-    handle.__block = block;
-  }
-  function startMove(block, e) {
-    if (!block) return;
-    var active = document.activeElement;
-    if (active && active.getAttribute("contenteditable") === "true") active.blur();
-    moving = { block: block, container: block.parentElement, pointerId: e.pointerId };
-    block.classList.add("dragging"); document.body.classList.add("moving");
-    showHandle(null);
-  }
-  function moveTo(e) {
-    if (!moving) return;
-    var under = document.elementFromPoint(e.clientX, e.clientY), c = moving.container;
-    if (!under) return;
-    var sib = null;
-    for (var el = under; el && el !== document.body; el = el.parentElement) { if (el.parentElement === c && el !== moving.block) { sib = el; break; } }
-    if (!sib) return;
-    var r = sib.getBoundingClientRect(), before = e.clientY < r.top + r.height / 2;
-    var ref = before ? sib : sib.nextSibling;
-    if (ref !== moving.block && ref !== moving.block.nextSibling) c.insertBefore(moving.block, ref);
-  }
-  function endMove() {
-    if (!moving) return;
-    var c = moving.container;
-    moving.block.classList.remove("dragging"); document.body.classList.remove("moving");
-    EDIT.order[c.id] = Array.prototype.map.call(c.children, keyOf).filter(Boolean);
-    saveEdits();
-    moving = null;
-  }
-  document.addEventListener("pointerdown", function (e) {
-    if (!EDIT.on) return;
-    if (e.target === handle) { e.preventDefault(); startMove(handle.__block, e); return; }
-    var block = blockOf(e.target);
-    if (!block) return;
-    clearTimeout(holdTimer);
-    var sx = e.clientX, sy = e.clientY;
-    holdTimer = setTimeout(function () { holdTimer = null; startMove(block, e); }, 450);
-    var cancel = function (ev) {
-      if (ev.type === "pointermove" && Math.hypot(ev.clientX - sx, ev.clientY - sy) < 6) return;
-      clearTimeout(holdTimer); holdTimer = null;
-      document.removeEventListener("pointermove", cancel); document.removeEventListener("pointerup", cancel); document.removeEventListener("pointercancel", cancel);
-    };
-    document.addEventListener("pointermove", cancel); document.addEventListener("pointerup", cancel); document.addEventListener("pointercancel", cancel);
-  }, true);
-  document.addEventListener("pointermove", function (e) {
-    if (!EDIT.on) return;
-    if (moving) { e.preventDefault(); moveTo(e); return; }
-    if (e.pointerType === "mouse" && !holdTimer) { var b = blockOf(e.target); if (b || e.target !== handle) showHandle(b); }
-  }, { passive: false, capture: true });
-  document.addEventListener("pointerup", function () { if (moving) endMove(); }, true);
-  document.addEventListener("pointercancel", function () { if (moving) endMove(); }, true);
-  document.addEventListener("touchmove", function (e) { if (moving) e.preventDefault(); }, { passive: false });
-  document.addEventListener("scroll", function () { if (handle && handle.__block) showHandle(handle.__block); }, true);
-  function armDrag() { /* nothing to arm: blocks are found under the pointer */ }
-  document.getElementById("ed-toggle").addEventListener("click", function () { setEditing(!EDIT.on); });
-  document.getElementById("ed-reset").addEventListener("click", function () {
-    if (!confirm("Forget every edit to the text and layout in this browser?")) return;
-    EDIT.copy = {}; EDIT.order = {}; saveEdits(); location.reload();
-  });
-  document.getElementById("ed-export").addEventListener("click", function () {
-    var out = { exported: new Date().toISOString(), copy: EDIT.copy, order: EDIT.order };
-    var a = document.createElement("a");
-    a.href = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(out, null, 1));
-    a.download = "sro-edits.json"; document.body.appendChild(a); a.click(); a.remove();
-  });
-  loadEdits();
-  new MutationObserver(scheduleEdits).observe(document.body, { childList: true, subtree: true });
-  scheduleEdits();
-
   // the ledger, reachable from the console so its answers can be checked against sro/optimize.py
   window.SRO = { heuristicPhases: heuristicPhases, runProgramme: runProgramme, programmeCost: programmeCost,
                  searchProgramme: searchProgramme, lastStock: function () { return LAST_STOCK; } };

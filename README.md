@@ -434,18 +434,6 @@ the floorplate model starts from (the Ivanhoe Hotel's 18.2 m reads as five store
 labelled as one; the older assumption of about 22 rooms to a floor remains for the nine buildings the City has
 no height for. See [`source/citation.md`](source/citation.md) for how the heights were matched.
 
-## Editing the tool's own words and layout
-
-**Edit text & layout**, bottom right of the page, turns the tool's copy and layout into something you can
-change in place, with a mouse or on a touch screen: tap any heading, note, label, hint, caption or
-paragraph to edit it (tap elsewhere to keep it, Escape to put it back; double-tap a button to edit its
-label), and press and hold a block within any panel — or take the handle that appears beside it with a
-mouse — and slide it to a new position. Edits are kept in the browser and put back after a panel
-re-renders; **Undo all** forgets them; **Export edits** downloads them as `sro-edits.json` so they can be
-baked into `web/index.html` and become the tool for everyone. Sentences the tool composes from numbers
-(the scenario headline, the building panel's district line and neighbourhood plan) can be edited for the
-session but are rewritten by the tool on the next change.
-
 ## Files, and the browser tool's editor
 
 Stdlib only, no install. `web/index.html` is the same operation as a browser tool,
