@@ -37,9 +37,10 @@
     --map-market: #b4553f;
     --map-nonmarket: #3f7d5c;
     --map-unsurveyed: #9a948a;
-    --scen-0: #d9e7dd;
-    --scen-1: #a33a29;
+    --scen-0: #3f9a66;
+    --scen-1: #b8382a;
     --scen-x: #1d2320;
+    --scen-works: #e6b400;
     --map-foot: #ddd8cc;
     --map-foot-line: #cbc5b7;
     --m3-ground: #f4f1ea;
@@ -92,9 +93,10 @@
       --map-market: #d98b72;
       --map-nonmarket: #6fae8b;
       --map-unsurveyed: #6d736c;
-      --scen-0: #2f4a3a;
-      --scen-1: #e08d78;
+      --scen-0: #58c08a;
+      --scen-1: #e8705a;
       --scen-x: #f1efe8;
+      --scen-works: #f7d24a;
       --map-foot: #262b28;
       --map-foot-line: #323834;
       --m3-ground: #171b19;
@@ -146,9 +148,10 @@
     --map-market: #d98b72;
     --map-nonmarket: #6fae8b;
     --map-unsurveyed: #6d736c;
-    --scen-0: #2f4a3a;
-    --scen-1: #e08d78;
+    --scen-0: #58c08a;
+    --scen-1: #e8705a;
     --scen-x: #f1efe8;
+    --scen-works: #f7d24a;
     --map-foot: #262b28;
     --map-foot-line: #323834;
     --m3-ground: #171b19;
@@ -579,7 +582,7 @@
         <div class="legend" id="legend-scen" hidden style="margin:0 0 12px">
           <span><i class="swatch" style="background:var(--scen-0)"></i>Converted, none displaced</span>
           <span><i class="swatch" style="background:var(--scen-1)"></i>Half the tenants displaced</span>
-          <span><i class="swatch" style="background:var(--edge)"></i>In works this phase</span>
+          <span><i class="swatch" style="background:var(--scen-works)"></i>In works this phase</span>
           <span><i class="swatch" style="background:var(--map-unsurveyed)"></i>Left as it is, or a later phase</span>
           <span><i class="swatch" style="background:var(--scen-x)"></i>No compliant scheme</span>
           <span><i class="swatch" style="background:var(--edge);height:2px"></i>Tenants moving to wait</span>
@@ -5017,7 +5020,7 @@
       if (s.state === "infeasible" || s.state === "pinned-fail") return hexOf(css("--scen-x"));
       if (s.state === "untouched") return hexOf(css("--map-unsurveyed"));
       if (SCEN.phase != null && s.phase > SCEN.phase) return hexOf(css("--map-unsurveyed"));
-      if (SCEN.phase != null && s.phase === SCEN.phase) return hexOf(css("--edge"));
+      if (SCEN.phase != null && s.phase === SCEN.phase) return hexOf(css("--scen-works"));
       return mix(css("--scen-0"), css("--scen-1"), Math.min(1, (s.lost / s.n) / MAX_REDUCTION));
     }
     return hexOf(css(tenureVar(b)));
