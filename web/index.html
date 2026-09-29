@@ -2492,16 +2492,19 @@
       });
     }
 
-    // the scenario's moves: where the tenants of the phase shown go
-    if (scenColour && SCEN && SCEN.moves.length) {
-      SCEN.moves.forEach(function (m) {
+    // the scenario's moves: where the tenants of the phase shown go, and, drawn
+    // heavier, where the selected building's own tenants go in its phase
+    if (scenColour && SCEN) {
+      var focus = focusMoves(), dim = focus.length ? 0.3 : 0.85;
+      SCEN.moves.concat(focus).forEach(function (m) {
         var a = SURVEYED[m.i], b2 = SURVEYED[m.j];
         if (!a || !b2 || a.lon == null || b2.lon == null) return;
         var x1 = PROJ.x(a.lon), y1 = PROJ.y(a.lat), x2 = PROJ.x(b2.lon), y2 = PROJ.y(b2.lat);
         var mx = (x1 + x2) / 2 - (y2 - y1) * 0.18, my = (y1 + y2) / 2 + (x2 - x1) * 0.18;   // a bow, so two-way moves read apart
+        var op = m.focus ? 1 : dim, wmul = m.focus ? 2 : 1;
         parts.push('<path d="M' + x1.toFixed(1) + ' ' + y1.toFixed(1) + ' Q' + mx.toFixed(1) + ' ' + my.toFixed(1) + ' ' + x2.toFixed(1) + ' ' + y2.toFixed(1)
-          + '" fill="none" stroke="var(--' + (m.permanent ? "fail" : "edge") + ')" stroke-opacity="0.85" stroke-width="' + ((1 + Math.sqrt(m.n)) * z).toFixed(2) + '" stroke-linecap="round" pointer-events="none"/>');
-        parts.push('<circle cx="' + x2.toFixed(1) + '" cy="' + y2.toFixed(1) + '" r="' + (2.2 * z).toFixed(1) + '" fill="var(--' + (m.permanent ? "fail" : "edge") + ')" pointer-events="none"/>');
+          + '" fill="none" stroke="var(--' + (m.permanent ? "fail" : "edge") + ')" stroke-opacity="' + op + '" stroke-width="' + ((1 + Math.sqrt(m.n)) * z * wmul).toFixed(2) + '" stroke-linecap="round" pointer-events="none"/>');
+        parts.push('<circle cx="' + x2.toFixed(1) + '" cy="' + y2.toFixed(1) + '" r="' + ((m.focus ? 3.5 : 2.2) * z).toFixed(1) + '" fill="var(--' + (m.permanent ? "fail" : "edge") + ')" fill-opacity="' + op + '" pointer-events="none"/>');
       });
     }
 
@@ -3079,27 +3082,52 @@
   // the scenario's moves as arcs between roofs: ochre to wait, red for good
   function m3moves() {
     clear3(M3.gMoves);
-    if (!scenColour || !SCEN || !SCEN.moves.length) return;
+    if (!scenColour || !SCEN) return;
+    var focus = focusMoves(), all = SCEN.moves.concat(focus);
+    if (!all.length) return;
     var at = {};
     M3.sroMeshes.forEach(function (m) { at[m.userData.s] = m.userData; });
-    var mats = { wait: new THREE.LineBasicMaterial({ color: new THREE.Color(hexOf(css("--edge"))) }),
-                 gone: new THREE.LineBasicMaterial({ color: new THREE.Color(hexOf(css("--fail"))) }) };
-    SCEN.moves.forEach(function (m) {
+    var col = { wait: new THREE.Color(hexOf(css("--edge"))), gone: new THREE.Color(hexOf(css("--fail"))) };
+    var dimOp = focus.length ? 0.3 : 1;
+    var mats = {
+      wait: new THREE.LineBasicMaterial({ color: col.wait, transparent: true, opacity: dimOp }),
+      gone: new THREE.LineBasicMaterial({ color: col.gone, transparent: true, opacity: dimOp }),
+      waitF: new THREE.LineBasicMaterial({ color: col.wait }), goneF: new THREE.LineBasicMaterial({ color: col.gone }) };
+    all.forEach(function (m) {
       var a = at[m.i], b = at[m.j];
       if (!a || !b) return;
-      var pts = [], lift = (12 + 3 * Math.sqrt(m.n)) / M3.mPerUnit, dx = b.cx - a.cx, dz = b.cz - a.cz;
-      for (var k = 0; k <= 16; k++) {
-        var t = k / 16, bow = 4 * t * (1 - t);
-        pts.push(new THREE.Vector3(a.cx + dx * t - dz * 0.12 * bow, a.top + (b.top - a.top) * t + lift * bow, a.cz + dz * t + dx * 0.12 * bow));
+      var lift = (12 + 3 * Math.sqrt(m.n)) / M3.mPerUnit, dx = b.cx - a.cx, dz = b.cz - a.cz;
+      var mat = m.focus ? (m.permanent ? mats.goneF : mats.waitF) : (m.permanent ? mats.gone : mats.wait);
+      // a focused move is drawn as a ribbon of lines so it reads heavier than the rest
+      var strands = m.focus ? 3 : 1;
+      for (var s = 0; s < strands; s++) {
+        var pts = [], off = (s - (strands - 1) / 2) * 1.2 / M3.mPerUnit;
+        for (var k = 0; k <= 16; k++) {
+          var t = k / 16, bow = 4 * t * (1 - t);
+          pts.push(new THREE.Vector3(a.cx + dx * t - dz * 0.12 * bow, a.top + (b.top - a.top) * t + lift * bow + off, a.cz + dz * t + dx * 0.12 * bow));
+        }
+        M3.gMoves.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat));
       }
-      M3.gMoves.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), m.permanent ? mats.gone : mats.wait));
-      var dot = new THREE.Mesh(new THREE.SphereGeometry(2.2 / M3.mPerUnit, 8, 8), new THREE.MeshBasicMaterial({ color: (m.permanent ? mats.gone : mats.wait).color }));
+      var dot = new THREE.Mesh(new THREE.SphereGeometry((m.focus ? 3.5 : 2.2) / M3.mPerUnit, 8, 8),
+        new THREE.MeshBasicMaterial({ color: m.permanent ? col.gone : col.wait, transparent: true, opacity: m.focus ? 1 : dimOp }));
       dot.position.set(b.cx, b.top, b.cz);
       M3.gMoves.add(dot);
     });
   }
 
+  // the selected building's own moves in its phase, whatever phase the map shows
+  function focusMoves() {
+    if (!SCEN || !SCEN.steps || surveySel === null) return [];
+    var sc = SCEN.byIndex[surveySel];
+    if (!sc || sc.state !== "converted") return [];
+    var ph = SCEN.steps[sc.phase - 1];
+    if (!ph) return [];
+    return ph.moves.filter(function (m) { return m.src === String(surveySel) && m.dst !== "new" && m.dst !== "relocation" && m.dst !== "out"; })
+      .map(function (m) { return { i: surveySel, j: parseInt(m.dst, 10), n: m.n, permanent: m.permanent, focus: true }; });
+  }
+
   function m3select() {
+    m3moves();
     clear3(M3.gSel);
     M3.sroMeshes.forEach(function (m) {
       if (m.userData.s !== surveySel) return;
@@ -4058,9 +4086,15 @@
     var name = function (d) {
       return d === "new" ? "new supply" : d === "relocation" ? "relocation housing" : d === "out" ? "out of the district" : SURVEYED[parseInt(d, 10)].name;
     };
-    return ". Its tenants: " + mine.map(function (m) {
-      return m.n + (m.permanent ? " to " + name(m.dst) + " for good" : " wait in " + name(m.dst) + (m.dst === "out" ? "" : ", then return"));
-    }).join("; ");
+    // the ones who never come back are named one by one; the ones who wait are summed
+    var perm = mine.filter(function (m) { return m.permanent; }), temp = mine.filter(function (m) { return !m.permanent; });
+    var parts = perm.map(function (m) { return m.n + " to " + name(m.dst) + " for good"; });
+    var nearby = temp.filter(function (m) { return m.dst !== "new" && m.dst !== "relocation" && m.dst !== "out"; });
+    var nNear = nearby.reduce(function (t, m) { return t + m.n; }, 0);
+    if (nNear) parts.push(nNear + " wait in spare rooms in " + nearby.length + " building" + (nearby.length > 1 ? "s" : "") + " nearby, then return");
+    temp.filter(function (m) { return m.dst === "new" || m.dst === "relocation"; }).forEach(function (m) { parts.push(m.n + " wait in " + name(m.dst) + ", then return"); });
+    temp.filter(function (m) { return m.dst === "out"; }).forEach(function (m) { parts.push(m.n + " have nowhere to wait"); });
+    return ". Its tenants: " + parts.join("; ");
   }
 
   // The programme as a housing ledger: where the tenants of each phase go.
@@ -4621,12 +4655,13 @@
     var sc = SCEN && SCEN.byIndex[i], pin = PINNED[i];
     h += '<p class="note" style="margin-top:12px"><strong>In the district scenario:</strong> '
       + (!SCEN ? 'not yet run' : !sc ? 'not in the stock the mandate reaches'
-        : sc.state === "converted" ? 'phase ' + sc.phase + ' · ' + sc.units + ' units · ' + sc.lost + ' displaced'
+        : sc.state === "converted" ? 'phase ' + sc.phase + ' · ' + sc.units + ' units · ' + sc.lost + ' rooms lost' + movesText(i, sc.phase)
         : sc.state === "infeasible" ? 'no compliant conversion'
         : sc.state === "pinned-fail" ? 'pinned as drawn, but the drawing fails the tests, so it cannot convert'
         : 'left as it is')
       + (pin ? '. <strong>Pinned</strong>: the district takes this building exactly as drawn, or not at all. <button type="button" id="bp-unpin" style="margin-left:6px">Unpin</button>'
-             : '. Edit the plan and the district will take this building as drawn.') + '</p>';
+             : '. Edit the plan and the district will take this building as drawn.')
+      + (sc && sc.state === "converted" ? ' <button type="button" id="bp-map" style="margin-left:6px" title="Colour the map by the scenario and draw where this building’s tenants go">Show its tenants on the map</button>' : '') + '</p>';
     h += '<p class="src" style="margin-top:12px"><b>Click a marker</b> in the corridor to merge the two rooms or split them. <b>Drag a wall</b> to shift area between two rooms. <b>Click a room</b> to keep it as an SRA room, or to release it. Every floor is this floor.</p>';
     side.innerHTML = h;
     side.querySelectorAll("[data-opt]").forEach(function (btn) {
@@ -4648,6 +4683,16 @@
     });
     var unpinBtn = document.getElementById("bp-unpin");
     if (unpinBtn) unpinBtn.addEventListener("click", function () { unpin(i); renderBuilding(); });
+    var mapBtn = document.getElementById("bp-map");
+    if (mapBtn) mapBtn.addEventListener("click", function () {
+      if (!scenColour) setScenarioColour(true);
+      var sc2 = SCEN && SCEN.byIndex[i];
+      if (sc2 && sc2.state === "converted" && scenPhase !== sc2.phase) {
+        scenPhase = sc2.phase;                    // show the phase this building converts in, with its moves
+        renderDistrict();
+      }
+      mapStage.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
     document.getElementById("bp-ten").addEventListener("change", function () {
       var t = Math.max(0, num(this.value) || 0);
       floors.forEach(function (fl) { fl.rooms.forEach(function (r) { r.tenancy = t; }); });
@@ -4808,6 +4853,7 @@
     PINNED[surveySel] = { compliant: ev.compliant, original: ev.original, units: ev.units.length, kept: ev.untouched.length, lost: ev.lost,
                           area: ev.units.reduce(function (t, u) { return t + u.area; }, 0) };
     districtCands = null; renderDistrict();
+    if (!scenColour) setScenarioColour(true);     // an edit is a question about the district: let the map answer it
   }
   function unpin(i) {
     delete PINNED[i];

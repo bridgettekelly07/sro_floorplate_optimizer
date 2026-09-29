@@ -330,7 +330,11 @@ phase, units and displacement, or that it is left alone). Editing a building in 
 it: the district then takes that building exactly as drawn, or not at all, in place of its search
 result, so a designer's decision overrides the optimizer for that building and the district
 re-allocates around it. A pinned drawing that fails the tests cannot convert and is reported. Reset
-or Unpin hands the building back to the search.
+or Unpin hands the building back to the search. The building panel also says where that building's
+own tenants go in its phase (who moves to which building for good, who waits in spare rooms nearby,
+who waits in the relocation housing), and **Show its tenants on the map** turns the scenario colouring
+on, steps the map to the building's phase and draws its moves heavier than the rest; an edit in the
+plan turns the scenario on by itself, since an edit is a question the map is there to answer.
 
 **The order, as a housing ledger** (in the drawer, below the bar). The allocation says which
 buildings convert; the ledger says when, and follows every tenant. Converting a building removes
