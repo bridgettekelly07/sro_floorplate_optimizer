@@ -4933,9 +4933,10 @@
     var searchNote = document.getElementById("d-search-note");
     if (searched) {
       var b0 = searched.baselineCost, c0 = searched.cost;
-      searchNote.textContent = (b0[0] === c0[0] && b0[1] === c0[1] && b0[2] === c0[2])
-        ? "Searched " + searched.evaluations.toLocaleString("en-CA") + " orders: the rule’s was already as good."
-        : "Searched " + searched.evaluations.toLocaleString("en-CA") + " orders: " + (b0[0] - c0[0]) + " fewer leave, " + (b0[1] - c0[1]) + " fewer with nowhere to wait, " + (b0[2] - c0[2]) + " fewer phases than the rule.";
+      var delta = function (d, what) { return d > 0 ? d + " fewer " + what : d < 0 ? (-d) + " more " + what : null; };
+      var parts = [delta(b0[0] - c0[0], "leave for good"), delta(b0[1] - c0[1], "with nowhere to wait"), delta(b0[2] - c0[2], (Math.abs(b0[2] - c0[2]) === 1 ? "phase" : "phases"))].filter(Boolean);
+      searchNote.textContent = "Searched " + searched.evaluations.toLocaleString("en-CA") + " orders: "
+        + (parts.length ? parts.join(", ") + " than the rule." : "the rule’s was already as good.");
     } else searchNote.textContent = "";
     LAST_STOCK = { stock: stock, relocation: relocation, newPer: newPer, sig: sig };
     phases.forEach(function (ph) { ph.items.forEach(function (s) { phaseOf[s.key] = ph.number; }); });
@@ -5200,6 +5201,9 @@
       + "The inventory table on the right still drives every test below.";
   }
   document.getElementById("r-unit-sf").addEventListener("input", function () { unitTouched = true; });
+  // the ledger, reachable from the console so its answers can be checked against sro/optimize.py
+  window.SRO = { heuristicPhases: heuristicPhases, runProgramme: runProgramme, programmeCost: programmeCost,
+                 searchProgramme: searchProgramme, lastStock: function () { return LAST_STOCK; } };
   loadStreets();
   loadSurveyed();
   loadFootprints();

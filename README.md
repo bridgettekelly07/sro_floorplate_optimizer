@@ -231,7 +231,7 @@ at a time; the building-wide arithmetic lives in the browser tool. The tool is a
 python3 -m sro.cli --example case1              # the hand-worked cases
 python3 -m sro.cli --example case2 --svg out.svg
 python3 -m sro.cli --input floorplate.json --json
-python3 -m unittest discover -s tests           # 56 tests: the answer key below, the search, the phasing, the ledger
+python3 -m unittest discover -s tests           # 61 tests: the answer key below, the search, the phasing, the ledger, browser parity
 ```
 
 Stdlib only, no install. `web/index.html` is the same operation as a browser tool,

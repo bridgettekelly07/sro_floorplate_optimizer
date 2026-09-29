@@ -1,0 +1,947 @@
+{
+ "relocation": 300,
+ "newPer": 0,
+ "stock": [
+  {
+   "key": "57",
+   "rooms": 32,
+   "vacant": 2,
+   "units": 28,
+   "kept": 0,
+   "xy": [
+    1947.7,
+    779.6
+   ],
+   "convert": true
+  },
+  {
+   "key": "58",
+   "rooms": 10,
+   "vacant": 1,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    3039.19,
+    894.15
+   ],
+   "convert": false
+  },
+  {
+   "key": "59",
+   "rooms": 16,
+   "vacant": 1,
+   "units": 14,
+   "kept": 0,
+   "xy": [
+    2388.51,
+    1119.91
+   ],
+   "convert": true
+  },
+  {
+   "key": "60",
+   "rooms": 24,
+   "vacant": 1,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    2097.3,
+    602.77
+   ],
+   "convert": false
+  },
+  {
+   "key": "63",
+   "rooms": 39,
+   "vacant": 2,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    2419.73,
+    808.51
+   ],
+   "convert": false
+  },
+  {
+   "key": "66",
+   "rooms": 48,
+   "vacant": 2,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    1755.98,
+    791.83
+   ],
+   "convert": false
+  },
+  {
+   "key": "67",
+   "rooms": 27,
+   "vacant": 1,
+   "units": 24,
+   "kept": 0,
+   "xy": [
+    2888.87,
+    931.96
+   ],
+   "convert": true
+  },
+  {
+   "key": "68",
+   "rooms": 27,
+   "vacant": 1,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    2490.18,
+    1131.03
+   ],
+   "convert": false
+  },
+  {
+   "key": "69",
+   "rooms": 84,
+   "vacant": 4,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    3175.72,
+    829.64
+   ],
+   "convert": false
+  },
+  {
+   "key": "70",
+   "rooms": 48,
+   "vacant": 2,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    2799.54,
+    776.26
+   ],
+   "convert": false
+  },
+  {
+   "key": "71",
+   "rooms": 14,
+   "vacant": 1,
+   "units": 12,
+   "kept": 0,
+   "xy": [
+    2404.48,
+    807.4
+   ],
+   "convert": true
+  },
+  {
+   "key": "72",
+   "rooms": 105,
+   "vacant": 5,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    2180.81,
+    871.9
+   ],
+   "convert": false
+  },
+  {
+   "key": "73",
+   "rooms": 30,
+   "vacant": 2,
+   "units": 27,
+   "kept": 0,
+   "xy": [
+    1887.42,
+    764.03
+   ],
+   "convert": true
+  },
+  {
+   "key": "74",
+   "rooms": 72,
+   "vacant": 4,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    2265.05,
+    1363.46
+   ],
+   "convert": false
+  },
+  {
+   "key": "75",
+   "rooms": 8,
+   "vacant": 0,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    2150.31,
+    856.33
+   ],
+   "convert": false
+  },
+  {
+   "key": "76",
+   "rooms": 24,
+   "vacant": 1,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    2345.66,
+    1221.11
+   ],
+   "convert": false
+  },
+  {
+   "key": "77",
+   "rooms": 18,
+   "vacant": 1,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    1607.83,
+    623.9
+   ],
+   "convert": false
+  },
+  {
+   "key": "78",
+   "rooms": 36,
+   "vacant": 2,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    2821.33,
+    576.08
+   ],
+   "convert": false
+  },
+  {
+   "key": "79",
+   "rooms": 18,
+   "vacant": 1,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    1405.94,
+    802.95
+   ],
+   "convert": false
+  },
+  {
+   "key": "80",
+   "rooms": 72,
+   "vacant": 4,
+   "units": 64,
+   "kept": 0,
+   "xy": [
+    2389.96,
+    807.4
+   ],
+   "convert": true
+  },
+  {
+   "key": "81",
+   "rooms": 24,
+   "vacant": 1,
+   "units": 21,
+   "kept": 0,
+   "xy": [
+    2970.2,
+    1194.42
+   ],
+   "convert": true
+  },
+  {
+   "key": "82",
+   "rooms": 45,
+   "vacant": 2,
+   "units": 27,
+   "kept": 15,
+   "xy": [
+    2026.13,
+    651.7
+   ],
+   "convert": true
+  },
+  {
+   "key": "83",
+   "rooms": 28,
+   "vacant": 1,
+   "units": 24,
+   "kept": 0,
+   "xy": [
+    1728.38,
+    784.05
+   ],
+   "convert": true
+  },
+  {
+   "key": "84",
+   "rooms": 33,
+   "vacant": 2,
+   "units": 27,
+   "kept": 3,
+   "xy": [
+    1806.09,
+    801.84
+   ],
+   "convert": true
+  },
+  {
+   "key": "85",
+   "rooms": 30,
+   "vacant": 2,
+   "units": 18,
+   "kept": 10,
+   "xy": [
+    4765.39,
+    444.85
+   ],
+   "convert": true
+  },
+  {
+   "key": "86",
+   "rooms": 10,
+   "vacant": 1,
+   "units": 9,
+   "kept": 0,
+   "xy": [
+    3045.73,
+    681.73
+   ],
+   "convert": true
+  },
+  {
+   "key": "87",
+   "rooms": 12,
+   "vacant": 1,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    2943.33,
+    703.97
+   ],
+   "convert": false
+  },
+  {
+   "key": "88",
+   "rooms": 95,
+   "vacant": 5,
+   "units": 85,
+   "kept": 0,
+   "xy": [
+    1877.98,
+    712.87
+   ],
+   "convert": true
+  },
+  {
+   "key": "89",
+   "rooms": 12,
+   "vacant": 1,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    2644.13,
+    1266.71
+   ],
+   "convert": false
+  },
+  {
+   "key": "90",
+   "rooms": 28,
+   "vacant": 1,
+   "units": 24,
+   "kept": 0,
+   "xy": [
+    2594.02,
+    812.96
+   ],
+   "convert": true
+  },
+  {
+   "key": "91",
+   "rooms": 92,
+   "vacant": 5,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    2334.04,
+    1526.94
+   ],
+   "convert": false
+  },
+  {
+   "key": "92",
+   "rooms": 12,
+   "vacant": 1,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    3108.91,
+    1038.72
+   ],
+   "convert": false
+  },
+  {
+   "key": "93",
+   "rooms": 39,
+   "vacant": 2,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    2520.68,
+    666.16
+   ],
+   "convert": false
+  },
+  {
+   "key": "94",
+   "rooms": 46,
+   "vacant": 2,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    2949.87,
+    577.19
+   ],
+   "convert": false
+  },
+  {
+   "key": "96",
+   "rooms": 108,
+   "vacant": 5,
+   "units": 96,
+   "kept": 0,
+   "xy": [
+    1738.55,
+    831.87
+   ],
+   "convert": true
+  },
+  {
+   "key": "97",
+   "rooms": 60,
+   "vacant": 3,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    2232.37,
+    661.71
+   ],
+   "convert": false
+  },
+  {
+   "key": "98",
+   "rooms": 27,
+   "vacant": 1,
+   "units": 24,
+   "kept": 0,
+   "xy": [
+    2297.73,
+    567.18
+   ],
+   "convert": true
+  },
+  {
+   "key": "100",
+   "rooms": 60,
+   "vacant": 3,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    1817.71,
+    705.09
+   ],
+   "convert": false
+  },
+  {
+   "key": "101",
+   "rooms": 20,
+   "vacant": 1,
+   "units": 18,
+   "kept": 0,
+   "xy": [
+    2410.29,
+    875.24
+   ],
+   "convert": true
+  },
+  {
+   "key": "103",
+   "rooms": 30,
+   "vacant": 2,
+   "units": 27,
+   "kept": 0,
+   "xy": [
+    2286.11,
+    971.99
+   ],
+   "convert": true
+  },
+  {
+   "key": "104",
+   "rooms": 27,
+   "vacant": 1,
+   "units": 24,
+   "kept": 0,
+   "xy": [
+    1878.71,
+    760.69
+   ],
+   "convert": true
+  },
+  {
+   "key": "105",
+   "rooms": 60,
+   "vacant": 3,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    2885.24,
+    821.86
+   ],
+   "convert": false
+  },
+  {
+   "key": "107",
+   "rooms": 24,
+   "vacant": 1,
+   "units": 18,
+   "kept": 4,
+   "xy": [
+    2385.6,
+    975.33
+   ],
+   "convert": true
+  },
+  {
+   "key": "108",
+   "rooms": 20,
+   "vacant": 1,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    3289.73,
+    1002.02
+   ],
+   "convert": false
+  },
+  {
+   "key": "109",
+   "rooms": 22,
+   "vacant": 1,
+   "units": 18,
+   "kept": 2,
+   "xy": [
+    2124.17,
+    799.62
+   ],
+   "convert": true
+  },
+  {
+   "key": "110",
+   "rooms": 48,
+   "vacant": 2,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    1246.18,
+    533.82
+   ],
+   "convert": false
+  },
+  {
+   "key": "111",
+   "rooms": 12,
+   "vacant": 1,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    3256.33,
+    1101
+   ],
+   "convert": false
+  },
+  {
+   "key": "112",
+   "rooms": 44,
+   "vacant": 2,
+   "units": 36,
+   "kept": 4,
+   "xy": [
+    598.4,
+    1137.7
+   ],
+   "convert": true
+  },
+  {
+   "key": "113",
+   "rooms": 24,
+   "vacant": 1,
+   "units": 21,
+   "kept": 0,
+   "xy": [
+    2981.09,
+    824.08
+   ],
+   "convert": true
+  },
+  {
+   "key": "114",
+   "rooms": 48,
+   "vacant": 2,
+   "units": 36,
+   "kept": 8,
+   "xy": [
+    716.77,
+    1016.48
+   ],
+   "convert": true
+  },
+  {
+   "key": "115",
+   "rooms": 84,
+   "vacant": 4,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    1649.22,
+    810.74
+   ],
+   "convert": false
+  },
+  {
+   "key": "116",
+   "rooms": 24,
+   "vacant": 1,
+   "units": 21,
+   "kept": 0,
+   "xy": [
+    3798.08,
+    913.05
+   ],
+   "convert": true
+  },
+  {
+   "key": "118",
+   "rooms": 20,
+   "vacant": 1,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    3025.39,
+    579.42
+   ],
+   "convert": false
+  },
+  {
+   "key": "119",
+   "rooms": 24,
+   "vacant": 1,
+   "units": 21,
+   "kept": 0,
+   "xy": [
+    2556.26,
+    811.85
+   ],
+   "convert": true
+  },
+  {
+   "key": "120",
+   "rooms": 40,
+   "vacant": 2,
+   "units": 36,
+   "kept": 0,
+   "xy": [
+    1889.6,
+    651.7
+   ],
+   "convert": true
+  },
+  {
+   "key": "121",
+   "rooms": 8,
+   "vacant": 0,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    3042.1,
+    580.53
+   ],
+   "convert": false
+  },
+  {
+   "key": "122",
+   "rooms": 33,
+   "vacant": 2,
+   "units": 27,
+   "kept": 3,
+   "xy": [
+    2239.63,
+    702.86
+   ],
+   "convert": true
+  },
+  {
+   "key": "123",
+   "rooms": 76,
+   "vacant": 4,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    580.24,
+    1155.5
+   ],
+   "convert": false
+  },
+  {
+   "key": "124",
+   "rooms": 91,
+   "vacant": 5,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    2007.97,
+    894.15
+   ],
+   "convert": false
+  },
+  {
+   "key": "125",
+   "rooms": 21,
+   "vacant": 1,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    2081.32,
+    751.79
+   ],
+   "convert": false
+  },
+  {
+   "key": "126",
+   "rooms": 40,
+   "vacant": 2,
+   "units": 36,
+   "kept": 0,
+   "xy": [
+    3196.78,
+    898.59
+   ],
+   "convert": true
+  },
+  {
+   "key": "127",
+   "rooms": 36,
+   "vacant": 2,
+   "units": 32,
+   "kept": 0,
+   "xy": [
+    2440.79,
+    607.22
+   ],
+   "convert": true
+  },
+  {
+   "key": "128",
+   "rooms": 65,
+   "vacant": 3,
+   "units": 45,
+   "kept": 15,
+   "xy": [
+    1787.2,
+    574.97
+   ],
+   "convert": true
+  },
+  {
+   "key": "129",
+   "rooms": 32,
+   "vacant": 2,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    2615.08,
+    571.63
+   ],
+   "convert": false
+  },
+  {
+   "key": "130",
+   "rooms": 93,
+   "vacant": 5,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    4238.17,
+    650.59
+   ],
+   "convert": false
+  },
+  {
+   "key": "131",
+   "rooms": 96,
+   "vacant": 5,
+   "units": 75,
+   "kept": 12,
+   "xy": [
+    300.65,
+    1069.86
+   ],
+   "convert": true
+  },
+  {
+   "key": "132",
+   "rooms": 22,
+   "vacant": 1,
+   "units": 18,
+   "kept": 2,
+   "xy": [
+    2881.6,
+    677.28
+   ],
+   "convert": true
+  },
+  {
+   "key": "62",
+   "rooms": 1,
+   "vacant": 0,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    3353.64,
+    901.93
+   ],
+   "convert": false
+  },
+  {
+   "key": "95",
+   "rooms": 77,
+   "vacant": 4,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    2506.15,
+    662.82
+   ],
+   "convert": false
+  },
+  {
+   "key": "99",
+   "rooms": 36,
+   "vacant": 2,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    2830.77,
+    1132.14
+   ],
+   "convert": false
+  },
+  {
+   "key": "102",
+   "rooms": 26,
+   "vacant": 1,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    2737.81,
+    1288.95
+   ],
+   "convert": false
+  },
+  {
+   "key": "106",
+   "rooms": 30,
+   "vacant": 2,
+   "units": 0,
+   "kept": 0,
+   "xy": [
+    2694.24,
+    926.4
+   ],
+   "convert": false
+  }
+ ],
+ "phases": [
+  [
+   "85",
+   "86",
+   "101",
+   "103",
+   "107",
+   "109",
+   "122",
+   "132",
+   "73",
+   "82",
+   "84",
+   "59",
+   "71",
+   "112",
+   "114",
+   "113"
+  ],
+  [
+   "120",
+   "126",
+   "128",
+   "104",
+   "127",
+   "67",
+   "98",
+   "116",
+   "119",
+   "57",
+   "81",
+   "83"
+  ],
+  [
+   "90",
+   "131",
+   "80",
+   "88",
+   "96"
+  ]
+ ],
+ "cost": [
+  0,
+  27,
+  3,
+  176448.0312476866
+ ],
+ "perPhase": [
+  [
+   421,
+   104,
+   300,
+   0,
+   17,
+   0,
+   0
+  ],
+  [
+   376,
+   62,
+   289,
+   0,
+   25,
+   0,
+   0
+  ],
+  [
+   379,
+   29,
+   300,
+   27,
+   23,
+   0,
+   0
+  ]
+ ],
+ "_note": "Recorded from web/index.html (window.SRO.lastStock) on 2026-09-29: market SROs, average fallback, 50% mandate, relocation 300, vacancy 5%, no new supply. The phases, cost and perPhase are the browser's own answers; the test checks the Python ledger gives the same."
+}

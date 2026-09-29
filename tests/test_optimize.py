@@ -277,6 +277,21 @@ class TestSearchProgramme(unittest.TestCase):
         self.assertEqual(keys, sorted(s.key for s in stock if s.convert))
         self.assertTrue(all(p for p in r.phases))
 
+    def test_the_browser_and_python_agree_on_the_district(self):
+        # the stock the browser fed its ledger, with the answers it gave (tests/fixtures)
+        import json
+        d = json.load(open(Path(__file__).with_name("fixtures") / "district_stock.json"))
+        stock = [Stock(s["key"], s["rooms"], s["vacant"], s["units"], s["kept"], tuple(s["xy"]), s["convert"]) for s in d["stock"]]
+        from sro.optimize import heuristic_phases
+        phases = heuristic_phases(stock, d["relocation"], d["newPer"])
+        self.assertEqual(phases, d["phases"])
+        steps = run_programme(stock, phases, d["relocation"], d["newPer"])
+        got = [[s.out, s.temp_district, s.temp_relocation, s.temp_left, s.perm_district, s.perm_new, s.perm_left] for s in steps]
+        self.assertEqual(got, d["perPhase"])
+        c = programme_cost(steps)
+        self.assertEqual(c[:3], tuple(d["cost"][:3]))
+        self.assertAlmostEqual(c[3], d["cost"][3], places=1)
+
     def test_any_partition_can_be_run(self):
         steps = run_programme([self.swing, self.tight], [["B"], ["A"]], relocation=100)
         self.assertEqual([s.keys for s in steps], [["B"], ["A"]])
