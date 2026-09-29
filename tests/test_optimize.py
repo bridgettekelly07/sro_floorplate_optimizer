@@ -18,8 +18,9 @@ from examples.floorplate import AREAS, EXAMPLE  # noqa: E402
 from sro.evaluate import evaluate  # noqa: E402
 from sro.model import Scheme  # noqa: E402
 from sro.optimize import (  # noqa: E402
-    Candidate, Stock, TradeOff, allocate, optimise, programme, sequence,
-    trade_off, uniform, uniform_trade_off,
+    Candidate, Stock, TradeOff, allocate, optimise, programme, programme_cost,
+    run_programme, search_programme, sequence, trade_off, uniform,
+    uniform_trade_off,
 )
 
 
@@ -242,6 +243,44 @@ class TestProgramme(unittest.TestCase):
         for s in steps:
             self.assertEqual(s.out, sum(by.tenants for by in [self.swing, self.tight] if by.key in s.keys))
             self.assertEqual(s.temp_district + s.temp_relocation + s.temp_left + s.perm_district + s.perm_new + s.perm_left, s.out)
+
+
+class TestSearchProgramme(unittest.TestCase):
+    """The search over partitions, against the one-pass rule."""
+
+    def setUp(self):
+        self.swing = Stock("A", 10, 4, 8, 0, (0.0, 0.0))     # 2 homes to spare after works
+        self.tight = Stock("B", 10, 0, 8, 0, (50.0, 0.0))    # 2 tenants cannot return
+
+    def test_the_rule_packs_the_swing_building_with_the_one_that_needs_it(self):
+        # with room for both at once, the rule converts them together, and A's spare
+        # homes do not exist until the phase ends: B's two tenants leave
+        steps = programme([self.swing, self.tight], relocation=100)
+        self.assertEqual([s.keys for s in steps], [["A", "B"]])
+        self.assertEqual(programme_cost(steps)[0], 2)
+
+    def test_the_search_separates_them_and_nobody_leaves(self):
+        r = search_programme([self.swing, self.tight], relocation=100)
+        self.assertEqual(r.baseline_cost[0], 2)
+        self.assertEqual(r.cost[0], 0)
+        self.assertEqual(r.phases, [["A"], ["B"]])
+        self.assertEqual(r.steps[1].perm_district, 2)
+
+    def test_the_search_never_does_worse_than_the_rule(self):
+        import random
+        rng = random.Random(7)
+        stock = [Stock(str(i), rng.randint(8, 40), rng.randint(0, 3), rng.randint(4, 30), 0,
+                       (rng.uniform(0, 500), rng.uniform(0, 500)), rng.random() < 0.8) for i in range(12)]
+        r = search_programme(stock, relocation=60, new_per_phase=2)
+        self.assertLessEqual(r.cost, r.baseline_cost)
+        keys = sorted(k for p in r.phases for k in p)
+        self.assertEqual(keys, sorted(s.key for s in stock if s.convert))
+        self.assertTrue(all(p for p in r.phases))
+
+    def test_any_partition_can_be_run(self):
+        steps = run_programme([self.swing, self.tight], [["B"], ["A"]], relocation=100)
+        self.assertEqual([s.keys for s in steps], [["B"], ["A"]])
+        self.assertEqual(steps[0].perm_district, 2)   # B first takes A's vacant rooms instead
 
 
 if __name__ == "__main__":

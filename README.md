@@ -135,9 +135,16 @@ and new supply opening per phase (none). Works empty a building (s.4.8(f)), so e
 placed for the duration, nearest slack first, then in the relocation housing, and otherwise has
 nowhere to wait; those the building cannot take back afterwards (its tenants less its homes after
 works) are placed for good in the nearest slack, then in new supply, and the rest leave the
-district. A phase takes as many buildings as the slack of the moment can hold. The order is a
-heuristic, stated rather than searched: buildings whose conversion adds slack go first, since they
-make room for the phases after them, then least harm per unit. The result is a timeline of who
+district. A phase takes as many buildings as the slack of the moment can hold. The order follows a
+stated rule: buildings whose conversion adds slack go first, since they make room for the phases
+after them, then least harm per unit. The rule has a known blind spot: it can put a swing building
+in the *same* phase as the building that needs its spare homes, and those homes exist only after
+the phase ends. **Search for a better order** therefore runs a local search over the partition into
+phases (move one building to another phase or a new one, swap two across phases; keep what lowers
+the cost) with the cost in the order that matters: tenants who leave the district for good, tenants
+with nowhere to wait, phases, metres walked. It reports how many evaluations it made and what it
+saved against the rule; on the tested case it separates the two buildings and nobody leaves. It is
+a local search, so it improves on the rule but does not prove an optimum. The result is a timeline of who
 goes where each phase, a table with the same figures, the moves drawn on the map as arcs between
 roofs (ochre to wait, red for good) for the phase shown, and a headline that says how many new
 units would let nobody leave. The Python module (`sro/optimize.py`, `programme`) and the browser

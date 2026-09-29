@@ -555,25 +555,19 @@ def _dist(a, b) -> float:
     return math.hypot(a[0] - b[0], a[1] - b[1])
 
 
-def programme(stock: Sequence[Stock], relocation: int, new_per_phase: int = 0,
-              vacancy: Optional[float] = None) -> List[Step]:
-    """Sequence the conversions and follow the tenants, phase by phase.
+def _with_vacancy(stock: Sequence[Stock], vacancy: Optional[float]) -> List[Stock]:
+    if vacancy is None:
+        return list(stock)
+    return [Stock(s.key, s.rooms, int(round(s.rooms * vacancy)), s.units, s.kept, s.xy, s.convert) for s in stock]
 
-    ``relocation`` is the tenants the City can house outside the district at
-    once. ``new_per_phase`` is new supply opening each phase, taken as within
-    the district. ``vacancy`` overrides every building's vacant count with a
-    share of its rooms. Buildings with ``convert`` false only lend their vacant
-    rooms.
-    """
-    if vacancy is not None:
-        stock = [Stock(s.key, s.rooms, int(round(s.rooms * vacancy)), s.units, s.kept, s.xy, s.convert) for s in stock]
-    by = {s.key: s for s in stock}
-    free: Dict[str, int] = {s.key: s.vacant for s in stock}          # slack per building
-    converted: Dict[str, bool] = {}
+
+def heuristic_phases(stock: Sequence[Stock], relocation: int, new_per_phase: int = 0) -> List[List[str]]:
+    """The stated rule: slack-adding buildings first, then least harm per unit,
+    each phase filled until the tenants going out exceed the slack of the moment."""
+    free = {s.key: s.vacant for s in stock}
     todo = [s for s in stock if s.convert]
     new_pool = 0
-    steps: List[Step] = []
-    cum_units = cum_left = 0
+    phases: List[List[str]] = []
 
     def order_key(s: Stock):
         harm = s.lost / s.units if s.units else math.inf
@@ -582,19 +576,36 @@ def programme(stock: Sequence[Stock], relocation: int, new_per_phase: int = 0,
     while todo:
         todo.sort(key=order_key)
         new_pool += new_per_phase
-        # temporary room right now: slack outside the phase, relocation, new supply
         chosen: List[Stock] = []
         out = 0
         for s in todo:
-            slack = sum(free[k] for k in free if k != s.key and k not in {c.key for c in chosen}) + new_pool + relocation
+            taken = {c.key for c in chosen}
+            slack = sum(free[k] for k in free if k != s.key and k not in taken) + new_pool + relocation
             if chosen and out + s.tenants > slack:
                 continue
             chosen.append(s)
             out += s.tenants
         for s in chosen:
             todo.remove(s)
+            free[s.key] = s.spare_after
+        phases.append([s.key for s in chosen])
+    return phases
+
+
+def run_programme(stock: Sequence[Stock], phases: Sequence[Sequence[str]], relocation: int,
+                  new_per_phase: int = 0) -> List[Step]:
+    """Follow the tenants through a given partition of the conversions into phases."""
+    by = {s.key: s for s in stock}
+    free: Dict[str, int] = {s.key: s.vacant for s in stock}
+    new_pool = 0
+    steps: List[Step] = []
+    cum_units = cum_left = 0
+    for keys in phases:
+        chosen = [by[k] for k in keys]
+        new_pool += new_per_phase
+        in_works = set(keys)
+        for s in chosen:
             free[s.key] = 0                     # its vacant rooms go into the works
-        in_works = {s.key for s in chosen}
         moves: List[Move] = []
         tally = {"perm_district": 0, "perm_new": 0, "perm_left": 0,
                  "temp_district": 0, "temp_relocation": 0, "temp_left": 0, "relocation": relocation}
@@ -606,7 +617,7 @@ def programme(stock: Sequence[Stock], relocation: int, new_per_phase: int = 0,
             nonlocal new_pool
             kind = "perm" if permanent else "temp"
             left = n
-            dests = sorted((k for k in free if k not in in_works), key=lambda k: _dist(src.xy, by[k].xy))
+            dests = sorted((k for k in free if k not in in_works and free[k] > 0), key=lambda k: _dist(src.xy, by[k].xy))
             for k in dests:
                 if left <= 0:
                     break
@@ -646,16 +657,122 @@ def programme(stock: Sequence[Stock], relocation: int, new_per_phase: int = 0,
         for s in chosen:
             place(s, s.tenants - s.not_returning, False)
         for s in chosen:
-            converted[s.key] = True
             free[s.key] = s.spare_after            # homes nobody returns to
         cum_units += sum(s.units for s in chosen)
         cum_left += tally["perm_left"]
-        steps.append(Step(len(steps) + 1, [s.key for s in chosen], out,
+        steps.append(Step(len(steps) + 1, list(keys), sum(s.tenants for s in chosen),
                           tally["temp_district"], tally["temp_relocation"], tally["temp_left"],
                           sum(s.not_returning for s in chosen),
                           tally["perm_district"], tally["perm_new"], tally["perm_left"],
                           moves, cum_units, cum_left))
     return steps
+
+
+def programme(stock: Sequence[Stock], relocation: int, new_per_phase: int = 0,
+              vacancy: Optional[float] = None) -> List[Step]:
+    """Sequence the conversions by the stated rule and follow the tenants.
+
+    ``relocation`` is the tenants the City can house outside the district at
+    once. ``new_per_phase`` is new supply opening each phase, taken as within
+    the district. ``vacancy`` overrides every building's vacant count with a
+    share of its rooms. Buildings with ``convert`` false only lend their vacant
+    rooms.
+    """
+    stock = _with_vacancy(stock, vacancy)
+    return run_programme(stock, heuristic_phases(stock, relocation, new_per_phase), relocation, new_per_phase)
+
+
+def programme_cost(steps: Sequence[Step]) -> Tuple[int, int, int, float]:
+    """What a programme costs, in the order that matters: tenants who leave the
+    district for good, tenants with nowhere to wait, phases, metres walked."""
+    return (sum(s.perm_left for s in steps), sum(s.temp_left for s in steps), len(steps),
+            sum(m.n * m.metres for s in steps for m in s.moves))
+
+
+@dataclass(frozen=True)
+class Programme:
+    steps: List[Step]
+    phases: List[List[str]]
+    evaluations: int
+    baseline_cost: Tuple[int, int, int, float]
+    cost: Tuple[int, int, int, float]
+
+
+def search_programme(stock: Sequence[Stock], relocation: int, new_per_phase: int = 0,
+                     vacancy: Optional[float] = None, budget: int = 4000) -> Programme:
+    """Improve on the stated rule by local search over the partition into phases.
+
+    From the heuristic partition, try moving one building to another phase
+    (or a new one), and swapping two buildings across phases; keep any change
+    that lowers the cost, until nothing improves or the budget of evaluations
+    runs out. The search can separate a swing building from the building that
+    needs its spare homes, which the one-pass rule cannot: spare homes exist
+    only after their phase ends.
+    """
+    stock = _with_vacancy(stock, vacancy)
+    phases = [list(p) for p in heuristic_phases(stock, relocation, new_per_phase)]
+    best = run_programme(stock, phases, relocation, new_per_phase)
+    best_cost = programme_cost(best)
+    baseline = best_cost
+    evals = 1
+
+    def clean(ph):
+        return [p for p in ph if p]
+
+    improved = True
+    while improved and evals < budget:
+        improved = False
+        n = len(phases)
+        # move one building to another phase, or to a new phase after any position
+        for i in range(n):
+            for k in list(phases[i]):
+                for j in range(n + 1):
+                    if evals >= budget:
+                        break
+                    if j == i:
+                        continue
+                    trial = [list(p) for p in phases]
+                    trial[i].remove(k)
+                    if j == n:
+                        trial.append([k])
+                    else:
+                        trial[j].append(k)
+                    trial = clean(trial)
+                    steps = run_programme(stock, trial, relocation, new_per_phase)
+                    evals += 1
+                    c = programme_cost(steps)
+                    if c < best_cost:
+                        phases, best, best_cost, improved = trial, steps, c, True
+                        break
+                if improved:
+                    break
+            if improved:
+                break
+        if improved:
+            continue
+        # swap two buildings across phases
+        for i in range(n):
+            for j in range(i + 1, n):
+                for a in list(phases[i]):
+                    for b in list(phases[j]):
+                        if evals >= budget:
+                            break
+                        trial = [list(p) for p in phases]
+                        trial[i][trial[i].index(a)] = b
+                        trial[j][trial[j].index(b)] = a
+                        steps = run_programme(stock, trial, relocation, new_per_phase)
+                        evals += 1
+                        c = programme_cost(steps)
+                        if c < best_cost:
+                            phases, best, best_cost, improved = trial, steps, c, True
+                            break
+                    if improved:
+                        break
+                if improved:
+                    break
+            if improved:
+                break
+    return Programme(best, phases, evals, baseline, best_cost)
 
 
 def _forward_layers(candidates, T):
