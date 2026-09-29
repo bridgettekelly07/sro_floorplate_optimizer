@@ -528,6 +528,18 @@
     display: flex; align-items: center; justify-content: center; overflow: hidden; }
   .plan-stage svg { display: block; width: 100%; height: auto; max-height: 460px; }
   .plan-stage.ro .room, .plan-stage.ro .wall { pointer-events: none; cursor: default; }
+  /* editing the tool's own words and layout */
+  .editbar { position: fixed; right: 14px; bottom: 14px; z-index: 50; display: flex; align-items: center; gap: 8px;
+    background: var(--surface); border: 1px solid var(--rule); padding: 6px 8px; font-size: 12px; }
+  .editbar .hint-s { color: var(--ink-3); }
+  body.editing [data-copy] { outline: 1px dashed transparent; outline-offset: 2px; cursor: text; }
+  body.editing [data-copy]:hover { outline-color: var(--edge); }
+  body.editing [data-copy][contenteditable="true"] { outline: 1px solid var(--pass); background: var(--pass-soft); }
+  body.editing [data-copy].edited { border-left: 2px solid var(--pass); padding-left: 4px; }
+  body.editing [data-sort] > * { cursor: grab; }
+  body.editing [data-sort] > *.drag-over-before { box-shadow: 0 -3px 0 0 var(--edge); }
+  body.editing [data-sort] > *.drag-over-after { box-shadow: 0 3px 0 0 var(--edge); }
+  body.editing [data-sort] > *.dragging { opacity: 0.4; }
   .plan-stage .empty { color: var(--ink-3); font-size: 13px; padding: 40px 20px; text-align: center; }
   .curve { border: 1px solid var(--rule); background: var(--surface); }
   .curve svg { display: block; width: 100%; height: auto; }
@@ -610,10 +622,10 @@
           <span><i class="swatch" style="background:var(--map-unsurveyed);border-radius:50%"></i>Not surveyed</span>
           <span><i class="swatch" style="background:var(--map-foot)"></i>Footprint</span>
         </div>
-        <div id="scen-drawer" hidden>
+        <div id="scen-drawer" hidden data-sort>
         <div id="scen-strip" class="scen-strip" hidden></div>
-        <div class="label">The mandate</div>
-        <div class="field">
+        <div class="label" data-key="l-mandate">The mandate</div>
+        <div class="field" data-key="scope">
           <label for="d-scope">Which buildings it reaches</label>
           <select id="d-scope">
             <option value="market">Market SROs</option>
@@ -621,24 +633,24 @@
             <option value="nonmarket">Non-market SROs</option>
           </select>
         </div>
-        <div class="field">
+        <div class="field" data-key="target">
           <label for="d-target">How many self-contained units it requires &middot; <span id="d-target-v"></span></label>
           <input type="range" id="d-target" min="0" max="100" step="1" value="50">
           <span class="hint-s" id="d-target-hint"></span>
         </div>
-        <div class="label out-head">What happens</div>
+        <div class="label out-head" data-key="l-what">What happens</div>
         <div id="d-head"></div>
         <div class="tally" id="d-tally"></div>
         <div id="d-curve" style="margin-top:14px"></div>
-        <div class="label out-head">Phase by phase</div>
-        <div class="field">
+        <div class="label out-head" data-key="l-phase">Phase by phase</div>
+        <div class="field" data-key="phase">
           <label>Phase shown on the map &middot; <span id="d-phase-v"></span></label>
           <div class="btnrow" id="d-phase-btns"></div>
           <span class="hint-s" id="d-phase-hint"></span>
         </div>
         <div id="d-phases"></div>
         <div id="d-out"></div>
-        <details class="assume">
+        <details class="assume" data-key="assume">
           <summary>Assumptions and levers</summary>
           <div class="field">
             <label for="d-cap-works">Relocation housing the City supplies &middot; tenants at once</label>
@@ -772,7 +784,7 @@
         <div id="bp-plan" class="plan-stage"></div>
         <p class="src" id="bp-foot"></p>
       </div>
-      <div id="bp-side"></div>
+      <div id="bp-side" data-sort></div>
     </div>
     <div class="cols" style="margin-top:18px;padding-top:14px;border-top:1px solid var(--rule-soft)">
       <div>
@@ -919,6 +931,15 @@
       <div id="afford-out"></div>
     </div>
   </section>
+
+  <div class="editbar" id="editbar">
+    <button type="button" id="ed-toggle" title="Double-click any text to rewrite it; drag the blocks of a panel to reorder them. Saved in this browser; export to make it the tool.">Edit text &amp; layout</button>
+    <span id="ed-tools" hidden>
+      <span class="hint-s">Double-click text to edit · drag a block to move it</span>
+      <button type="button" id="ed-export" title="Download your edits as a file to bake into the tool">Export edits</button>
+      <button type="button" id="ed-reset" title="Forget every edit in this browser">Undo all</button>
+    </span>
+  </div>
 
   <footer>
     <p><strong>Scope.</strong> The tool evaluates a scheme you propose, and it searches for the compliant
@@ -4676,13 +4697,13 @@
     var ev = evaluate(), strict = readBuilding === "strict";
     var o = optimumFor(i, strict);
     var fr = floors[0].rooms, meanSf = fr.reduce(function (t, r) { return t + r.area; }, 0) / fr.length;
-    var h = '<div class="tally">' + tile(ev.original, "Rooms") + tile(fr.length, "Per floor") + tile(Math.round(meanSf) + " SF", "Each") + '</div>';
-    h += '<div class="tally" style="margin-top:10px">' + tile(ev.units.length, "Units") + tile(ev.untouched.length, "Kept as SRA") + tile(ev.displaced, "Tenants displaced") + tile(pct(ev.original ? ev.lost / ev.original : 0), "Of the building") + '</div>';
+    var h = '<div class="tally" data-key="rooms">' + tile(ev.original, "Rooms") + tile(fr.length, "Per floor") + tile(Math.round(meanSf) + " SF", "Each") + '</div>';
+    h += '<div class="tally" style="margin-top:10px" data-key="scheme">' + tile(ev.units.length, "Units") + tile(ev.untouched.length, "Kept as SRA") + tile(ev.displaced, "Tenants displaced") + tile(pct(ev.original ? ev.lost / ev.original : 0), "Of the building") + '</div>';
     var fails = [];
     if (!ev.size.pass) fails.push("size");
     if (!ev.count.pass) fails.push("room count");
     if (!ev.replace.pass) fails.push("replacement");
-    h += '<p class="note" style="margin-top:12px">' + (ev.compliant
+    h += '<p class="note" style="margin-top:12px" data-key="verdict">' + (ev.compliant
       ? '<strong>This scheme passes all three tests</strong>' + (ev.size.viaAverage ? ", the size test on the average fallback" : "") + '. '
       : '<strong>This scheme fails the ' + fails.join(" and ") + ' test' + (fails.length > 1 ? "s" : "") + '.</strong> ')
       + (o && o.feasible
@@ -4690,16 +4711,16 @@
            : 'The least-displacement scheme under the ' + (strict ? "strict" : "average") + ' reading loses ' + o.lost + ' rooms' + (ev.compliant ? '; this one loses ' + ev.lost + '.' : '.'))
         : 'No scheme of adjacent merges is compliant under the ' + (strict ? "strict" : "average") + ' reading.')
       + ' The working is below the plan.</p>';
-    h += '<div class="btnrow" style="margin-top:10px">'
+    h += '<div class="btnrow" style="margin-top:10px" data-key="buttons">'
       + '<button type="button" data-opt="average" title="Apply the search result under the Guidelines’ average fallback">Least displacement</button>'
       + '<button type="button" data-opt="strict" title="Apply the search result with every unit at 200 SF">… strict</button>'
       + '<button type="button" id="bp-clear" title="Split every unit and keep nothing">Clear</button>'
       + '<button type="button" id="bp-reset" title="Undo every edit: the typical floor as generated, its least-displacement scheme and the survey tenancy">Reset</button></div>';
-    h += '<div class="field" style="margin-top:12px;max-width:200px"><label for="bp-ten">Tenancy of every room, years</label>'
+    h += '<div class="field" style="margin-top:12px;max-width:200px" data-key="tenancy"><label for="bp-ten">Tenancy of every room, years</label>'
       + '<input type="number" id="bp-ten" min="0" step="0.5" value="' + fr[0].tenancy + '"><span class="hint-s">Survey average 4.6; drives the compensation bracket of s.4.8(i)</span></div>';
     // what the district scenario does with this building, and whether it is pinned to the drawing
     var sc = SCEN && SCEN.byIndex[i], pin = PINNED[i];
-    h += '<p class="note" style="margin-top:12px"><strong>In the district scenario:</strong> '
+    h += '<p class="note" style="margin-top:12px" data-key="district"><strong>In the district scenario:</strong> '
       + (!SCEN ? 'not yet run' : !sc ? 'not in the stock the mandate reaches'
         : sc.state === "converted" ? 'phase ' + sc.phase + ' · ' + sc.units + ' units · ' + sc.lost + ' rooms lost' + movesText(i, sc.phase)
         : sc.state === "infeasible" ? 'no compliant conversion'
@@ -4709,7 +4730,7 @@
              : '. Edit the plan and the district will take this building as drawn.')
       + (sc && sc.state === "converted" ? ' <button type="button" id="bp-map" style="margin-left:6px" title="Colour the map by the scenario and draw where this building’s tenants go">Show its tenants on the map</button>' : '') + '</p>';
     h += neighbourhoodHtml(i);
-    h += '<p class="src" style="margin-top:12px"><b>Click a marker</b> in the corridor to merge the two rooms or split them. <b>Drag a wall</b> to shift area between two rooms. <b>Click a room</b> to keep it as an SRA room, or to release it. Every floor is this floor.</p>';
+    h += '<p class="src" style="margin-top:12px" data-key="help"><b>Click a marker</b> in the corridor to merge the two rooms or split them. <b>Drag a wall</b> to shift area between two rooms. <b>Click a room</b> to keep it as an SRA room, or to release it. Every floor is this floor.</p>';
     side.innerHTML = h;
     side.querySelectorAll("[data-opt]").forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -4980,6 +5001,9 @@
   function neighbourhoodHtml(i) {
     var nb = neighbourhoodPlan(i);
     if (!nb) { CLUSTER = null; return ""; }
+    return '<div data-key="nb">' + neighbourhoodInner(i, nb) + '</div>';
+  }
+  function neighbourhoodInner(i, nb) {
     var shown = CLUSTER && CLUSTER.i === i && CLUSTER.shown;
     CLUSTER = { i: i, moves: nb.moves || [], shown: !!shown };
     var name = function (k) { return SURVEYED[parseInt(k, 10)].name; };
@@ -5409,6 +5433,141 @@
       + "The inventory table on the right still drives every test below.";
   }
   document.getElementById("r-unit-sf").addEventListener("input", function () { unitTouched = true; });
+  /* ---- editing the tool's words and layout in place ----
+     Every static piece of copy gets a stable id from a hash of its original
+     markup; an override is kept per id, so the same wording is put back after
+     a panel re-renders. The blocks of a sortable container carry a key and an
+     order is kept per container. Both live in this browser and can be
+     exported to be baked into the source. Text the tool generates from numbers
+     hashes differently every time, so it stays as the tool writes it. */
+  var EDIT = { on: false, copy: {}, order: {} };
+  var COPY_SEL = 'h1, h2, h4, .note, p.src, .label, label, .hint-s, .stage-foot span, .legend span, footer p, summary, .sec-head .note, .empty, th, button, .map-3d-hint';
+  function hashText(t) { var h = 5381; for (var i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0; return (h >>> 0).toString(36); }
+  function loadEdits() {
+    try { EDIT.copy = JSON.parse(localStorage.getItem("sro.copy") || "{}"); } catch (e) { EDIT.copy = {}; }
+    try { EDIT.order = JSON.parse(localStorage.getItem("sro.order") || "{}"); } catch (e) { EDIT.order = {}; }
+  }
+  function saveEdits() {
+    try { localStorage.setItem("sro.copy", JSON.stringify(EDIT.copy)); localStorage.setItem("sro.order", JSON.stringify(EDIT.order)); } catch (e) {}
+  }
+  function copyElements(root) {
+    var list = [];
+    Array.prototype.forEach.call((root || document).querySelectorAll(COPY_SEL), function (el) {
+      if (el.closest && el.closest(".editbar")) return;
+      if (el.querySelector && el.querySelector("input, select, svg, table")) return;   // a container, not a piece of copy
+      list.push(el);
+    });
+    return list;
+  }
+  // give every piece of copy its id and put any saved wording back
+  function applyCopy(root) {
+    copyElements(root).forEach(function (el) {
+      if (!el.dataset.copy) {
+        el.dataset.copyOrig = el.innerHTML;
+        el.dataset.copy = "c" + hashText(el.innerHTML.replace(/\s+/g, " ").trim());
+      }
+      var o = EDIT.copy[el.dataset.copy];
+      if (o && el.innerHTML !== o.html && el.getAttribute("contenteditable") !== "true") { el.innerHTML = o.html; el.classList.add("edited"); }
+    });
+  }
+  function keyOf(el) { return el.dataset.key || el.id || null; }
+  function applyOrder(container) {
+    var want = EDIT.order[container.id];
+    if (!want || !want.length) return;
+    var kids = Array.prototype.slice.call(container.children), byKey = {};
+    kids.forEach(function (k) { var key = keyOf(k); if (key) byKey[key] = k; });
+    var placed = {};
+    want.forEach(function (key) { var el = byKey[key]; if (el) { container.appendChild(el); placed[key] = true; } });
+    kids.forEach(function (k) { var key = keyOf(k); if (!key || !placed[key]) container.appendChild(k); });
+  }
+  function applyAllOrder() { Array.prototype.forEach.call(document.querySelectorAll("[data-sort]"), applyOrder); }
+  var editTimer = null;
+  function scheduleEdits() {
+    if (editTimer) return;
+    editTimer = setTimeout(function () { editTimer = null; applyCopy(); applyAllOrder(); if (EDIT.on) armDrag(); }, 30);
+  }
+  function setEditing(on) {
+    EDIT.on = on;
+    document.body.classList.toggle("editing", on);
+    document.getElementById("ed-toggle").classList.toggle("on", on);
+    document.getElementById("ed-tools").hidden = !on;
+    if (on) { applyCopy(); armDrag(); }
+    else Array.prototype.forEach.call(document.querySelectorAll('[contenteditable="true"]'), function (el) { el.blur(); });
+  }
+  document.addEventListener("dblclick", function (e) {
+    if (!EDIT.on) return;
+    var el = e.target.closest && e.target.closest("[data-copy]");
+    if (!el || el.tagName === "BUTTON" && el.closest(".editbar")) return;
+    e.preventDefault();
+    el.setAttribute("contenteditable", "true");
+    el.focus();
+    var sel = window.getSelection(), range = document.createRange();
+    range.selectNodeContents(el); sel.removeAllRanges(); sel.addRange(range);
+  }, true);
+  document.addEventListener("focusout", function (e) {
+    var el = e.target;
+    if (!el.dataset || !el.dataset.copy || el.getAttribute("contenteditable") !== "true") return;
+    el.removeAttribute("contenteditable");
+    var html = el.innerHTML;
+    if (html === el.dataset.copyOrig) { delete EDIT.copy[el.dataset.copy]; el.classList.remove("edited"); }
+    else { EDIT.copy[el.dataset.copy] = { orig: el.dataset.copyOrig, html: html, text: el.textContent.trim() }; el.classList.add("edited"); }
+    saveEdits();
+  }, true);
+  document.addEventListener("keydown", function (e) {
+    var el = document.activeElement;
+    if (!el || el.getAttribute("contenteditable") !== "true") return;
+    if (e.key === "Escape") { el.innerHTML = EDIT.copy[el.dataset.copy] ? EDIT.copy[el.dataset.copy].html : el.dataset.copyOrig; el.blur(); }
+    if (e.key === "Enter" && !e.shiftKey && el.tagName !== "P") { e.preventDefault(); el.blur(); }
+  });
+  // moving the blocks of a container
+  var dragKey = null, dragFrom = null;
+  function armDrag() {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-sort]"), function (c) {
+      Array.prototype.forEach.call(c.children, function (k) {
+        if (!keyOf(k) || k.dataset.armed) return;
+        k.dataset.armed = "1";
+        k.setAttribute("draggable", "true");
+        k.addEventListener("dragstart", function (e) {
+          if (!EDIT.on || (e.target.getAttribute && e.target.getAttribute("contenteditable") === "true")) { e.preventDefault(); return; }
+          dragKey = keyOf(k); dragFrom = c; k.classList.add("dragging"); e.dataTransfer.effectAllowed = "move";
+          try { e.dataTransfer.setData("text/plain", dragKey); } catch (x) {}
+        });
+        k.addEventListener("dragend", function () { k.classList.remove("dragging"); clearMarks(c); });
+        k.addEventListener("dragover", function (e) {
+          if (!dragKey || dragFrom !== c || k === dragFrom.querySelector('[data-key="' + dragKey + '"], #' + dragKey)) return;
+          e.preventDefault();
+          var r = k.getBoundingClientRect(), before = e.clientY < r.top + r.height / 2;
+          clearMarks(c); k.classList.add(before ? "drag-over-before" : "drag-over-after");
+        });
+        k.addEventListener("drop", function (e) {
+          if (!dragKey || dragFrom !== c) return;
+          e.preventDefault();
+          var moving = Array.prototype.filter.call(c.children, function (x) { return keyOf(x) === dragKey; })[0];
+          if (!moving || moving === k) return;
+          var r = k.getBoundingClientRect(), before = e.clientY < r.top + r.height / 2;
+          c.insertBefore(moving, before ? k : k.nextSibling);
+          EDIT.order[c.id] = Array.prototype.map.call(c.children, keyOf).filter(Boolean);
+          saveEdits(); clearMarks(c); dragKey = null;
+        });
+      });
+    });
+  }
+  function clearMarks(c) { Array.prototype.forEach.call(c.children, function (x) { x.classList.remove("drag-over-before", "drag-over-after"); }); }
+  document.getElementById("ed-toggle").addEventListener("click", function () { setEditing(!EDIT.on); });
+  document.getElementById("ed-reset").addEventListener("click", function () {
+    if (!confirm("Forget every edit to the text and layout in this browser?")) return;
+    EDIT.copy = {}; EDIT.order = {}; saveEdits(); location.reload();
+  });
+  document.getElementById("ed-export").addEventListener("click", function () {
+    var out = { exported: new Date().toISOString(), copy: EDIT.copy, order: EDIT.order };
+    var a = document.createElement("a");
+    a.href = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(out, null, 1));
+    a.download = "sro-edits.json"; document.body.appendChild(a); a.click(); a.remove();
+  });
+  loadEdits();
+  new MutationObserver(scheduleEdits).observe(document.body, { childList: true, subtree: true });
+  scheduleEdits();
+
   // the ledger, reachable from the console so its answers can be checked against sro/optimize.py
   window.SRO = { heuristicPhases: heuristicPhases, runProgramme: runProgramme, programmeCost: programmeCost,
                  searchProgramme: searchProgramme, lastStock: function () { return LAST_STOCK; } };
