@@ -336,6 +336,16 @@ who waits in the relocation housing), and **Show its tenants on the map** turns 
 on, steps the map to the building's phase and draws its moves heavier than the rest; an edit in the
 plan turns the scenario on by itself, since an edit is a question the map is there to answer.
 
+**Phasing around one building.** Below that line the panel runs the ledger's search on just the
+buildings within a ten-minute walk of the one on screen: the selected building as drawn, its
+neighbours converting as the district scenario has them or otherwise lending their vacant rooms, and
+the same relocation housing, vacancy, new supply and placement rule as the drawer. It reports the
+order found in words — which neighbours to convert first and whether their works leave homes to
+spare, how many of this building's tenants go out and where they wait and land, how many nobody
+nearby can house and how many new units within the walk would house them — and whether the search
+beat the one-pass rule. **Show this phasing on the map** draws the cluster's moves in place of the
+district's. The walk (600 m) is an assumption, and the plan is only as good as the vacancy rate.
+
 **The order, as a housing ledger** (in the drawer, below the bar). The allocation says which
 buildings convert; the ledger says when, and follows every tenant. Converting a building removes
 homes, so moving tenants between SROs can only help where the district has slack: vacant rooms,

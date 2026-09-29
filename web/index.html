@@ -3124,6 +3124,8 @@
 
   // the selected building's own moves in its phase, whatever phase the map shows
   function focusMoves() {
+    // a neighbourhood plan shown on the map takes precedence over the district's own moves
+    if (CLUSTER && CLUSTER.i === surveySel && CLUSTER.shown) return CLUSTER.moves;
     if (!SCEN || !SCEN.steps || surveySel === null) return [];
     var sc = SCEN.byIndex[surveySel];
     if (!sc || sc.state !== "converted") return [];
@@ -4086,16 +4088,17 @@
   }
 
   // where the tenants of one building go in its phase, for the card
-  function movesText(i, phase) {
-    if (!SCEN || !SCEN.steps || !SCEN.steps[phase - 1]) return "";
-    var mine = SCEN.steps[phase - 1].moves.filter(function (m) { return m.src === String(i); });
+  function movesText(i, phase, steps) {
+    var S = steps || (SCEN && SCEN.steps);
+    if (!S || !S[phase - 1]) return "";
+    var mine = S[phase - 1].moves.filter(function (m) { return m.src === String(i); });
     if (!mine.length) return "";
     var name = function (d) {
       return d === "new" ? "new supply" : d === "relocation" ? "relocation housing" : d === "out" ? "out of the district" : SURVEYED[parseInt(d, 10)].name;
     };
     // the ones who never come back are named one by one; the ones who wait are summed
     var perm = mine.filter(function (m) { return m.permanent; }), temp = mine.filter(function (m) { return !m.permanent; });
-    var parts = perm.map(function (m) { return m.n + " to " + name(m.dst) + " for good"; });
+    var parts = perm.map(function (m) { return m.dst === "out" ? m.n + " leave the district for good" : m.dst === "new" ? m.n + " into new supply for good" : m.n + " to " + name(m.dst) + " for good"; });
     var nearby = temp.filter(function (m) { return m.dst !== "new" && m.dst !== "relocation" && m.dst !== "out"; });
     var nNear = nearby.reduce(function (t, m) { return t + m.n; }, 0);
     if (nNear) parts.push(nNear + " wait in spare rooms in " + nearby.length + " building" + (nearby.length > 1 ? "s" : "") + " nearby, then return");
@@ -4674,6 +4677,7 @@
       + (pin ? '. <strong>Pinned</strong>: the district takes this building exactly as drawn, or not at all. <button type="button" id="bp-unpin" style="margin-left:6px">Unpin</button>'
              : '. Edit the plan and the district will take this building as drawn.')
       + (sc && sc.state === "converted" ? ' <button type="button" id="bp-map" style="margin-left:6px" title="Colour the map by the scenario and draw where this building’s tenants go">Show its tenants on the map</button>' : '') + '</p>';
+    h += neighbourhoodHtml(i);
     h += '<p class="src" style="margin-top:12px"><b>Click a marker</b> in the corridor to merge the two rooms or split them. <b>Drag a wall</b> to shift area between two rooms. <b>Click a room</b> to keep it as an SRA room, or to release it. Every floor is this floor.</p>';
     side.innerHTML = h;
     side.querySelectorAll("[data-opt]").forEach(function (btn) {
@@ -4695,6 +4699,15 @@
     });
     var unpinBtn = document.getElementById("bp-unpin");
     if (unpinBtn) unpinBtn.addEventListener("click", function () { unpin(i); renderBuilding(); });
+    var nbBtn = document.getElementById("bp-nb-map");
+    if (nbBtn) nbBtn.addEventListener("click", function () {
+      if (!CLUSTER || CLUSTER.i !== i) return;
+      CLUSTER.shown = !CLUSTER.shown;
+      if (CLUSTER.shown && !scenColour) setScenarioColour(true);
+      drawMap(); if (M3.on) m3build();
+      renderBuilding();
+      if (CLUSTER.shown) mapStage.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
     var mapBtn = document.getElementById("bp-map");
     if (mapBtn) mapBtn.addEventListener("click", function () {
       if (!scenColour) setScenarioColour(true);
@@ -4855,6 +4868,82 @@
   var districtCands = null;
   var PINNED = {};          // Appendix B index -> the scheme drawn in section 02, which the district takes as is
   var SEARCHED = null;      // the searched partition for one exact scenario, by signature
+  var CLUSTER = null;       // the phasing found around the selected building, for section 02 and the map
+
+  // Phasing around one building: the ledger's search run on the buildings within a
+  // ten-minute walk, the neighbours converting as the district has them or lending
+  // their vacant rooms, and the selected building as drawn. Answers, for the
+  // building on screen, which neighbours should go first, where its tenants wait
+  // and land, and what nobody nearby can house.
+  function neighbourhoodPlan(i) {
+    if (!SCEN || !LAST_STOCK || surveySel !== i) return null;
+    var b = SURVEYED[i];
+    if (!b || b.lon == null) return null;
+    var mpu = mPerUnit();
+    var vacRate = Math.max(0, Math.min(50, num(document.getElementById("d-vac").value) == null ? 5 : num(document.getElementById("d-vac").value))) / 100;
+    var xy = function (bb) { return [PROJ.x(bb.lon) * mpu, PROJ.y(bb.lat) * mpu]; };
+    var here = xy(b);
+    var ev = evaluate();
+    var mine = { key: String(i), i: i, rooms: ev.original, vacant: Math.round(ev.original * vacRate), units: ev.units.length, kept: ev.untouched.length,
+                 xy: here, convert: true, compliant: ev.compliant };
+    var stock = [mine], members = [];
+    SURVEYED.forEach(function (o, j) {
+      if (j === i || o.lon == null || !o.rooms) return;
+      var p = xy(o), d = Math.hypot(p[0] - here[0], p[1] - here[1]);
+      if (d > WALK_M) return;
+      var sc = SCEN.byIndex[j], conv = sc && sc.state === "converted";
+      var n = conv ? sc.n : o.rooms;
+      stock.push({ key: String(j), i: j, rooms: n, vacant: Math.round(n * vacRate), units: conv ? sc.units : 0, kept: conv ? sc.kept : 0, xy: p, convert: !!conv });
+      members.push({ i: j, name: o.name, d: Math.round(d), converts: !!conv, vacant: Math.round(n * vacRate), spare: conv ? Math.max(0, sc.units + sc.kept - (n - Math.round(n * vacRate))) : 0 });
+    });
+    if (!mine.compliant) return { i: i, members: members, infeasible: true };
+    var r = searchProgramme(stock, LAST_STOCK.relocation, LAST_STOCK.newPer, 600, LAST_STOCK.placement);
+    var by = {}; stock.forEach(function (s) { by[s.key] = s; });
+    var moves = [];
+    r.steps.forEach(function (st) {
+      st.moves.forEach(function (m) {
+        if (m.dst === "new" || m.dst === "relocation" || m.dst === "out") return;
+        moves.push({ i: parseInt(m.src, 10), j: parseInt(m.dst, 10), n: m.n, permanent: m.permanent, focus: m.src === String(i) });
+      });
+    });
+    var myPhase = r.steps.filter(function (st) { return st.items.some(function (s) { return s.key === String(i); }); })[0];
+    return { i: i, members: members, steps: r.steps, phases: r.phases, moves: moves, cost: r.cost, baseline: r.baselineCost,
+             evaluations: r.evaluations, myPhase: myPhase, mine: mine, by: by, stock: stock };
+  }
+
+  function neighbourhoodHtml(i) {
+    var nb = neighbourhoodPlan(i);
+    if (!nb) { CLUSTER = null; return ""; }
+    var shown = CLUSTER && CLUSTER.i === i && CLUSTER.shown;
+    CLUSTER = { i: i, moves: nb.moves || [], shown: !!shown };
+    var name = function (k) { return SURVEYED[parseInt(k, 10)].name; };
+    var h = '<div class="label out-head" style="margin-top:14px">Phasing around this building · ' + nb.members.length + ' within a ten-minute walk</div>';
+    if (nb.infeasible) return h + '<p class="src">The drawing fails the tests, so there is no conversion to phase. Make it pass, or apply the least-displacement scheme.</p>';
+    if (!nb.members.length) return h + '<p class="src">No other SRO within a ten-minute walk: this building’s tenants can only wait in the relocation housing, and those who cannot return leave the district or take new supply.</p>';
+    var mine = nb.mine, t = Math.max(0, mine.rooms - mine.vacant), notRet = Math.max(0, t - mine.units - mine.kept);
+    var my = nb.myPhase, myIdx = nb.steps.indexOf(my);
+    var before = nb.steps.slice(0, myIdx), after = nb.steps.slice(myIdx + 1);
+    var lenders = nb.members.filter(function (m) { return !m.converts && m.vacant; });
+    h += '<p class="note">';
+    if (before.length) {
+      var firsts = before.map(function (st) { return st.items.map(function (s) { return name(s.key); }).join(", "); });
+      var spare = before.reduce(function (a, st) { return a + st.items.reduce(function (x, s) { return x + Math.max(0, s.units + s.kept - Math.max(0, s.rooms - s.vacant)); }, 0); }, 0);
+      h += '<strong>Convert ' + firsts.join("; then ") + ' first.</strong> ' + (spare ? 'After their works they have ' + spare + ' home' + (spare > 1 ? 's' : '') + ' to spare for the people this building cannot take back. ' : 'They do not add spare homes, but their works are out of the way before this building empties. ');
+    } else {
+      h += '<strong>This building goes first.</strong> ' + (after.length ? 'Its spare homes, if any, then serve the neighbours converting after it. ' : '');
+    }
+    h += 'Then this building: ' + t + ' out, ' + notRet + ' cannot return' + movesText(i, myIdx + 1, nb.steps).replace(/^\. Its tenants/, '; its tenants') + '.';
+    if (after.length) h += ' After it: ' + after.map(function (st) { return st.items.map(function (s) { return name(s.key); }).join(", "); }).join("; then ") + '.';
+    h += '</p>';
+    var own = my.moves.filter(function (m) { return m.src === String(i) && m.dst === "out"; });
+    var left = own.filter(function (m) { return m.permanent; }).reduce(function (a, m) { return a + m.n; }, 0);
+    var nowhere = own.filter(function (m) { return !m.permanent; }).reduce(function (a, m) { return a + m.n; }, 0);
+    if (left || nowhere) h += '<p class="src"><strong>' + (left ? left + ' of its tenants have nowhere nearby to go for good' : '') + (left && nowhere ? '; ' : '') + (nowhere ? nowhere + ' have nowhere to wait' : '') + '.</strong> Nearby slack is ' + lenders.reduce(function (a, m) { return a + m.vacant; }, 0) + ' vacant room' + (lenders.length === 1 ? '' : 's') + ' in ' + lenders.length + ' building' + (lenders.length === 1 ? '' : 's') + ' that stay as they are; ' + (left ? 'opening ' + left + ' new unit' + (left > 1 ? 's' : '') + ' within the walk would house the rest' : 'more relocation housing would let everyone wait') + '.</p>';
+    h += '<p class="src">' + (nb.cost[0] < nb.baseline[0] || nb.cost[1] < nb.baseline[1] ? 'The order was searched (' + nb.evaluations + ' tried) and beats the rule: ' + (nb.baseline[0] - nb.cost[0]) + ' fewer leave, ' + (nb.baseline[1] - nb.cost[1]) + ' fewer with nowhere to wait. ' : 'The order is the rule’s; a search of ' + nb.evaluations + ' found nothing better. ')
+      + 'Neighbours convert as the district scenario has them; the rest lend vacant rooms at ' + Math.round(mine.vacant / Math.max(1, mine.rooms) * 100) + '% vacancy.</p>';
+    h += '<div class="btnrow"><button type="button" id="bp-nb-map">' + (shown ? 'Hide' : 'Show') + ' this phasing on the map</button></div>';
+    return h;
+  }
   var LAST_STOCK = null;    // what the last render fed the ledger, for the search button
 
   // An edit in section 02 pins the building: the district converts it exactly
@@ -5005,7 +5094,7 @@
     });
     cands.list.forEach(function (c) {
       var pk = res.chosen[c.key];
-      SCEN.byIndex[c.i] = pk ? { state: "converted", units: pk.units, lost: pk.lost, n: c.original, phase: phaseOf[c.key] } : { state: "untouched", n: c.original };
+      SCEN.byIndex[c.i] = pk ? { state: "converted", units: pk.units, kept: pk.kept, lost: pk.lost, n: c.original, phase: phaseOf[c.key] } : { state: "untouched", n: c.original };
     });
     cands.stuck.forEach(function (i) { SCEN.byIndex[i] = { state: "infeasible", n: SURVEYED[i].rooms }; });
     cands.pinnedOut.forEach(function (i) { SCEN.byIndex[i] = { state: "pinned-fail", n: PINNED[i].original }; });
