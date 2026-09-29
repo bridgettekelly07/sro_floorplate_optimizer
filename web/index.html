@@ -620,8 +620,6 @@
             <input type="range" id="d-target" min="0" max="100" step="1" value="50">
             <span class="hint-s" id="d-target-hint"></span>
           </div>
-          <p class="src">The tool then picks which buildings convert, and how far each goes, so the
-            mandate is met while the fewest tenants lose their room.</p>
         </div>
         <div class="step">
           <div class="label"><span class="step-n">2</span>Watch it happen</div>
@@ -644,7 +642,7 @@
           <div class="field">
             <label for="d-cap-works">Relocation housing the City supplies &middot; tenants at once</label>
             <input type="number" id="d-cap-works" min="0" max="5000" step="10" value="300">
-            <span class="hint-s">A building in works empties every room (s.4.8(f)). Its tenants wait in spare rooms nearby first, then here. An assumption.</span>
+            <span class="hint-s">Tenants wait in spare rooms nearby first, then here.</span>
           </div>
           <div class="pair">
             <div class="field"><label for="d-vac">Vacant rooms, %</label>
@@ -652,14 +650,21 @@
             <div class="field"><label for="d-new">New units opening, per phase</label>
               <input type="number" id="d-new" min="0" max="2000" step="5" value="0"></div>
           </div>
-          <p class="src">Converting removes homes, so tenants can only move between buildings where
-            there is slack: vacant rooms, homes a converted building has to spare, new supply. The
-            ledger follows every tenant, nearest slack first. Buildings whose conversion adds slack
-            go first; the rest, gentlest first. Vacancy and new supply are assumptions the sources
-            do not give.</p>
+          <p class="src">Tenants move only where there is slack: vacant rooms, spare homes, new supply.</p>
         </div>
         <details class="assume">
           <summary>Assumptions behind the numbers</summary>
+          <p class="src">The mandate is met by choosing which buildings convert, and how far each goes,
+            so that the fewest tenants lose their room; a building converts at a scheme of its own or
+            not at all, since a partial conversion below 50% fails DTES 9.2.7. A building edited in
+            section 02 is taken exactly as drawn.</p>
+          <p class="src">Works empty a building (s.4.8(f)). Converting removes homes, so tenants can
+            only move between buildings where there is slack: vacant rooms, homes a converted
+            building has to spare, and new supply. The ledger follows every tenant, nearest slack
+            first, then the relocation housing; those who cannot return are placed for good the same
+            way, and the rest leave the district. Buildings whose conversion adds slack go first,
+            then the gentlest. Vacancy, relocation housing and new supply are assumptions the
+            sources do not give.</p>
           <div class="field">
             <label for="d-read">Size test</label>
             <select id="d-read">
@@ -678,10 +683,8 @@
             divided by the rooms Appendix B counts on a floor, and capped where a footprint holds far
             more than its count suggests, since the City counts the designated rooms and not the
             commercial or common floor around them.</p>
-          <p class="src">A building converts at a scheme of its own or not at all: a partial conversion
-            below 50% fails DTES 9.2.7. Every room is taken as occupied, so rooms lost equals tenants
-            displaced; the survey&rsquo;s average tenancy of 4.6 years places each of them in the
-            4-month bracket of s.4.8(i). A building edited in section 02 is taken exactly as drawn.</p>
+          <p class="src">Tenants are rooms less the vacancy assumed. The survey&rsquo;s average tenancy
+            of 4.6 years places everyone who cannot return in the 4-month bracket of s.4.8(i).</p>
         </details>
         </div>
         <form id="b-form" hidden>
@@ -4792,7 +4795,7 @@
     var T = Math.round(cands.maxUnits * inp.share);
     var res = cands.alloc.pick(T);
     document.getElementById("d-target-v").textContent = T.toLocaleString("en-CA") + " of " + cands.maxUnits.toLocaleString("en-CA") + " possible";
-    document.getElementById("d-target-hint").textContent = "0 leaves the stock as it is; 100% converts every building that can be converted. " + cands.rooms.toLocaleString("en-CA") + " rooms are in scope.";
+    document.getElementById("d-target-hint").textContent = "0 leaves the stock as it is; 100% converts all that can. " + cands.rooms.toLocaleString("en-CA") + " rooms in scope.";
 
     var relocation = Math.max(0, num(document.getElementById("d-cap-works").value) || 0);
     var vac = Math.max(0, Math.min(50, num(document.getElementById("d-vac").value) == null ? 5 : num(document.getElementById("d-vac").value))) / 100;
@@ -4820,7 +4823,7 @@
     document.getElementById("d-phase-v").textContent = phases.length
       ? (scenPhase === null ? "all " + phases.length + " done" : scenPhase === 0 ? "none started" : scenPhase + " of " + phases.length + " in works")
       : "no conversions";
-    document.getElementById("d-phase-hint").textContent = "Drag to step through the programme: buildings done are coloured by the share of tenants displaced, the phase in works in ochre, the rest grey. Lines show where that phase’s tenants go: ochre to wait, red for good.";
+    document.getElementById("d-phase-hint").textContent = "Yellow: in works. Lines: where its tenants go — ochre to wait, red for good.";
 
     SCEN = { byIndex: {}, scope: inp.scope, phase: scenPhase, steps: phases, moves: [] };
     var shown = scenPhase === null ? phases : scenPhase === 0 ? [] : [phases[scenPhase - 1]];
@@ -4880,11 +4883,11 @@
           { n: stayPut + noPlanTenants, label: "Building left as it is", colour: "var(--map-unsurveyed)", dark: true },
           { n: stuckTenants, label: "No compliant conversion", colour: "var(--scen-x)", dark: false }
         ])
-      + '<p class="src">Tenants are rooms less the vacancy assumed. A converted building takes back one tenant per home it has after works (s.4.8(f)–(g)); the rest go to the nearest spare room, to new supply, or out of the district.</p>';
+      + '<p class="src">A converted building takes back one tenant per home it has after works; the rest go to the nearest spare room, new supply, or out.</p>';
 
     var h = '';
     if (cands.stuck.length) {
-      h += '<p class="note" style="margin-top:12px"><strong>' + cands.stuck.length + ' building' + (cands.stuck.length > 1 ? "s" : "") + ' with ' + stuckRooms.toLocaleString("en-CA") + ' rooms cannot be converted at all</strong> under the ' + (inp.strict ? "strict" : "average") + ' reading: their rooms are too small for any scheme of adjacent merges to leave half the count standing. Conversion there means replacement, and the mandate is met without them. They are drawn in solid ink on the map.</p>';
+      h += '<p class="note" style="margin-top:12px"><strong>' + cands.stuck.length + ' building' + (cands.stuck.length > 1 ? "s" : "") + ' with ' + stuckRooms.toLocaleString("en-CA") + ' rooms cannot convert at all</strong>: their rooms are too small for any merge to leave half the count standing. Shown white on the map.</p>';
     }
     if (cands.noPlan.length) {
       h += '<p class="src">' + cands.noPlan.length + ' in-scope building' + (cands.noPlan.length > 1 ? "s have" : " has") + ' no footprint to draw a floor from and ' + (cands.noPlan.length > 1 ? "are" : "is") + ' left out of the scenario.</p>';
@@ -4997,9 +5000,9 @@
         + '<td class="n">' + f(p.permDistrict) + ' / ' + f(p.permNew) + ' / ' + red(p.permLeft) + '</td><td class="n">' + f(p.cumUnits) + '</td></tr>';
     });
     var nowhere = phases.reduce(function (t, p) { return t + p.tempLeft; }, 0);
-    h += '</tbody></table><p class="src">' + phases.length + ' phase' + (phases.length > 1 ? "s" : "") + '. A phase takes as many buildings as the slack of the moment can hold; '
-      + (nowhere ? '<strong>' + nowhere.toLocaleString("en-CA") + ' tenants have nowhere to wait</strong> in phases where one building alone exceeds it. ' : 'nobody is left without somewhere to wait. ')
-      + 'Click a phase to show it, and its moves, on the map.</p>';
+    h += '</tbody></table><p class="src">A phase takes as many buildings as the slack of the moment can hold'
+      + (nowhere ? '; <strong>' + nowhere.toLocaleString("en-CA") + ' have nowhere to wait</strong> where one building alone exceeds it' : '')
+      + '. Click a phase to show it on the map.</p>';
     return h;
   }
 
