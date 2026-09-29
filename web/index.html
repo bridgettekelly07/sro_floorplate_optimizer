@@ -5149,26 +5149,21 @@
     LAST_STOCK = { stock: stock, relocation: relocation, newPer: newPer, placement: placement, sig: sig };
     phases.forEach(function (ph) { ph.items.forEach(function (s) { phaseOf[s.key] = ph.number; }); });
     function tenantsOf(s) { return Math.max(0, s.rooms - s.vacant); }
-    if (scenPhase === null || scenPhase > phases.length) scenPhase = null;
-    // one button per phase, with "before" and "done" at the ends
-    var pb = document.getElementById("d-phase-btns"), bh = '';
-    if (phases.length) {
-      bh += '<button type="button" data-ph="0"' + (scenPhase === 0 ? ' class="on"' : '') + ' title="Nothing started">Before</button>';
-      phases.forEach(function (ph) { bh += '<button type="button" data-ph="' + ph.number + '"' + (scenPhase === ph.number ? ' class="on"' : '') + ' title="' + ph.items.length + ' building' + (ph.items.length > 1 ? 's' : '') + ' in works">' + ph.number + '</button>'; });
-      bh += '<button type="button" data-ph="done"' + (scenPhase === null ? ' class="on"' : '') + ' title="The programme complete">Done</button>';
-    }
-    pb.innerHTML = bh;
+    // one button per phase; the first phase is shown until another is chosen
+    if (!phases.length) scenPhase = null;
+    else if (scenPhase === null || scenPhase < 1 || scenPhase > phases.length) scenPhase = 1;
+    var pb = document.getElementById("d-phase-btns");
+    pb.innerHTML = phases.map(function (ph) {
+      return '<button type="button" data-ph="' + ph.number + '"' + (scenPhase === ph.number ? ' class="on"' : '') + ' title="' + ph.items.length + ' building' + (ph.items.length > 1 ? 's' : '') + ' in works">Phase ' + ph.number + '</button>';
+    }).join("");
     pb.querySelectorAll("[data-ph]").forEach(function (btn) {
       btn.addEventListener("click", function () {
-        var v = btn.getAttribute("data-ph");
-        scenPhase = v === "done" ? null : parseInt(v, 10);
+        scenPhase = parseInt(btn.getAttribute("data-ph"), 10);
         renderDistrict(); if (!scenColour) setScenarioColour(true);
       });
     });
-    document.getElementById("d-phase-v").textContent = phases.length
-      ? (scenPhase === null ? "all " + phases.length + " done" : scenPhase === 0 ? "none started" : scenPhase + " of " + phases.length + " in works")
-      : "no conversions";
-    document.getElementById("d-phase-hint").textContent = "Yellow: in works. Lines: where its tenants go — ochre to wait, red for good. Done shows only the moves that last.";
+    document.getElementById("d-phase-v").textContent = phases.length ? scenPhase + " of " + phases.length + " in works" : "no conversions";
+    document.getElementById("d-phase-hint").textContent = "Yellow: in works. Lines: where its tenants go — ochre to wait, red for good.";
 
     SCEN = { byIndex: {}, scope: inp.scope, phase: scenPhase, steps: phases, moves: [] };
     var shown = scenPhase === null ? phases : scenPhase === 0 ? [] : [phases[scenPhase - 1]];
