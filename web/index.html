@@ -524,10 +524,6 @@
             <input type="range" id="t-circ" min="0" max="60" step="1" value="25">
             <span class="hint-s">Corridor, stair and services; the tool assumes 25%</span>
           </div>
-          <div class="btnrow" style="margin-top:4px">
-            <button type="button" id="t-source" title="Put every threshold back to the source's value, and the assumptions to the tool's">Source values</button>
-            <span class="hint-s" id="t-note"></span>
-          </div>
         </div>
         </div>
         <div id="bp-side"></div>
@@ -577,7 +573,7 @@
             <input type="number" id="d-min-rep" min="0" max="100" step="5" value="50">
             <span class="hint-s">DTES Plan 9.2.7</span></div>
         </div>
-        <div class="pair">
+        <div class="pair" style="display:none">
           <div class="field"><label for="d-small">Small-loss route, rooms &middot; <span class="src-v">source 3</span></label>
             <input type="number" id="d-small" min="0" max="50" step="1" value="3">
             <span class="hint-s">SRA By-law s.4.3A: at or under, the General Manager; over, Council</span></div>
@@ -585,17 +581,10 @@
             <input type="number" id="d-days" min="0" max="365" step="1" value="30">
             <span class="hint-s">SRA By-law s.1.2: who is owed compensation</span></div>
         </div>
-        <div class="btnrow" style="margin-bottom:12px">
-          <button type="button" id="d-keep" title="Keep these thresholds as a variant to compare against others">Keep as variant</button>
-          <button type="button" id="d-source" title="Put every threshold back to the source's value">Source values</button>
-          <span class="hint-s" id="d-policy-note"></span>
-        </div>
         <div class="label out-head">Who is displaced</div>
         <div id="d-head"></div>
         <div class="tally" id="d-tally"></div>
         <div id="d-curve" style="margin-top:14px"></div>
-        <div class="label out-head">Variants</div>
-        <div id="d-variants"></div>
         <div id="d-out"></div>
         <details class="assume">
           <summary>Assumptions</summary>
@@ -2897,9 +2886,6 @@
   var SCEN = null;          // the policy applied, by Appendix B index
   var scenColour = false;
   var districtCands = null;
-  var VARIANTS = [];        // sets of thresholds kept for comparison
-  function loadVariants() { try { VARIANTS = JSON.parse(localStorage.getItem("sro.variants") || "[]"); } catch (e) { VARIANTS = []; } }
-  function saveVariants() { try { localStorage.setItem("sro.variants", JSON.stringify(VARIANTS)); } catch (e) {} }
 
   function defaultTo3d() {
     if (M3.on || M3.defaulted || !PROJ || !STREETS || !SURVEYED.length || !FOOT || !THREE) return;
@@ -3008,7 +2994,6 @@
     if (!tally || !SURVEYED.length || !FOOT) return;
     var inp = districtInputs(), cands = candidatesFor(inp.scope, inp.strict, inp.policy), out = policyOutcome(cands, inp.scope);
     var isSource = POLICY_FIELDS.every(function (f) { return Math.abs(inp.policy[f[0]] - SOURCE_POLICY[f[0]]) < 1e-9; });
-    document.getElementById("d-policy-note").textContent = isSource ? "The sources' thresholds." : "Thresholds of your own; the sources' are shown beside each.";
 
     SCEN = { byIndex: {}, scope: inp.scope };
     cands.list.forEach(function (c) { SCEN.byIndex[c.i] = { state: "converted", units: c.units, kept: c.kept, lost: c.lost, n: c.n }; });
@@ -3037,33 +3022,6 @@
           { n: out.stuckTenants, label: "Building cannot pass, left as it is", colour: "var(--scen-x)", dark: false },
           { n: out.noPlanTenants, label: "No footprint to draw", colour: "var(--map-unsurveyed)", dark: true }
         ]);
-
-    // variants: the thresholds kept, each with what it does, and the current one last
-    var vh = '<table class="dist"><thead><tr><th>Variant</th><th>Thresholds</th><th class="n">Convert</th><th class="n">Units</th><th class="n">Displaced</th><th class="n">Council</th><th class="n">Compensation</th><th></th></tr></thead><tbody>';
-    VARIANTS.forEach(function (v, k) {
-      vh += '<tr class="pick" data-v="' + k + '" title="Load these thresholds"><td>' + esc(v.label) + '</td><td>' + esc(policyText(v.policy, v.strict)) + ' · ' + esc(v.scope === "market" ? "private" : v.scope === "nonmarket" ? "public" : "all") + '</td>'
-        + '<td class="n">' + v.out.convert + '/' + v.out.of + '</td><td class="n">' + v.out.units.toLocaleString("en-CA") + '</td><td class="n">' + v.out.lost.toLocaleString("en-CA") + (v.out.tenants ? ' · ' + pct(v.out.lost / v.out.tenants) : '') + '</td>'
-        + '<td class="n">' + v.out.council + '</td><td class="n">' + money(v.out.comp) + '</td><td class="n"><button type="button" data-rm="' + k + '" title="Remove this variant" style="padding:1px 6px">×</button></td></tr>';
-    });
-    vh += '<tr><td><em>now</em></td><td>' + esc(policyText(inp.policy, inp.strict)) + ' · ' + esc(inp.scope === "market" ? "private" : inp.scope === "nonmarket" ? "public" : "all") + '</td>'
-      + '<td class="n">' + out.convert + '/' + out.of + '</td><td class="n">' + out.units.toLocaleString("en-CA") + '</td><td class="n">' + out.lost.toLocaleString("en-CA") + (out.tenants ? ' · ' + pct(out.lost / out.tenants) : '') + '</td>'
-      + '<td class="n">' + out.council + '</td><td class="n">' + money(out.comp) + '</td><td></td></tr></tbody></table>'
-      + '<p class="src">' + (VARIANTS.length ? 'Click a variant to load its thresholds. ' : 'Keep the current thresholds as a variant to compare against the next set. ') + 'Variants stay in this browser.</p>';
-    var vEl = document.getElementById("d-variants");
-    vEl.innerHTML = vh;
-    vEl.querySelectorAll("tr.pick").forEach(function (tr) {
-      tr.addEventListener("click", function (e) {
-        if (e.target.closest("[data-rm]")) return;
-        var v = VARIANTS[parseInt(tr.getAttribute("data-v"), 10)];
-        writePolicy(v.policy);
-        document.getElementById("d-scope").value = v.scope;
-        document.getElementById("d-read").value = v.strict ? "strict" : "average";
-        districtCands = null; renderDistrict();
-      });
-    });
-    vEl.querySelectorAll("[data-rm]").forEach(function (btn) {
-      btn.addEventListener("click", function () { VARIANTS.splice(parseInt(btn.getAttribute("data-rm"), 10), 1); saveVariants(); renderDistrict(); });
-    });
 
     // which buildings, ranked by tenants displaced
     var h = '';
@@ -3116,16 +3074,6 @@
   ["d-cap", "d-circ"].forEach(function (id) {
     document.getElementById(id).addEventListener("change", function () { districtReady(); });
   });
-  document.getElementById("d-keep").addEventListener("click", function () {
-    var inp = districtInputs(), cands = candidatesFor(inp.scope, inp.strict, inp.policy), out = policyOutcome(cands, inp.scope);
-    VARIANTS.push({ label: letter(VARIANTS.length), scope: inp.scope, strict: inp.strict, policy: inp.policy,
-                    out: { convert: out.convert, of: out.of, units: out.units, lost: out.lost, tenants: out.tenants, council: out.council, comp: out.comp } });
-    saveVariants(); renderDistrict();
-  });
-  document.getElementById("d-source").addEventListener("click", function () {
-    writePolicy(SOURCE_POLICY); districtCands = null; renderDistrict();
-  });
-
   /* ---- section 02: the thresholds as sliders ----
      The drawer's inputs hold the policy; each slider here mirrors one of
      them. While a slider moves only the building is redrawn, which is quick;
@@ -3150,9 +3098,6 @@
         out.textContent = fmtVal(row.getAttribute("data-fmt"), v);
         out.classList.toggle("mine", Math.abs(v - DEFAULTS[id]) > 1e-9);
       });
-      var mine = Object.keys(DEFAULTS).some(function (id) { var v = num(document.getElementById(id).value); return v != null && Math.abs(v - DEFAULTS[id]) > 1e-9; });
-      var note = document.getElementById("t-note");
-      if (note) note.textContent = mine ? "Values of your own are marked." : "The sources' values, and the tool's assumptions.";
     }
     // quick path while the thumb moves: the building alone
     function building(id) {
@@ -3181,13 +3126,6 @@
         optCache = {}; districtCands = null; loadedFor = null;
         renderDistrict(); sync();
       });
-    });
-    document.getElementById("t-source").addEventListener("click", function () {
-      planView = "proposed";
-      writePolicy(SOURCE_POLICY);
-      document.getElementById("d-read").value = "average";
-      document.getElementById("d-cap").value = DEFAULTS["d-cap"]; document.getElementById("d-circ").value = DEFAULTS["d-circ"];
-      districtCands = null; districtReady(); sync();
     });
     renderDistrict.syncSliders = sync;
     sync();
@@ -3241,7 +3179,6 @@
   }
 
   floors = [{ rooms: [], joints: [] }]; rooms = floors[0].rooms; joints = floors[0].joints;
-  loadVariants();
   loadStreets();
   loadSurveyed();
   loadFootprints();
