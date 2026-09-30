@@ -1,0 +1,64 @@
+/* ==== the 3D model stage, tags, hint, floor tabs ==== */
+  /* ---- the model ---- */
+  .stage { position: relative; background: var(--m-ground); }
+  .stage canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+  #viewport { height: clamp(360px, 52vh, 560px); }
+  .overlay { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  .tag {
+    position: absolute; transform: translate(-50%, -50%);
+    font-family: "IBM Plex Sans Condensed", sans-serif; font-weight: 600;
+    font-variant-numeric: tabular-nums; white-space: nowrap; text-align: center;
+    color: var(--ink); text-shadow: 0 1px 3px var(--m-ground), 0 0 6px var(--m-ground);
+  }
+  .tag .id { font-size: 15px; display: block; line-height: 1.05; }
+  .tag .sub { display: block; font-size: 10px; color: var(--ink-2); letter-spacing: 0.06em; line-height: 1.25; }
+  .tag.unit .id { font-size: 17px; }
+  .tag.short .sub { color: var(--fail); }
+  .tag.band {
+    font-size: 10px; letter-spacing: 0.16em; color: var(--ink-3);
+    transform: translate(-50%, -50%);
+  }
+  .stage-bar {
+    display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between;
+    align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--rule);
+    background: var(--surface);
+  }
+  .stage-foot {
+    padding: 9px 14px; border-top: 1px solid var(--rule); background: var(--surface);
+    font-size: 12px; color: var(--ink-3); display: flex; flex-wrap: wrap; gap: 6px 18px;
+  }
+  .stage-foot b { font-weight: 600; color: var(--ink-2); }
+  .hint {
+    position: absolute; left: 12px; bottom: 12px; max-width: 250px;
+    font-size: 11.5px; line-height: 1.45; color: var(--ink-2);
+    background: color-mix(in srgb, var(--surface) 88%, transparent);
+    border-left: 2px solid var(--accent); padding: 7px 10px; pointer-events: none;
+  }
+  #fallback { padding: 22px; font-size: 14px; color: var(--ink-2); }
+
+  .floor-tab { min-width: 34px; font-variant-numeric: tabular-nums; }
+  .floor-tab .n { font-family: "IBM Plex Sans Condensed", sans-serif; font-weight: 600; }
+  .floor-tab small { display: block; font-size: 9px; letter-spacing: 0.05em; opacity: 0.7; }
+
+/* ==== the rooms table and the two-column panel grid ==== */
+  /* ---- inventory ---- */
+  .cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 330px); gap: 22px; align-items: start; }
+  @media (max-width: 980px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+
+  table.inv { border-collapse: collapse; width: 100%; font-size: 13px; }
+  table.inv th {
+    font-family: "IBM Plex Sans Condensed", sans-serif; font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3);
+    text-align: right; padding: 0 4px 6px; font-weight: 600;
+  }
+  table.inv th:first-child { text-align: left; }
+  table.inv td { padding: 2px 4px; border-bottom: 1px solid var(--rule-soft); }
+  table.inv tr.sel td { background: var(--pass-soft); }
+  table.inv tr.keep td .rid { color: var(--edge); }
+  .rid { font-family: "IBM Plex Sans Condensed", sans-serif; font-weight: 600; font-size: 14px; }
+  .chip {
+    border: 1px solid var(--rule); background: transparent; width: 26px; height: 21px;
+    padding: 0; font-size: 10px; line-height: 1; color: var(--ink-3);
+    font-family: "IBM Plex Sans Condensed", sans-serif; letter-spacing: 0.04em;
+  }
+  .chip.on { background: var(--edge-soft); color: var(--edge); border-color: var(--edge); }

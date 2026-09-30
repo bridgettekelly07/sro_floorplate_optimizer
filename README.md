@@ -69,16 +69,20 @@ Two caveats matter. Meeting both tests doesn't guarantee approval. The Guideline
 ## Scope
 
 A building of one or more floors of an existing SRA-designated SRO. The browser tool models the
-building as a stack of floorplates: a floor can be isolated and edited room by room, and the
-remaining floors are drawn around it as context. The Python evaluator still takes one floorplate
-at a time; the building-wide arithmetic lives in the browser tool. The tool is an **evaluator**, a **search** and a **policy viewer**: the user proposes one combination scheme and the tool tests it against the thresholds, or asks for the compliant scheme that loses the fewest rooms, for one building; and the policy panel applies the thresholds to the whole stock and shows who they displace (see The policy, applied to the district). Given the room count, the individual room areas, and a proposed scheme, the tool computes:
+building as a typical floor repeated on every residential storey. The Python evaluator still takes one
+floorplate at a time; the building-wide arithmetic lives in the browser tool. The tool is an **evaluator**,
+a **search** and a **policy viewer**: from the command line the user proposes one combination scheme and
+the tool tests it against the thresholds; in the browser, sliders set the thresholds and the tool draws
+the compliant scheme that loses the fewest rooms for the selected building, while the policy panel applies
+the same thresholds to the whole stock and shows who they displace (see The policy, applied to the
+district). Given the room count, the individual room areas, and a proposed scheme, the tool computes:
 
 - Whether the proposed scheme satisfies the 200 SF test, including the average fallback where individual units fall short (SRA Guidelines, p.4)
 - Whether the resulting room-count reduction is ≤ 50% (SRA Guidelines, p.4)
 - Whether the self-contained units produced are ≥ 50% of the original room count (DTES Plan, Policy 9.2.7). This is a separate test from the one above, which a scheme can fail independently
 - How many original rooms are lost outright (original count − new unit count) as a proxy for the scale of tenant relocation, distinguished from the (smaller) number requiring permanent relocation, using the right-of-first-refusal logic in Policy 9.5.3
 - The compensation owed to each displaced tenant, in months' rent, from the tenancy-length schedule in the SRA By-law (s.4.8(i))
-- A before/after floor plan, the "before" room grid and one "after" combination scheme with bathroom/kitchen pods per Guidelines p.5–6: as SVG from the command line, and as the editable plan in the browser tool
+- A before/after floor plan, the "before" room grid and one "after" combination scheme with bathroom/kitchen pods per Guidelines p.5–6: as SVG from the command line, and as the plan in the browser tool, redrawn as the thresholds move
 
 ## Out of Scope
 
@@ -86,7 +90,7 @@ at a time; the building-wide arithmetic lives in the browser tool. The tool is a
 - Financing/viability determinations of when 1-for-1 replacement is "not achievable due to financial or development constraints" (Policy 9.2.7) (at the discretion of City/Council)
 - Affordability and rent-setting mechanics generally (Section 5 of the Guidelines, and the TRPP's rent calculations), excluding the SRA By-law's own compensation schedule (s.4.8(i)), which is in scope above
 - Whether a proposed scheme is physically buildable beyond adjacency. Rooms are held in corridor order and the search merges only consecutive rooms on one side of one corridor; structure, plumbing and light are not modelled
-- The typical floor of any particular building. Appendix B gives a count, the City gives an outline, and the plan drawn between them is the stock's type, not a survey; measured plans replace it through the floorplate editor
+- The typical floor of any particular building. Appendix B gives a count, the City gives an outline, and the plan drawn between them is the stock's type, not a survey
 - Where displaced tenants go. The tool counts who loses a room under a policy and what is owed; it no longer models re-housing, relocation housing, phasing or new supply (an earlier version did; git holds it)
 
 
@@ -243,7 +247,7 @@ s.4.8(i) is owed to every **"permanent resident"** whose tenancy is terminated, 
 - The SRA By-law's 3-room exemption (s.4.3A) operates independently of the percentage-based tests. Does a small building's proposal need to check both the percentage tests *and* this absolute-count exemption?
 - **The replacement test counts units, but Policy 9.2.7 counts social housing units.** The engagement handout proposes changing what that term covers, and the tool has no notion of tenure or rent, so every unit it counts is assumed to qualify. **Its replacement percentage is therefore an upper bound.** Resolving this needs the enacted definition and a tenure attribute on each unit, neither of which the current inputs carry.
 - Whether the s.4.8(i) compensation schedule the tool encodes is still the operative one. Recommendation E amends the SRA By-law "to improve tenant protections," and the schedule sits inside that section. The tool's figures are checked against the by-law text in hand, not against the amendment.
-## The building tool: one floor, edited and searched
+## The building tool: one floor, searched as the thresholds move
 
 
 The evaluator answers "does this scheme pass?". The search answers the question a conversion
@@ -263,15 +267,17 @@ in place below 200 SF is carried by the pairs around it. The fallback is discret
 result is the safe one and the average result the best case. The thresholds the search passes are
 the policy panel's: the sources' by default, or whatever the user has set there.
 
-**The plan is the editor.** The typical floor in section 02 is drawn from the building's state, not from
-the search, so what the user does to it is what the tests run on. A marker in the corridor between two
-rooms merges them into one unit or splits them; dragging the wall between two rooms shifts area from one
-to the other, the row keeping its length; clicking a room keeps it as an SRA room or releases it. Every
-floor is the typical floor, so an edit applies to all of them, and the search likewise runs on one floor
-and repeats it. The buttons beside the plan restore the least-displacement scheme under either reading
-or clear every merge, and a single tenancy length stands for every room, since no source gives one per
-room. The tally beside the plan says whether the drawn scheme passes and how far it sits from the
-least-displacement one; the tests below the plan show the working, each with its citation.
+**The thresholds are the controls.** The plan in section 02 is not edited by hand: beside it sit sliders
+for the thresholds that decide the room arithmetic (minimum unit size and its strict or average reading,
+the largest cut in rooms, the least share replaced, the rooms one unit may take) and for the two
+assumptions that fix the room sizes read from the footprint (the largest existing room, the circulation
+share). Move one and the plan redraws at the least-displacement scheme that passes the new set; the map
+and the district tally follow when the slider is released. The sliders and the policy panel beside the
+map hold the same values, so the building and the district never disagree. Where no scheme of adjacent
+merges passes, every room is drawn as kept and the building is reported as not converting. A single
+tenancy length stands for every room, since no source gives one per room. The tally beside the plan
+gives the scheme's figures; the tests below the plan show the working, each with its citation.
+`source/thresholds.md` lists every threshold the sources set, with which ones move the count.
 
 The plan is drawn two ways. **Existing** shows the rooms as they stand, a door each to the corridor
 and a window on the outer wall; the shared washrooms are not drawn, since the outline holds no
@@ -337,10 +343,14 @@ tenants; at 150 SF the same stock displaces 148; at 250 SF with the cut capped a
 and 329 are displaced. The reading is the point: the minimum unit size sets how many rooms a unit consumes,
 and that, more than anything else in the provision, sets who leaves.
 
-**Section 02 follows the panel.** The tests beneath the plan are run at the thresholds in force, and their
-headings say so. A building edited there is **pinned**: the policy takes it exactly as drawn, or not at all;
-a pinned drawing that fails the tests does not convert and is reported. Reset or Unpin hands it back to the
-search.
+**The frame.** Since 2026-09-30 the browser tool is a full-window map with a sidebar: the map fills the
+viewport, and the sidebar scrolls through the policy (the threshold sliders, the tally, the variants), the
+selected building's record, its typical floor and the tests. The policy colouring is on from the start; the
+Policy button beside the map toggles it. Below 900 px the map sits above the sidebar.
+
+**Section 02 and the panel are one set of thresholds.** The sliders beside the plan and the inputs in the
+panel write the same values, and the tests beneath the plan are run at the thresholds in force, their
+headings saying so.
 
 Three findings follow from the thresholds rather than from any modelling choice, and the panel makes them
 visible:
@@ -416,62 +426,15 @@ camera on the street off the edge the massing data marks as fronting it, looking
 fetched or stored from Street View; the link is a way to look, and a facade record typed while looking is the
 intended use.
 
-### Export to Rhino
+## Files
 
-The building card in section 01 has an **Export to Rhino (.3dm)** button. It writes one Rhino file for the
-selected building, in metres with z up, using McNeel's own `rhino3dm` library fetched from a CDN the first time
-the button is pressed. The file carries the massing as the City's LiDAR-measured footprint parts extruded to
-their heights (or the 2015 footprint extruded to the LiDAR height, or to the assumed storeys, where the 2009
-survey has no part), the site outline at grade, and the typical floor of section 02 drawn on every residential
-storey: the corridor and stair on a *Storeys* layer, the rooms as they stand on *Typical floor - existing*, and
-the scheme as drawn, with each unit outlined and its bathroom and kitchen run from Guidelines p.5–6, on
-*Typical floor - proposed* and *Proposed - pods*. Rooms and units are labelled with text dots on the lowest
-residential floor only, so the upper floors stay clean. The origin is the footprint's centroid, x east and y
-north; its WGS84 coordinates, the sources, and every assumption the file rests on (3.4 m floor to floor, a
-non-residential ground floor, the pod dimensions) are written into the document's user text, readable in
-Rhino under *Document User Text*. The plan is diagrammatic, as stated under Scope: it is a starting point to
-draw from, not a measured survey of the interior.
-
-### Import from Rhino
-
-Beside Export, **Import from Rhino** reads a `.3dm` back for the selected building, so a scheme drawn in
-Rhino becomes the one the tool evaluates. Start from the tool's own export so the frame matches: the footprint's
-centroid at the origin, x east, y north, z up, in metres or the file's own unit (feet and inches are converted).
-Two layers are read, by name:
-
-- **Massing**: every solid (an extrusion, a polysurface or a mesh) becomes a part of the building on the map, its
-  footprint from the extrusion's profile or the solid's lowest vertices and its height from its top. The tallest
-  part sets the building's storeys at 3.4 m each, and the parts together (or a curve on a *Site outline* layer)
-  become the outline the typical floor is read from. A mass extruded downward is taken at its own height.
-- **Typical floor - proposed**: every closed curve on the lowest floor that holds one is a unit. It is laid over
-  the typical floor; the rooms whose centres fall under it merge into one unit of the curve's area, split between
-  them in proportion. A curve named with *SRA* or *kept* keeps its rooms as they are. Rooms under no curve are
-  kept as SRA; a curve over no room is ignored, and the note under the buttons says so.
-
-The existing floor and the pods are not read: the stock is the survey's, and the pods are the Guidelines' program,
-drawn again from the units. The import pins the building, so the policy takes it exactly as drawn.
-A file exported for another building is refused by name.
-
-## Files, and the browser tool's editor
-
-Stdlib only, no install. `web/index.html` is the same operation as a browser tool,
-with the floorplate built as a manipulable 3D model (three.js r160 from cdnjs; it
-falls back to the inventory table if WebGL is unavailable). Existing rooms sit on the
-near side of the corridor and are the input: drag one along the corridor to reorder,
-drag the partition between two rooms to shift area from one to the other, and add or
-remove rooms from the inventory panel. Moving a partition conserves the floor's total
-area, which is what moving a partition actually does; the corridor and back walls are
-the envelope and are fixed, the left end wall is the datum, and the right end wall
-moves so the floor can be extended. Shift-dragging any partition does the same thing
-— one room grows and the floor grows with it. A partition inside a merged pair can
-still be moved, and doing so leaves the unit's area unchanged, which is the clearest
-demonstration that the room-count tests turn on unit totals rather than partition
-positions. The
-proposed scheme is derived on the far side, with the bathroom and kitchen pods drawn
-inside each unit. Merges are made by clicking a marker in the corridor *between* two
-rooms, so every scheme the model can express is one of adjacent rooms — the adjacency
-a list of areas cannot record. Because a merge belongs to the boundary rather than to
-the rooms, dragging a room through a boundary clears the joints it crosses.
+Stdlib only, no install. `web/index.html` is the same operation as a browser tool: the
+district map (three.js r160 from cdnjs), the selected building's typical floor with the
+threshold sliders beside it, and the policy panel. Features the tool once had and no longer
+runs (the hand-editable floorplate, the unit-breakdown generator, the rent test, the user's own
+building records with CSV and a store, the compensation panel, the Rhino export and import, the
+roof columns) live in `iterations/`, one file per feature with a README saying what each was and
+which commit last ran it.
 
 | File | What it holds |
 |---|---|

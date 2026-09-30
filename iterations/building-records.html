@@ -1,0 +1,59 @@
+<!-- ==== the record form, with the hundred-block datalist ==== -->
+        <form id="b-form" hidden>
+          <div class="field">
+            <label for="f-name">Building name</label>
+            <input type="text" id="f-name" placeholder="e.g. Empress Hotel" required>
+          </div>
+          <div class="field">
+            <label for="f-addr">Address</label>
+            <input type="text" id="f-addr" list="hblocks" placeholder="e.g. 100 E HASTINGS ST" autocomplete="off">
+            <span class="hint-s" id="f-addr-hint">Matched against the hundred-block index</span>
+          </div>
+          <datalist id="hblocks"></datalist>
+          <div class="pair">
+            <div class="field"><label for="f-rooms">Rooms</label>
+              <input type="number" id="f-rooms" min="1" step="1" placeholder="—"></div>
+            <div class="field"><label for="f-floors">Floors</label>
+              <input type="number" id="f-floors" min="1" step="1" placeholder="—"></div>
+          </div>
+          <div class="pair">
+            <div class="field"><label for="f-plate">Floorplate SF</label>
+              <input type="number" id="f-plate" min="0" step="10" placeholder="—"></div>
+            <div class="field"><label for="f-rent">Rent $/mo</label>
+              <input type="number" id="f-rent" min="0" step="5" placeholder="survey avg 640"></div>
+          </div>
+          <div class="field">
+            <label for="f-ten">Typical tenancy (years)</label>
+            <input type="number" id="f-ten" min="0" step="0.5" placeholder="survey avg 4.6">
+          </div>
+          <div class="btnrow" style="margin-top:4px">
+            <button type="submit" id="f-save">Save</button>
+            <button type="button" id="f-cancel">Cancel</button>
+            <button type="button" id="f-delete" hidden style="margin-left:auto">Delete</button>
+          </div>
+          <p class="src">Blank is recorded as unknown, never as zero. Floorplate SF, $/SF and tenancy
+            are not published per building by the City; enter them only where you have measured or
+            surveyed them.</p>
+        </form>
+
+<!-- ==== the recorded-buildings list and the Appendix B pick ==== -->
+        <div id="b-list-wrap" hidden>
+          <div id="survey-pick"></div>
+          <p class="src" id="survey-ctx"></p>
+          <div class="label">Recorded buildings</div>
+          <div class="bldg-list" id="b-list"></div>
+          <p class="src" id="b-store-note"></p>
+        </div>
+
+<!-- ==== the record / survey / CSV buttons under the title ==== -->
+    <div class="btnrow" hidden>
+      <button type="button" id="b-add">+ Record a building</button>
+      <button type="button" id="b-place" hidden>Click the map to place</button>
+      <button type="button" id="b-survey" class="on">Survey stock</button>
+      <button type="button" id="b-import">Import CSV</button>
+      <button type="button" id="b-export" disabled>Export</button>
+    </div>
+
+<!-- ==== the empty-map notice and the floating map card ==== -->
+    <div class="map-card" id="map-card" hidden></div>
+    <div class="map-empty" id="map-empty" hidden></div>

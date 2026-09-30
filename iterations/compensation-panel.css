@@ -1,0 +1,11 @@
+
+/* ==== the range bar and the schedule table ==== */
+  .rangebar { position: relative; height: 38px; background: var(--sunk); border: 1px solid var(--rule); margin: 13px 0 6px; }
+  .rangebar .span { position: absolute; top: 0; bottom: 0; background: var(--pass-soft); border-left: 2px solid var(--pass); border-right: 2px solid var(--pass); }
+  .rangebar .tick { position: absolute; top: -6px; bottom: -6px; border-left: 1px dashed var(--ink-3); }
+  .rangelabels { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  table.sched { border-collapse: collapse; width: 100%; font-size: 13px; margin-top: 10px; }
+  table.sched th, table.sched td { border-bottom: 1px solid var(--rule-soft); padding: 4px 6px; text-align: right; font-variant-numeric: tabular-nums; }
+  table.sched th:first-child, table.sched td:first-child { text-align: left; }
+  table.sched th { color: var(--ink-3); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; }
+  td.gone { color: var(--fail); }
