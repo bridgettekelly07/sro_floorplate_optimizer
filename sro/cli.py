@@ -12,6 +12,7 @@ import sys
 from pathlib import Path
 from typing import Tuple
 
+from . import rules
 from .evaluate import evaluate
 from .model import Floorplate, Room, Scheme
 from .plan import to_svg
@@ -53,7 +54,14 @@ def main(argv=None) -> int:
     )
     ap.add_argument("--svg", type=Path, help="write a before/after floor plan")
     ap.add_argument("--json", action="store_true", help="machine-readable output")
+    pol = ap.add_argument_group("thresholds", "the sources' values unless set; any other set is yours")
+    pol.add_argument("--min-unit", type=float, default=rules.MIN_UNIT_AREA_SF, help="minimum unit size, SF (200)")
+    pol.add_argument("--max-reduction", type=float, default=rules.MAX_ROOM_REDUCTION, help="largest cut in rooms, 0-1 (0.5)")
+    pol.add_argument("--min-replacement", type=float, default=rules.MIN_REPLACEMENT_RATIO, help="least share of rooms replaced, 0-1 (0.5)")
+    pol.add_argument("--small-loss", type=int, default=rules.SMALL_LOSS_MAX_ROOMS, help="rooms lost at or under which the General Manager may permit (3)")
+    pol.add_argument("--resident-days", type=int, default=rules.PERMANENT_RESIDENT_MIN_DAYS, help="days of occupancy that make a permanent resident (30)")
     args = ap.parse_args(argv)
+    policy = rules.Policy(args.min_unit, args.max_reduction, args.min_replacement, args.small_loss, args.resident_days)
 
     if args.example:
         from examples.floorplate import EXAMPLE, PAIRS, PARTIAL
@@ -62,7 +70,9 @@ def main(argv=None) -> int:
     else:
         fp, scheme = load(args.input)
 
-    ev = evaluate(fp, scheme)
+    ev = evaluate(fp, scheme, policy)
+    if not policy.is_source:
+        print("thresholds: yours, not the sources' --", policy, file=sys.stderr)
 
     if args.json:
         print(

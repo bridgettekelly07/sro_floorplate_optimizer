@@ -1,0 +1,27 @@
+{
+  "source": "Per-building records gathered from published sources, one fact at a time, each with its source and the date it was read. Keyed by the building's Appendix B name. Nothing here comes from the 2024 SRO Tenant Survey; it is what else is known about the building.",
+  "fields": {
+    "selfContained": "true where the record shows the building is already self-contained apartments rather than SRO rooms",
+    "storeys": "storeys stated by the source, to check the LiDAR reading",
+    "units": "dwelling units stated by the source, against Appendix B's room count",
+    "unitMix": "units by type, as the source gives them",
+    "facts": "each fact as a sentence, with its source, link and the date read",
+    "facade": "a facade record taken from the street: bays, ground-floor use, cladding, top (reserved for the facade form)"
+  },
+  "records": {
+    "ROSE GARDEN CO-OP": {
+      "addr": "853 E Pender St.",
+      "selfContained": true,
+      "storeys": 3,
+      "units": 52,
+      "unitMix": { "studio": 38, "1-bedroom": 8, "2-bedroom": 2, "3-bedroom": 4 },
+      "accessible": 8,
+      "facts": [
+        { "text": "A three-storey walk-up apartment building of 52 self-contained units: 38 studios, 8 one-bedroom, 2 two-bedroom and 4 three-bedroom, 8 of them accessible.", "source": "CHF BC co-op directory", "url": "https://www.chf.bc.ca/co-ops/rose-garden-co-operative-housing-society/", "retrieved": "2026-09-29" },
+        { "text": "A common room, shared laundry and an office on the main floor.", "source": "CHF BC co-op directory", "url": "https://www.chf.bc.ca/co-ops/rose-garden-co-operative-housing-society/", "retrieved": "2026-09-29" },
+        { "text": "Appendix B counts 54 rooms here; the co-op's 52 units are apartments, so the by-law's conversion tests do not describe this building.", "source": "This record against the 2024 SRO Tenant Survey, Appendix B", "url": null, "retrieved": "2026-09-29" }
+      ],
+      "facade": null
+    }
+  }
+}

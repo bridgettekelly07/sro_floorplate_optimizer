@@ -1,8 +1,12 @@
-"""Fixed thresholds and citations from the source documents.
+"""Thresholds and citations from the source documents.
 
-Nothing in this module is user input. Every number here traces to a passage in
-`source/source_extract.md`; the `Citation` attached to each rule is what the
-evaluator reports alongside a pass/fail so a result is never a bare boolean.
+Every number here traces to a passage in `source/source_extract.md`; the
+`Citation` attached to each rule is what the evaluator reports alongside a
+pass/fail so a result is never a bare boolean. The thresholds are gathered in
+a :class:`Policy`, whose default, :data:`SOURCE`, is the sources' own; the
+evaluator and the search take a policy so that a different set of thresholds
+can be tried against the same stock, which is what the browser tool's policy
+panel does. The module-level constants remain as the source values.
 """
 
 from __future__ import annotations
@@ -31,6 +35,27 @@ SMALL_LOSS_MAX_ROOMS = 3        # SRA By-law s.4.3A
 PERMANENT_RESIDENT_MIN_DAYS = 30  # SRA By-law s.1.2
 
 # All thresholds are read as inclusive; see README, Interpretive Decisions.
+
+
+@dataclass(frozen=True)
+class Policy:
+    """The thresholds a conversion is tested against.
+
+    The default is the sources' own. Any other set is the user's, and the
+    tool says so wherever it reports a result under it.
+    """
+    min_unit_area_sf: float = MIN_UNIT_AREA_SF
+    max_room_reduction: float = MAX_ROOM_REDUCTION
+    min_replacement_ratio: float = MIN_REPLACEMENT_RATIO
+    small_loss_max_rooms: int = SMALL_LOSS_MAX_ROOMS
+    permanent_resident_min_days: int = PERMANENT_RESIDENT_MIN_DAYS
+
+    @property
+    def is_source(self) -> bool:
+        return self == SOURCE
+
+
+SOURCE = Policy()
 
 # --- Citations --------------------------------------------------------------
 

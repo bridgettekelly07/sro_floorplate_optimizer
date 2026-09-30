@@ -77,7 +77,7 @@ def render(ev: Evaluation) -> str:
         L.append(
             _w(
                 f"{ev.rooms_lost} designated room(s) lost, at or under the "
-                f"{rules.SMALL_LOSS_MAX_ROOMS}-room threshold in "
+                f"{ev.policy.small_loss_max_rooms}-room threshold in "
                 f"{rules.SMALL_LOSS}, so a permit may be sought from the "
                 "General Manager rather than Council. Not automatic: it also "
                 "requires findings of improved livability or operations and "

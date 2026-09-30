@@ -17,10 +17,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from examples.floorplate import AREAS, EXAMPLE  # noqa: E402
 from sro.evaluate import evaluate  # noqa: E402
 from sro.model import Scheme  # noqa: E402
+from sro import rules  # noqa: E402
 from sro.optimize import (  # noqa: E402
-    Candidate, Stock, TradeOff, allocate, optimise, programme, programme_cost,
-    run_programme, search_programme, sequence, trade_off, uniform,
-    uniform_trade_off,
+    optimise, trade_off, uniform, uniform_trade_off,
 )
 
 
@@ -119,212 +118,65 @@ class TestUniformClosedForm(unittest.TestCase):
         self.assertEqual(uniform(10, 150, False).lost, 2)
 
 
-class TestDistrict(unittest.TestCase):
-    def setUp(self):
-        self.small = Candidate("small", 10, uniform_trade_off(10, 100, False))
-        self.large = Candidate("large", 10, uniform_trade_off(10, 150, False))
-        self.stuck = Candidate("stuck", 10, uniform_trade_off(10, 90, False))
+class TestPolicy(unittest.TestCase):
+    """The thresholds are the sources' by default and the user's when set.
 
-    def test_the_building_with_larger_rooms_converts_first(self):
-        a = allocate([self.small, self.large, self.stuck], 5)
-        self.assertTrue(a.feasible)
-        self.assertEqual(list(a.chosen), ["large"])
-        self.assertEqual(a.lost, 2)
+    The tool now shows who a policy displaces rather than searching for the
+    least displacement, so what matters is that every threshold reaches the
+    search and the evaluator, and that a result under a user's thresholds is
+    marked as such.
+    """
 
-    def test_both_convert_when_the_mandate_asks_for_both(self):
-        a = allocate([self.small, self.large, self.stuck], 10)
-        self.assertEqual(set(a.chosen), {"small", "large"})
-        self.assertGreaterEqual(a.units, 10)
-        self.assertEqual(a.lost, 7)
+    def test_the_default_policy_is_the_sources(self):
+        self.assertTrue(rules.SOURCE.is_source)
+        self.assertEqual(rules.SOURCE.min_unit_area_sf, 200.0)
+        self.assertEqual(rules.SOURCE.max_room_reduction, 0.5)
+        self.assertEqual(rules.SOURCE.min_replacement_ratio, 0.5)
+        self.assertEqual(rules.SOURCE.small_loss_max_rooms, 3)
+        self.assertEqual(rules.SOURCE.permanent_resident_min_days, 30)
+        self.assertFalse(rules.Policy(min_unit_area_sf=150).is_source)
 
-    def test_a_building_with_no_compliant_scheme_cannot_help(self):
-        self.assertEqual(self.stuck.curve, [])
-        a = allocate([self.small, self.large, self.stuck], 25)
-        self.assertFalse(a.feasible)
+    def test_a_lower_minimum_displaces_fewer(self):
+        # ten rooms of 100 SF: at 200 SF every unit is a pair and five tenants leave;
+        # at 150 SF the average lets some rooms convert in place, and fewer leave
+        source = optimise([AREAS], strict=False)
+        lower = optimise([AREAS], strict=False, policy=rules.Policy(min_unit_area_sf=150))
+        self.assertTrue(source.feasible and lower.feasible)
+        self.assertLess(lower.lost, source.lost)
+        self.assertGreaterEqual(lower.units, source.units)
 
-    def test_zero_target_converts_nothing(self):
-        a = allocate([self.small, self.large], 0)
-        self.assertEqual((a.units, a.lost, a.chosen), (0, 0, {}))
+    def test_a_tighter_cut_makes_the_example_infeasible(self):
+        # pairs lose half the rooms; a policy allowing at most a 30% cut has no scheme
+        tight = optimise([AREAS], strict=True, policy=rules.Policy(max_room_reduction=0.3))
+        self.assertFalse(tight.feasible)
+        self.assertIn("cannot leave", tight.reason)
 
+    def test_the_replacement_floor_moves_with_the_policy(self):
+        loose = optimise([AREAS], strict=True, policy=rules.Policy(min_replacement_ratio=0.2))
+        self.assertTrue(loose.feasible)
+        self.assertGreaterEqual(loose.units, 2)
+        self.assertLessEqual(loose.lost, optimise([AREAS], strict=True).lost)
 
-class TestSequence(unittest.TestCase):
-    def setUp(self):
-        # (key, rooms, point): harm per unit is lost / units
-        self.gentle = ("gentle", 10, TradeOff(5, 0, 5, 1000.0))   # 0 per unit
-        self.mid = ("mid", 10, TradeOff(5, 2, 3, 1000.0))          # 0.4 per unit
-        self.harsh = ("harsh", 10, TradeOff(5, 5, 0, 1000.0))      # 1 per unit
-        self.big = ("big", 40, TradeOff(20, 4, 16, 4000.0))         # 0.2 per unit
+    def test_the_closed_form_follows_the_search_under_another_policy(self):
+        pol = rules.Policy(min_unit_area_sf=160, max_room_reduction=0.6, min_replacement_ratio=0.4)
+        for n in (6, 9, 12):
+            for a in (80, 100, 120, 160):
+                u = uniform(n, a, strict=False, policy=pol)
+                o = optimise([[float(a)] * n], strict=False, policy=pol)
+                self.assertEqual(u.feasible, o.feasible, (n, a))
+                if u.feasible:
+                    self.assertEqual((u.units, u.lost), (o.units, o.lost), (n, a))
+                curve = uniform_trade_off(n, a, strict=False, policy=pol)
+                self.assertEqual([(t.units, t.lost) for t in curve],
+                                 [(t.units, t.lost) for t in trade_off([[float(a)] * n], strict=False, policy=pol)], (n, a))
 
-    def test_least_harm_first(self):
-        ph = sequence([self.harsh, self.gentle, self.mid], capacity=10)
-        self.assertEqual([p.keys for p in ph], [["gentle"], ["mid"], ["harsh"]])
-
-    def test_capacity_packs_buildings_into_one_phase(self):
-        ph = sequence([self.harsh, self.gentle, self.mid], capacity=20)
-        self.assertEqual([p.keys for p in ph], [["gentle", "mid"], ["harsh"]])
-        self.assertEqual(ph[0].in_works, 20)
-
-    def test_cumulative_totals_match_the_allocation(self):
-        ph = sequence([self.harsh, self.gentle, self.mid], capacity=10)
-        self.assertEqual(ph[-1].cumulative_units, 15)
-        self.assertEqual(ph[-1].cumulative_lost, 7)
-        self.assertEqual([p.number for p in ph], [1, 2, 3])
-
-    def test_a_building_over_capacity_stands_alone_and_is_flagged(self):
-        ph = sequence([self.big, self.gentle, self.mid], capacity=20)
-        big = [p for p in ph if "big" in p.keys][0]
-        self.assertEqual(big.keys, ["big"])
-        self.assertTrue(big.over_capacity)
-        self.assertFalse(any(p.over_capacity for p in ph if p is not big))
-
-    def test_a_later_small_building_fills_an_earlier_gap(self):
-        # harm order: gentle, big, mid; mid (10) fits beside gentle (10) at 20
-        ph = sequence([self.big, self.gentle, self.mid], capacity=20)
-        self.assertEqual(ph[0].keys, ["gentle", "mid"])
-
-    def test_nothing_chosen_means_no_phases(self):
-        self.assertEqual(sequence([], capacity=10), [])
-
-
-class TestProgramme(unittest.TestCase):
-    """The housing ledger: where the tenants of each phase go."""
-
-    def setUp(self):
-        # A: 10 rooms, 4 vacant, 8 homes after -> 6 tenants all return, 2 homes to spare
-        self.swing = Stock("A", 10, 4, 8, 0, (0.0, 0.0))
-        # B: 10 rooms, full, 7 homes after -> 3 tenants cannot return
-        self.tight = Stock("B", 10, 0, 7, 0, (100.0, 0.0))
-
-    def test_the_swing_building_goes_first_and_its_spare_homes_absorb_the_next_phase(self):
-        # relocation for six: A's tenants fit a phase, A and B together do not
-        steps = programme([self.swing, self.tight], relocation=6)
-        self.assertEqual([s.keys for s in steps], [["A"], ["B"]])
-        p2 = steps[1]
-        self.assertEqual(p2.perm_need, 3)
-        self.assertEqual(p2.perm_district, 2)       # A's two spare homes
-        self.assertEqual(p2.perm_left, 1)
-        self.assertEqual(steps[-1].cum_perm_left, 1)
-
-    def test_new_supply_absorbs_what_the_district_cannot(self):
-        steps = programme([self.swing, self.tight], relocation=6, new_per_phase=1)
-        p2 = steps[1]
-        self.assertEqual((p2.perm_district, p2.perm_new, p2.perm_left), (2, 1, 0))
-
-    def test_relocation_capacity_sets_the_phase_size(self):
-        three = [Stock(k, 10, 0, 7, 0, (i * 50.0, 0.0)) for i, k in enumerate("XYZ")]
-        steps = programme(three, relocation=15)
-        self.assertEqual(len(steps), 3)
-        # 7 return and wait in relocation housing; 3 have no home to return to and no slack to go to
-        self.assertTrue(all(s.temp_relocation == 7 and s.temp_left == 0 and s.perm_left == 3 for s in steps))
-
-    def test_a_building_larger_than_every_capacity_still_goes_and_the_overflow_is_counted(self):
-        big = Stock("big", 40, 0, 30, 0, (0.0, 0.0))
-        steps = programme([big], relocation=15)
-        self.assertEqual(steps[0].temp_relocation, 15)
-        self.assertEqual(steps[0].temp_left, 15)     # 30 returning tenants, 15 places
-        self.assertEqual(steps[0].perm_left, 10)
-
-    def test_tenants_go_to_the_nearest_slack_and_a_building_not_converting_can_lend_rooms(self):
-        lender = Stock("C", 10, 5, 10, 0, (110.0, 0.0), convert=False)
-        steps = programme([self.swing, self.tight, lender], relocation=100)
-        p2 = [s for s in steps if "B" in s.keys][0]
-        perm = [m for m in p2.moves if m.permanent]
-        self.assertEqual([(m.dst, m.n) for m in perm], [("C", 3)])   # 10 m away beats A at 100 m
-        self.assertEqual(p2.perm_left, 0)
-
-    def test_vacancy_override_rewrites_every_building(self):
-        steps = programme([self.tight], relocation=100, vacancy=0.3)
-        # 10 rooms at 30% vacancy: 7 tenants, 7 homes after -> nobody lost
-        self.assertEqual(steps[0].perm_need, 0)
-        self.assertEqual(steps[0].out, 7)
-
-    def test_totals_are_conserved(self):
-        steps = programme([self.swing, self.tight], relocation=4, new_per_phase=1)
-        for s in steps:
-            self.assertEqual(s.out, sum(by.tenants for by in [self.swing, self.tight] if by.key in s.keys))
-            self.assertEqual(s.temp_district + s.temp_relocation + s.temp_left + s.perm_district + s.perm_new + s.perm_left, s.out)
-
-
-class TestSearchProgramme(unittest.TestCase):
-    """The search over partitions, against the one-pass rule."""
-
-    def setUp(self):
-        self.swing = Stock("A", 10, 4, 8, 0, (0.0, 0.0))     # 2 homes to spare after works
-        self.tight = Stock("B", 10, 0, 8, 0, (50.0, 0.0))    # 2 tenants cannot return
-
-    def test_the_rule_packs_the_swing_building_with_the_one_that_needs_it(self):
-        # with room for both at once, the rule converts them together, and A's spare
-        # homes do not exist until the phase ends: B's two tenants leave
-        steps = programme([self.swing, self.tight], relocation=100)
-        self.assertEqual([s.keys for s in steps], [["A", "B"]])
-        self.assertEqual(programme_cost(steps)[0], 2)
-
-    def test_the_search_separates_them_and_nobody_leaves(self):
-        r = search_programme([self.swing, self.tight], relocation=100)
-        self.assertEqual(r.baseline_cost[0], 2)
-        self.assertEqual(r.cost[0], 0)
-        self.assertEqual(r.phases, [["A"], ["B"]])
-        self.assertEqual(r.steps[1].perm_district, 2)
-
-    def test_the_search_never_does_worse_than_the_rule(self):
-        import random
-        rng = random.Random(7)
-        stock = [Stock(str(i), rng.randint(8, 40), rng.randint(0, 3), rng.randint(4, 30), 0,
-                       (rng.uniform(0, 500), rng.uniform(0, 500)), rng.random() < 0.8) for i in range(12)]
-        r = search_programme(stock, relocation=60, new_per_phase=2)
-        self.assertLessEqual(r.cost, r.baseline_cost)
-        keys = sorted(k for p in r.phases for k in p)
-        self.assertEqual(keys, sorted(s.key for s in stock if s.convert))
-        self.assertTrue(all(p for p in r.phases))
-
-    def test_the_browser_and_python_agree_on_the_district(self):
-        # the stock the browser fed its ledger, with the answers it gave (tests/fixtures)
-        import json
-        d = json.load(open(Path(__file__).with_name("fixtures") / "district_stock.json"))
-        stock = [Stock(s["key"], s["rooms"], s["vacant"], s["units"], s["kept"], tuple(s["xy"]), s["convert"]) for s in d["stock"]]
-        from sro.optimize import heuristic_phases
-        phases = heuristic_phases(stock, d["relocation"], d["newPer"])
-        self.assertEqual(phases, d["phases"])
-        steps = run_programme(stock, phases, d["relocation"], d["newPer"])
-        got = [[s.out, s.temp_district, s.temp_relocation, s.temp_left, s.perm_district, s.perm_new, s.perm_left] for s in steps]
-        self.assertEqual(got, d["perPhase"])
-        c = programme_cost(steps)
-        self.assertEqual(c[:3], tuple(d["cost"][:3]))
-        self.assertAlmostEqual(c[3], d["cost"][3], places=1)
-
-    def test_concentrate_keeps_a_building_s_tenants_together(self):
-        # B's 8 tenants can wait in four small lenders next door (2 rooms each) or one
-        # larger lender a little further away (8 rooms)
-        b = Stock("B", 8, 0, 8, 0, (0.0, 0.0))
-        small = [Stock("s%d" % k, 10, 2, 0, 0, (10.0 + k, 0.0), convert=False) for k in range(4)]
-        big = Stock("big", 20, 8, 0, 0, (40.0, 0.0), convert=False)
-        nearest = run_programme([b] + small + [big], [["B"]], relocation=0, placement="nearest")
-        together = run_programme([b] + small + [big], [["B"]], relocation=0, placement="concentrate")
-        self.assertEqual(sorted(m.dst for m in nearest[0].moves), ["s0", "s1", "s2", "s3"])
-        self.assertEqual([m.dst for m in together[0].moves], ["big"])
-        self.assertEqual(together[0].temp_district, 8)
-
-    def test_a_swing_building_opening_later_is_not_used_before_it_opens(self):
-        # two full buildings needing 2 homes each, converted one per phase; a swing
-        # building of 4 homes opens in phase 2
-        a = Stock("A", 10, 0, 8, 0, (0.0, 0.0)); b = Stock("B", 10, 0, 8, 0, (20.0, 0.0))
-        swing = Stock("S", 4, 4, 0, 0, (10.0, 0.0), convert=False, from_phase=2)
-        steps = run_programme([a, b, swing], [["A"], ["B"]], relocation=10)
-        self.assertEqual((steps[0].perm_district, steps[0].perm_left), (0, 2))   # not open yet
-        self.assertEqual((steps[1].perm_district, steps[1].perm_left), (2, 0))   # open now
-        now = Stock("S", 4, 4, 0, 0, (10.0, 0.0), convert=False, from_phase=1)
-        steps = run_programme([a, b, now], [["A"], ["B"]], relocation=10)
-        self.assertEqual([s.perm_left for s in steps], [0, 0])
-
-    def test_an_unknown_placement_is_refused(self):
-        with self.assertRaises(ValueError):
-            run_programme([self.swing], [["A"]], relocation=0, placement="random")
-
-    def test_any_partition_can_be_run(self):
-        steps = run_programme([self.swing, self.tight], [["B"], ["A"]], relocation=100)
-        self.assertEqual([s.keys for s in steps], [["B"], ["A"]])
-        self.assertEqual(steps[0].perm_district, 2)   # B first takes A's vacant rooms instead
-
-
-if __name__ == "__main__":
-    unittest.main()
+    def test_the_evaluator_reports_the_policy_it_used(self):
+        from examples.floorplate import PAIRS
+        pol = rules.Policy(min_unit_area_sf=150, small_loss_max_rooms=6, permanent_resident_min_days=0)
+        ev = evaluate(EXAMPLE, PAIRS, pol)
+        self.assertIs(ev.policy, pol)
+        self.assertIn("150", ev.size.name)
+        self.assertTrue(ev.small_loss_route)          # five rooms lost, under a six-room route
+        source = evaluate(EXAMPLE, PAIRS)
+        self.assertFalse(source.small_loss_route)     # and over the three-room route of s.4.3A
+        self.assertGreaterEqual(ev.permanent_residents, source.permanent_residents)

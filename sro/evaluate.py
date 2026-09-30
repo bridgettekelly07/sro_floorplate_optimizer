@@ -83,6 +83,7 @@ class Evaluation:
     compensation: Compensation
     small_loss_route: bool
     warnings: List[str] = field(default_factory=list)
+    policy: rules.Policy = rules.SOURCE
 
     @property
     def tests(self) -> List[TestResult]:
@@ -129,13 +130,13 @@ def _build_units(floorplate: Floorplate, scheme: Scheme) -> Tuple[List[Unit], Li
     return units, warnings
 
 
-def _size_test(units: Sequence[Unit]) -> Tuple[TestResult, bool]:
-    """Each converted unit >= 200 SF, else the average across converted units."""
-    threshold = rules.MIN_UNIT_AREA_SF
+def _size_test(units: Sequence[Unit], policy: rules.Policy = rules.SOURCE) -> Tuple[TestResult, bool]:
+    """Each converted unit >= the minimum, else the average across converted units."""
+    threshold = policy.min_unit_area_sf
     if not units:
         return (
             TestResult(
-                name="Size (200 SF)",
+                name=f"Size ({threshold:g} SF)",
                 passed=True,
                 citation=rules.SIZE,
                 working="no rooms converted; the size test does not apply",
@@ -155,7 +156,7 @@ def _size_test(units: Sequence[Unit]) -> Tuple[TestResult, bool]:
             f"triggered. Average {converted_area:g} / {len(units)} = {average:.1f} SF"
         )
         return (
-            TestResult("Size (200 SF)", True, rules.SIZE, working, at_limit),
+            TestResult(f"Size ({threshold:g} SF)", True, rules.SIZE, working, at_limit),
             False,
         )
 
@@ -167,7 +168,7 @@ def _size_test(units: Sequence[Unit]) -> Tuple[TestResult, bool]:
     )
     return (
         TestResult(
-            "Size (200 SF)",
+            f"Size ({threshold:g} SF)",
             passed,
             rules.SIZE,
             working,
@@ -177,34 +178,34 @@ def _size_test(units: Sequence[Unit]) -> Tuple[TestResult, bool]:
     )
 
 
-def _room_count_test(original: int, surviving: int) -> TestResult:
+def _room_count_test(original: int, surviving: int, policy: rules.Policy = rules.SOURCE) -> TestResult:
     lost = original - surviving
     reduction = lost / original
-    passed = reduction <= rules.MAX_ROOM_REDUCTION + 1e-12
+    passed = reduction <= policy.max_room_reduction + 1e-12
     return TestResult(
-        name="Room count (max 50% reduction)",
+        name=f"Room count (max {_pct(policy.max_room_reduction)} reduction)",
         passed=passed,
         citation=rules.ROOM_COUNT,
         working=(
             f"{original} -> {surviving} rooms; reduction {lost} / {original} = "
             f"{_pct(reduction)}"
         ),
-        at_boundary=abs(reduction - rules.MAX_ROOM_REDUCTION) < 1e-12,
+        at_boundary=abs(reduction - policy.max_room_reduction) < 1e-12,
     )
 
 
-def _replacement_test(original: int, unit_count: int) -> TestResult:
+def _replacement_test(original: int, unit_count: int, policy: rules.Policy = rules.SOURCE) -> TestResult:
     ratio = unit_count / original
-    passed = ratio >= rules.MIN_REPLACEMENT_RATIO - 1e-12
+    passed = ratio >= policy.min_replacement_ratio - 1e-12
     return TestResult(
-        name="Replacement (min 50% of rooms)",
+        name=f"Replacement (min {_pct(policy.min_replacement_ratio)} of rooms)",
         passed=passed,
         citation=rules.REPLACEMENT,
         working=(
             f"{unit_count} self-contained unit(s) / {original} original rooms = "
             f"{_pct(ratio)}"
         ),
-        at_boundary=abs(ratio - rules.MIN_REPLACEMENT_RATIO) < 1e-12,
+        at_boundary=abs(ratio - policy.min_replacement_ratio) < 1e-12,
     )
 
 
@@ -212,6 +213,7 @@ def _compensation(
     floorplate: Floorplate,
     displaced_count: int,
     candidate_ids: Sequence[str],
+    policy: rules.Policy = rules.SOURCE,
 ) -> Compensation:
     """`candidate_ids` are the residents who could be the ones to leave.
 
@@ -219,7 +221,7 @@ def _compensation(
     scheme leaves untouched has no tenancy terminated by the work, so s.4.8(i)
     is not engaged for them.
     """
-    residents = [r for r in floorplate.rooms if r.is_permanent_resident]
+    residents = [r for r in floorplate.rooms if r.is_resident_under(policy)]
     per_room = {
         r.id: rules.compensation_months(r.tenancy_years or 0.0) for r in residents
     }
@@ -237,8 +239,14 @@ def _compensation(
     )
 
 
-def evaluate(floorplate: Floorplate, scheme: Scheme) -> Evaluation:
-    """Evaluate one proposed scheme against the source thresholds."""
+def evaluate(floorplate: Floorplate, scheme: Scheme,
+             policy: rules.Policy = rules.SOURCE) -> Evaluation:
+    """Evaluate one proposed scheme against the thresholds of ``policy``.
+
+    The default policy is the sources'. Another policy is the user's, and the
+    evaluation records it so a report never presents a user's threshold as
+    the by-law's.
+    """
     units, warnings = _build_units(floorplate, scheme)
     assigned = set(scheme.assigned_ids)
     untouched = [r for r in floorplate.rooms if r.id not in assigned]
@@ -248,14 +256,14 @@ def evaluate(floorplate: Floorplate, scheme: Scheme) -> Evaluation:
     surviving = len(units) + len(untouched)
     rooms_lost = original - surviving
 
-    size, via_average = _size_test(units)
-    room_count = _room_count_test(original, surviving)
-    replacement = _replacement_test(original, len(units))
+    size, via_average = _size_test(units, policy)
+    room_count = _room_count_test(original, surviving, policy)
+    replacement = _replacement_test(original, len(units), policy)
 
     # Displacement. Rooms lost is a design/regulatory number; permanent
     # displacement is smaller, because the surviving units absorb tenants under
     # the right of first refusal (s.4.8(f)-(g); DTES 9.5.3).
-    residents = [r for r in floorplate.rooms if r.is_permanent_resident]
+    residents = [r for r in floorplate.rooms if r.is_resident_under(policy)]
     converted_resident_ids = [r.id for r in residents if r.id in assigned]
     converted_residents = len(converted_resident_ids)
     rehoused = min(converted_residents, len(units))
@@ -283,8 +291,9 @@ def evaluate(floorplate: Floorplate, scheme: Scheme) -> Evaluation:
         rehoused=rehoused,
         permanently_displaced=permanently_displaced,
         compensation=_compensation(
-            floorplate, permanently_displaced, converted_resident_ids
+            floorplate, permanently_displaced, converted_resident_ids, policy
         ),
-        small_loss_route=0 < rooms_lost <= rules.SMALL_LOSS_MAX_ROOMS,
+        small_loss_route=0 < rooms_lost <= policy.small_loss_max_rooms,
         warnings=warnings,
+        policy=policy,
     )

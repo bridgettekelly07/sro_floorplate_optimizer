@@ -22,7 +22,9 @@ one that passes while losing the fewest rooms.
 2. Write them as JSON (see `README.md`, "Start here") and run
    `python3 -m sro.cli --input floorplate.json` (add `--json` for machine-readable output, `--svg plan.svg`
    for the before/after plan). For the least-displacement scheme use `sro.optimize.optimise` with the
-   room areas, `strict=True` for every unit at 200 SF or `strict=False` for the average fallback.
+   room areas, `strict=True` for every unit at the minimum size or `strict=False` for the average fallback.
+   Both take a `policy` (`sro.rules.Policy`); leave it at the default, the sources' thresholds, unless the
+   user is asking what a different threshold would do, and then say so in the report.
 3. Report the three tests separately, each with its clause, and say whether a pass is at the limit. Never
    fold them into one ratio: the Guidelines' 50% cap and 9.2.7's 50% floor are different tests and a scheme
    can pass one and fail the other.
@@ -34,8 +36,8 @@ one that passes while losing the fewest rooms.
 
 ## Where things are
 
-- `sro/rules.py`: every threshold with the clause behind it. Nothing here is user input.
-- `sro/evaluate.py`: the operation. `sro/optimize.py`: the search, and the district extension.
+- `sro/rules.py`: every threshold with the clause behind it, gathered in a `Policy`; the default is the sources'.
+- `sro/evaluate.py`: the operation. `sro/optimize.py`: the search, under any policy.
 - `source/source_extract.md`, `source/citation.md`: the annotated passages and their authority.
 - `TESTING.md`: the three hand-worked cases and what the tool did with them.
 - `web/index.html` (`node server.js`): the same operation as a browser tool, with the plan as the editor.

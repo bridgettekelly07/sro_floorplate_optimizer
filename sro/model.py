@@ -11,7 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Sequence
 
-from .rules import PERMANENT_RESIDENT_MIN_DAYS
+from .rules import PERMANENT_RESIDENT_MIN_DAYS, Policy, SOURCE
 
 DAYS_PER_YEAR = 365.0
 
@@ -36,9 +36,13 @@ class Room:
     @property
     def is_permanent_resident(self) -> bool:
         """SRA By-law s.1.2: occupancy as a residence for at least 30 days."""
+        return self.is_resident_under(SOURCE)
+
+    def is_resident_under(self, policy: Policy) -> bool:
+        """The same test at the policy's threshold of days."""
         if not self.occupied or self.tenancy_years is None:
             return False
-        return self.tenancy_years * DAYS_PER_YEAR >= PERMANENT_RESIDENT_MIN_DAYS
+        return self.tenancy_years * DAYS_PER_YEAR >= policy.permanent_resident_min_days
 
 
 @dataclass(frozen=True)

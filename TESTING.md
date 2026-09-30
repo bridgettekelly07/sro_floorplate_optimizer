@@ -69,26 +69,30 @@ statement that the allocation is left to the permit process.
 single total; per-room figures as above. Under the Case 2 scheme it narrows the candidates to rooms 1–6
 and returns 12–15 months.
 
-## The browser against Python
+## The thresholds as a policy
 
-The browser tool reimplements the search and the district ledger in JavaScript. `tests/fixtures/district_stock.json`
-records the exact stock the browser fed its ledger for the market SROs at the default scenario, with the
-browser's own answers; `test_the_browser_and_python_agree_on_the_district` asserts the Python ledger gives
-the same phases, the same figures for every phase, and the same cost. To refresh the fixture after a change
-to either side, open the browser tool with the Scenario drawer on and run `SRO.lastStock()` in the console.
+The browser tool and the Python package take the same five thresholds as a policy, the sources' by
+default. `TestPolicy` in `tests/test_optimize.py` asserts that the default is the sources', that a lower
+minimum unit size displaces fewer on the hand-worked floor, that a tighter cap makes the example
+infeasible, that the replacement floor moves with the policy, that the closed form for uniform rooms
+follows the search under another set of thresholds, and that an evaluation carries the policy it was run
+under, so a result under a user's thresholds is never reported as the by-law's. The CLI takes the same
+thresholds as flags (`--min-unit`, `--max-reduction`, `--min-replacement`, `--small-loss`,
+`--resident-days`) and prints a line to stderr when they are not the sources'.
 
 ## Sanity checks in the browser
 
 Things that must be true; if any is not, something is wrong.
 
-- Mandate slider at 0: nothing converts, nobody displaced. At 100%: every building that can convert does.
+- Source values: the panel says the thresholds are the sources', and the figures match the README's.
 - The strict reading never produces more units or fewer displaced than the average reading.
-- Vacancy 0% and no new supply: everyone who cannot return leaves the district, and the headline's "opening
-  N more units" equals that number. Set new supply to N per phase and the leavers fall to about zero.
-- Raising the relocation housing never increases displacement; it reduces phases.
-- The who-moves bar sums to the tenants in scope; a phase's *Out* equals its wait and for-good columns.
+- Lowering the minimum unit size never displaces more; raising it never displaces fewer. At a minimum every
+  room already meets, nobody is displaced and every room converts in place.
+- Tightening the largest cut can only take buildings out of "convert" and into "cannot pass", never the reverse.
+- The tenants bar sums to everyone in the stock the policy reaches; displaced equals the tiles' figure.
 - Pinning a building as drawn changes the district total by exactly that building's difference.
-- Arcs on the map land on buildings with spare rooms; a 14-room building does not absorb 40 people.
+- The marks on the map add up to the tenants displaced; a building with none displaced carries no mark.
+- A kept variant's row never changes; loading it reproduces its figures exactly.
 
 ## A test sample in the browser: the Ivanhoe Hotel
 
@@ -103,18 +107,17 @@ step's result was predicted before it was taken.
 | Pin | (the edit above pins the building) | a non-compliant drawing cannot convert, so the district loses it | "pinned as drawn, but the drawing fails the tests, so it cannot convert"; district falls from 33 of 67 buildings and 1,033 units to 32 of 66 and 1,009 |
 | Strict | apply the strict search | pairs only: 11 units on a 23-room floor, 44 of 92 = 47.8% < 50%, so no compliant scheme | "No scheme of adjacent merges is compliant under the strict reading"; drawing left as it was |
 | Average | apply the average search | back to the loaded scheme | 48 / 8 / 36, all pass; district back to 33 of 67 and 1,033 units |
-| Mandate 100% → 50% | move the slider with the Ivanhoe selected | at 100% it converts; at 50% the mandate does not need it | "phase 8 · 52 units · 40 displaced" then "left as it is" |
+| Policy at 150 SF | set the minimum unit size to 150 with the Ivanhoe selected | rooms of 116 SF pair less often; fewer tenants leave | section 02's size test reads 150 SF; the panel's tenants displaced falls, and the Ivanhoe's line follows |
 
-One defect surfaced and was fixed in the same session: the building panel's "In the district scenario" line
-did not refresh when the mandate slider moved, so it kept saying "phase 8" after the district had dropped the
-building. Cause: the district re-rendered without re-rendering the building panel. Change: the district
-render now re-renders the building panel when a building is selected.
+One defect surfaced and was fixed in the same session: the building panel's scenario line did not refresh
+when the district's inputs moved, so it kept an old answer after the district had dropped the building.
+Cause: the district re-rendered without re-rendering the building panel. Change: the district render now
+re-renders the building panel when a building is selected. The same wiring carries the policy panel.
 
 ## A problem, its cause, and what changed
 
-The one-pass ordering rule for the district programme put a swing building (one whose conversion adds spare
-homes) first, but the phase filler could pack it into the same phase as the building that needed those homes,
-which exist only after the phase ends: two tenants left who need not have. Found by reasoning about the
-rule; reproduced in `test_the_rule_packs_the_swing_building_with_the_one_that_needs_it`; fixed by adding a
-search over partitions into phases that separates them (`test_the_search_separates_them_and_nobody_leaves`).
-On the real stock the search found an order with 27 fewer tenants left with nowhere to wait.
+The district's one-pass ordering rule, when the tool still phased conversions and re-housed tenants, put a
+swing building in the same phase as the building that needed its spare homes, which exist only after the
+phase ends; a search over partitions into phases fixed it. That machinery was removed when the tool became a
+visualization of the policy, and its tests with it; the history is in git. The defect that remains worth
+recording is the one above: a panel that reports on another panel's state must be re-rendered with it.
