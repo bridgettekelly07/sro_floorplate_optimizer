@@ -476,6 +476,16 @@ export class District3D {
     if (!foot) return;
     const skip = {};
     this.data.surveyed.forEach((b) => { if (b.foot != null) skip[b.foot] = true; });
+    // a second 2015 footprint on an SRO's lot (Creekside's north slab) would stand over its massing: the massing replaces it
+    const mass = this.data.mass, cen = (r) => [r.reduce((t, q) => t + q[0], 0) / r.length, r.reduce((t, q) => t + q[1], 0) / r.length];
+    const within = (c, r) => { let k = false; for (let a = 0, z = r.length - 1; a < r.length; z = a++) if ((r[a][1] > c[1]) !== (r[z][1] > c[1]) && c[0] < (r[z][0] - r[a][0]) * (c[1] - r[a][1]) / (r[z][1] - r[a][1]) + r[a][0]) k = !k; return k; };
+    const parts = [];
+    if (mass) mass.forEach((rec) => { if (rec) rec.parts.forEach((p) => parts.push({ r: p.r, c: cen(p.r), b: [Math.min(...p.r.map((q) => q[0])), Math.min(...p.r.map((q) => q[1])), Math.max(...p.r.map((q) => q[0])), Math.max(...p.r.map((q) => q[1]))] })); });
+    foot.forEach((f, i) => {
+      if (skip[i]) return;
+      const c = cen(f.p);
+      if (parts.some((p) => f.b[2] >= p.b[0] && f.b[0] <= p.b[2] && f.b[3] >= p.b[1] && f.b[1] <= p.b[3] && (within(c, p.r) || within(p.c, f.p)))) skip[i] = true;
+    });
     const colour = new THREE.Color(css("--m3-bldg") || "#d8d2c3"), items = [], faces = [];
     for (let i = 0; i < foot.length; i++) {
       if (skip[i]) continue;
@@ -534,7 +544,8 @@ export class District3D {
     const m = new THREE.Matrix4(), q = new THREE.Quaternion(), pos = new THREE.Vector3(), scl = new THREE.Vector3();
     trees.forEach((t, i) => {
       const x = proj.x(t.lon), z = proj.y(t.lat), y = this.yAt(x, z), h = drawnHeight(t.h);   // the class, squeezed to 15..60 ft
-      const r = Math.max(1, Math.min(6, h * 0.28)), dia = Math.max(0.15, t.d / 100);
+      // the City's diameter, capped: a few records carry unit slips (one reads 66 m) that would draw a trunk the size of a lot
+      const r = Math.max(1, Math.min(6, h * 0.28)), dia = Math.max(0.15, Math.min(1.2, t.d / 100));
       // the quad is as wide as the canopy's reach (lobes run to about 1.25 radii); its scale is read by the shader
       pos.set(x, y + h * 0.62 * u, z); scl.set(r * 2.3 * u, r * 2.3 * FASTIGIATE * u, 1);   // the quad has the atlas cell's aspect
       canopy.setMatrixAt(i, m.compose(pos, q, scl));
