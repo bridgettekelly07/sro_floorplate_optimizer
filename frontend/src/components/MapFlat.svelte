@@ -5,7 +5,7 @@
   import { drawFlatMap, resetView, refitView, clampView, zoomView, viewBox } from "../lib/flatMap.js";
   import { wheelZoom, EASE } from "../lib/zoom.js";
 
-  let { data, proj, scen, colourOf, sel, onSelect, onHover } = $props();
+  let { data, proj, scen, theme, colourOf, sel, onSelect, onHover } = $props();
   let el = $state();
   let view = $state(null);
   let drawnView = $state(null);     // the view the current SVG was drawn for
@@ -15,7 +15,7 @@
     const w = el ? el.clientWidth : 0, h = el ? el.clientHeight : 0;
     return (w > 0 && h > 0) ? h / w : proj.H / proj.W;
   }
-  const svg = $derived(drawnView ? drawFlatMap({ proj, view: drawnView, streets: data.streets, ground: data.ground, foot: data.foot, context: data.context, terrain: data.terrain, surveyed: data.surveyed, sel, colourOf, scen }) : "");
+  const svg = $derived(drawnView && theme ? drawFlatMap({ proj, view: drawnView, streets: data.streets, ground: data.ground, foot: data.foot, context: data.context, terrain: data.terrain, surveyed: data.surveyed, sel, colourOf, scen }) : "");
 
   $effect(() => { if (el && proj && !view) { view = resetView(proj, aspect()); drawnView = view; } });
   $effect(() => {   // keep the view fitted to the stage as it resizes

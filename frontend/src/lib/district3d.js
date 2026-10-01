@@ -45,10 +45,12 @@ export class District3D {
     this.ray = new THREE.Raycaster();
     this.ndc = { x: 0, y: 0 };
     this.v = new THREE.Vector3();
-    this.scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8a80, 0.9));
-    const sun = new THREE.DirectionalLight(0xffffff, 1.4); sun.position.set(-700, 600, 500); this.scene.add(sun);
-    const fill = new THREE.DirectionalLight(0xffffff, 0.25); fill.position.set(700, 300, -400); this.scene.add(fill);
-    this.ground = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshLambertMaterial({ color: 0xffffff }));
+    // a bright sky and a soft sun, so roofs read white and walls a shade off; the
+    // theme's --m3-exposure scales all three so dark mode stays dark
+    this.hemi = new THREE.HemisphereLight(0xffffff, 0xb5b2a9, 2.4); this.scene.add(this.hemi);
+    this.sun = new THREE.DirectionalLight(0xffffff, 1.1); this.sun.position.set(-700, 600, 500); this.scene.add(this.sun);
+    this.fill = new THREE.DirectionalLight(0xffffff, 0.5); this.fill.position.set(700, 300, -400); this.scene.add(this.fill);
+    this.ground = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ color: 0xffffff }));
     this.ground.rotation.x = -Math.PI / 2;
     this.scene.add(this.ground);
     this.matBldg = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
@@ -56,11 +58,12 @@ export class District3D {
     this.matRoad = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
     this.matWalk = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
     this.matPark = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
-    this.matTerrain = new THREE.MeshLambertMaterial({ color: 0xffffff });
+    this.matTerrain = new THREE.MeshBasicMaterial({ color: 0xffffff });   // unlit: the painted ground at its own colour, the contours carry the slope
     this.matContour = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35 });
     this.matContour5 = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.8 });
     this.matTree = new THREE.MeshLambertMaterial({ color: 0xffffff });
     this.matTrunk = new THREE.MeshLambertMaterial({ color: 0xffffff });
+    this.matEdge = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.55 });
     this.matSel = new THREE.LineBasicMaterial({ color: 0x000000 });
     this.matStorey = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.22 });
     this.gGround = new THREE.Group(); this.gFoot = new THREE.Group(); this.gStreets = new THREE.Group();
@@ -77,6 +80,8 @@ export class District3D {
   colours() {
     if (!this.ready) return;
     this.scene.background = new THREE.Color(css("--m3-sky") || "#e9e5db");
+    const exposure = parseFloat(css("--m3-exposure")) || 1;
+    this.hemi.intensity = 2.4 * exposure; this.sun.intensity = 1.1 * exposure; this.fill.intensity = 0.5 * exposure;
     this.ground.material.color.set(css("--m3-water") || "#d9e0df");
     this.matLand.color.set(css("--m3-ground") || "#f4f1ea");
     this.matRoad.color.set(css("--m3-road") || "#e3dfd5");
@@ -84,6 +89,7 @@ export class District3D {
     this.matPark.color.set(css("--m3-park") || "#dfe7db");
     this.matSel.color.set(css("--ink") || "#1d2320");
     this.matStorey.color.set(css("--ink") || "#1d2320");
+    this.matEdge.color.set(css("--m3-edge") || "#b9b4a8");
     this.matContour.color.set(css("--m3-contour") || "#bfb9aa");
     this.matContour5.color.set(css("--m3-contour") || "#bfb9aa");
     this.matTree.color.set(css("--m3-tree") || "#8aa58a");
@@ -108,9 +114,12 @@ export class District3D {
   }
 
   // One merged geometry from many rings: a triangulated roof and one quad per
-  // edge, coloured per vertex so a single draw covers the whole district.
+  // edge, coloured per vertex so a single draw covers the whole district. The
+  // ink edges come out with it: the roof outline and a vertical at every
+  // corner that turns more than a few degrees, cheaper than finding them after.
   extrude(items) {
-    const proj = this.proj, pos = [], col = [];
+    const proj = this.proj, pos = [], col = [], edge = [];
+    this.lastEdges = edge;
     items.forEach((it) => {
       const c = it.pts.slice();
       if (c.length > 1 && c[0][0] === c[c.length - 1][0] && c[0][1] === c[c.length - 1][1]) c.pop();
@@ -124,9 +133,13 @@ export class District3D {
       const push = (x, yy, z, f) => { pos.push(x, yy, z); col.push(r * f, g * f, b * f); };
       tris.forEach((t) => { for (let k = 0; k < 3; k++) push(xz[t[k]][0], y, xz[t[k]][1], 1); });
       for (let i = 0; i < xz.length; i++) {
-        const a = xz[i], q = xz[(i + 1) % xz.length];
+        const a = xz[i], q = xz[(i + 1) % xz.length], p = xz[(i + xz.length - 1) % xz.length];
         push(a[0], y0, a[1], 0.86); push(q[0], y0, q[1], 0.86); push(q[0], y, q[1], 0.86);
         push(a[0], y0, a[1], 0.86); push(q[0], y, q[1], 0.86); push(a[0], y, a[1], 0.86);
+        edge.push(a[0], y, a[1], q[0], y, q[1]);                        // the roof outline
+        const ux = a[0] - p[0], uz = a[1] - p[1], vx = q[0] - a[0], vz = q[1] - a[1];
+        const cross = ux * vz - uz * vx, dot = ux * vx + uz * vz;
+        if (Math.abs(Math.atan2(cross, dot)) > 0.35) edge.push(a[0], y0, a[1], a[0], y, a[1]);   // a corner over 20°
       }
     });
     const geo = new THREE.BufferGeometry();
@@ -251,7 +264,9 @@ export class District3D {
     (this.data.context || []).forEach((f) => {
       items.push({ pts: f.p, h: f.h || NOMINAL_H, col: colour, base: this.baseOf(f.p) });
     });
-    this.gFoot.add(new THREE.Mesh(this.extrude(items), this.matBldg));
+    const geo = this.extrude(items);
+    this.gFoot.add(new THREE.Mesh(geo, this.matBldg));
+    this.gFoot.add(new THREE.LineSegments(this.flatGeo(this.lastEdges), this.matEdge));
   }
   // The street surfaces are in the ground texture; what remains here is the names.
   buildStreets() {
@@ -384,6 +399,7 @@ export class District3D {
       mesh.userData = { s: i, cx, cz, base, top: base + top / this.mPerUnit, est: !b.hgtM };
       this.gradient(mesh, i);
       this.gSro.add(mesh);
+      if (rec || pts) this.gSro.add(new THREE.LineSegments(this.flatGeo(this.lastEdges), this.matEdge));
       this.sroMeshes.push(mesh);
       // storey markers: one faint line around each part at every floor level
       const rings = rec ? rec.parts.map((p) => ({ r: p.r, h: p.h || NOMINAL_H })) : (pts ? [{ r: pts, h }] : []);

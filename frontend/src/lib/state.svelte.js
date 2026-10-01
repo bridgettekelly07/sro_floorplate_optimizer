@@ -16,8 +16,16 @@ export const ui = $state({
   scenColour: true,       // the map coloured by the policy rather than by tenure
   mode3d: false,
   plan3d: false,          // the 3D view looked at straight down
-  tenancy: {}             // years typed for every room, by building index
+  tenancy: {},            // years typed for every room, by building index
+  theme: (typeof document !== "undefined" && document.documentElement.dataset.theme) || "dark"
 });
+
+// light or dark, remembered in this browser; the 3D district recolours itself from the tokens
+export function setTheme(theme) {
+  ui.theme = theme;
+  document.documentElement.dataset.theme = theme;
+  try { localStorage.setItem("theme", theme); } catch { /* private window */ }
+}
 
 export function selectBuilding(i) {
   ui.sel = ui.sel === i ? null : i;

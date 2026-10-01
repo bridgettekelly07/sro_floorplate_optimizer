@@ -38,28 +38,30 @@
   --scen-1: #b8382a;
   --scen-x: #1d2320;
   --scen-works: #e6b400;
-  --map-foot: #ddd8cc;
-  --map-foot-line: #cbc5b7;
-  --m3-ground: #f4f1ea;
-  --m3-sky: #e9e5db;
-  --m3-bldg: #d8d2c3;
-  --m3-street: #b9b2a3;
-  --m3-lane: #d3cdbf;
+  --map-foot: #f1eee8;
+  --map-foot-line: #cfcabf;
+  --m3-ground: #f3f1ec;
+  --m3-sky: #f3f1ec;
+  --m3-bldg: #f7f5f0;
+  --m3-street: #cfcac0;
+  --m3-lane: #faf9f6;
   --m3-glass: #2e3634;
   --m3-trim: #f3eee2;
-  --m3-water: #d9e0df;
-  --m3-road: #e3dfd5;
-  --m3-walk: #ece8de;
-  --m3-park: #dfe7db;
-  --m3-contour: #bfb9aa;
-  --m3-curb: #b4ad9e;
-  --m3-sidewalk: #f3efe6;
-  --m3-tree: #8fae8c;
-  --m3-trunk: #8b7d6b;
-  --map-water: #d9e0df;
-  --map-road: #e3dfd5;
-  --map-walk: #ece8de;
-  --map-park: #dfe7db;
+  --m3-water: #d4dce3;
+  --m3-road: #ffffff;
+  --m3-walk: #f3f1ec;
+  --m3-park: #e4eadf;
+  --m3-exposure: 1;
+  --m3-edge: #b8b3a6;
+  --m3-contour: #e2ded5;
+  --m3-curb: #dcd8cf;
+  --m3-sidewalk: #f7f6f2;
+  --m3-tree: #bccbb4;
+  --m3-trunk: #a89f91;
+  --map-water: #d4dce3;
+  --map-road: #ffffff;
+  --map-walk: #f3f1ec;
+  --map-park: #e4eadf;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -113,6 +115,8 @@
     --m3-road: #23292a;
     --m3-walk: #1c2220;
     --m3-park: #1a2620;
+    --m3-exposure: 0.6;
+    --m3-edge: #3e4541;
     --m3-contour: #2e3531;
     --m3-curb: #40484a;
     --m3-sidewalk: #212724;
@@ -175,6 +179,8 @@
   --m3-road: #23292a;
   --m3-walk: #1c2220;
   --m3-park: #1a2620;
+  --m3-exposure: 0.6;
+  --m3-edge: #3e4541;
   --m3-contour: #2e3531;
   --m3-curb: #40484a;
   --m3-sidewalk: #212724;

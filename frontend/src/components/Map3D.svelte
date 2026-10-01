@@ -1,40 +1,62 @@
 <script>
   // The three.js district. This component owns the element and the lifecycle;
-  // the drawing lives in lib/district3d.js.
-  import { onMount } from "svelte";
+  // the drawing lives in lib/district3d.js. Building the district blocks the
+  // main thread for a moment, so every heavy step is queued behind a paint:
+  // the page shows its new state and the loading overlay first, then builds.
+  import { onMount, tick } from "svelte";
   import { District3D } from "../lib/district3d.js";
 
-  let { data, proj, scen, colourOf, gradientOf, sel, plan, onSelect, onHover, onFail, onPlanChange } = $props();
+  let { data, proj, scen, theme, colourOf, gradientOf, sel, plan, onSelect, onHover, onFail, onPlanChange, onBusy } = $props();
   let wrap = $state(), labels = $state();
-  let d3 = null, started = $state(false);
+  let d3 = null, started = $state(false), alive = true;
+
+  // heavy work runs one job at a time, each after the browser has painted
+  let chain = Promise.resolve(), queued = new Set();
+  function heavy(key, fn) {
+    if (queued.has(key)) return;           // a build of this kind is already waiting; it will see the latest props
+    queued.add(key);
+    chain = chain.then(async () => {
+      queued.delete(key);
+      if (!alive) return;
+      onBusy && onBusy(true);
+      await tick();
+      await new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
+      if (!alive) return;
+      try { fn(); } finally { onBusy && onBusy(false); }
+    });
+  }
 
   onMount(() => {
     d3 = new District3D(wrap, labels, { onSelect, onHover });
     if (import.meta.env.DEV) window.__d3 = d3;   // for poking at the scene from the console
     d3.onPlanChange = onPlanChange;
     d3.setData(data, proj);
-    if (!d3.init()) { onFail("this browser could not start a WebGL context."); return; }
-    d3.resize();
-    d3.fit();
-    started = true;
-    d3.start(onFail);
-    const ro = new ResizeObserver(() => d3.resize());
+    heavy("init", () => {
+      if (!d3.init()) { onFail("this browser could not start a WebGL context."); return; }
+      d3.resize();
+      d3.fit();
+      d3.setStyle(colourOf, gradientOf);
+      d3.setSelected(sel);
+      d3.setPlan(plan);
+      d3.build();
+      started = true;
+      d3.start(onFail);
+    });
+    const ro = new ResizeObserver(() => { if (started) d3.resize(); });
     ro.observe(wrap);
-    const mq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
-    const onTheme = () => { d3.colours(); d3.build(); };
-    if (mq) mq.addEventListener("change", onTheme);
-    return () => { ro.disconnect(); if (mq) mq.removeEventListener("change", onTheme); d3.dispose(); };
+    return () => { alive = false; ro.disconnect(); d3.dispose(); };
   });
 
   // the policy's colours and gradients, rebuilt whenever the scenario changes
   $effect(() => {
     void scen;
     if (!started) return;
-    d3.setStyle(colourOf, gradientOf);
-    d3.build();
+    heavy("scene", () => { d3.setStyle(colourOf, gradientOf); d3.build(); });
   });
   $effect(() => { if (started) d3.setSelected(sel); });
   $effect(() => { if (started) d3.setPlan(plan); });
+  // the theme's tokens, re-read once the interface has switched
+  $effect(() => { void theme; if (started) heavy("theme", () => { d3.colours(); d3.build(); }); });
 
   export function zoom(f) { d3 && d3.zoom(f); }
   export function fit() { d3 && d3.fit(); }
