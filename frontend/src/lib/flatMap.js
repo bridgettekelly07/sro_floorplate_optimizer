@@ -3,6 +3,10 @@
 // owns it redraws on a short timer.
 import { segInside, svgPath, arterialPicks, ROAD } from "./projection.js";
 import { esc } from "./format.js";
+import { landCanvas } from "./terrain.js";
+import { css } from "./colours.js";
+
+let landUrl = null, landKey = "";   // the land mask as a data URL, cached per colour scheme
 
 export function resetView(proj, aspect) {
   let w = proj.W, h = w * aspect;
@@ -31,17 +35,25 @@ export function viewBox(v) {
 }
 
 // colourOf(b, i) gives the fill for each Appendix B building
-export function drawFlatMap({ proj, view, streets, ground, foot, surveyed, sel, colourOf }) {
+export function drawFlatMap({ proj, view, streets, ground, foot, context, terrain, surveyed, sel, colourOf }) {
   const z = view.w / proj.W;   // user units per screen pixel, so text and dots keep their size
   const vx0 = view.x, vy0 = view.y, vx1 = view.x + view.w, vy1 = view.y + view.h;
   const parts = ['<svg viewBox="' + viewBox(view) + '" role="img" aria-label="Map of the Downtown Eastside: building footprints, streets and SRO buildings">'];
-  const P = (pts) => svgPath(pts, proj), inside = (c) => segInside(c, proj.bbox);
+  const P = (pts) => svgPath(pts, proj);
+  // features are kept to the view, with a margin, so the string stays short
+  const vb = [proj.lon(vx0 - view.w * 0.2), proj.lat(vy1 + view.h * 0.2), proj.lon(vx1 + view.w * 0.2), proj.lat(vy0 - view.h * 0.2)];
+  const inside = (c) => segInside(c, vb);
 
-  if (ground) {
-    parts.push('<rect x="' + vx0.toFixed(1) + '" y="' + vy0.toFixed(1) + '" width="' + view.w.toFixed(1) + '" height="' + view.h.toFixed(1) + '" fill="var(--map-water)"/>');
+  parts.push('<rect x="' + vx0.toFixed(1) + '" y="' + vy0.toFixed(1) + '" width="' + view.w.toFixed(1) + '" height="' + view.h.toFixed(1) + '" fill="var(--map-water)"/>');
+  if (terrain && terrain.land) {
+    const key = css("--surface") + css("--map-water");
+    if (key !== landKey) { landKey = key; const cv = landCanvas(terrain, css("--surface") || "#fbf9f5", css("--map-water") || "#d9e0df"); landUrl = cv ? cv.toDataURL("image/png") : null; }
+    const tb = terrain.bbox;
+    if (landUrl) parts.push('<image href="' + landUrl + '" x="' + proj.x(tb[0]).toFixed(1) + '" y="' + proj.y(tb[3]).toFixed(1) + '" width="' + (proj.x(tb[2]) - proj.x(tb[0])).toFixed(1) + '" height="' + (proj.y(tb[1]) - proj.y(tb[3])).toFixed(1) + '" preserveAspectRatio="none" style="image-rendering:auto"/>');
+  } else if (ground) {
     parts.push('<path d="' + ground.land.map(P).join("") + 'Z" fill="var(--surface)" stroke="none"/>');
-    parts.push('<path d="' + ground.parks.map((p) => P(p.r) + "Z").join("") + '" fill="var(--map-park)" stroke="none"/>');
   }
+  if (ground) parts.push('<path d="' + ground.parks.filter((p) => inside(p.r)).map((p) => P(p.r) + "Z").join("") + '" fill="var(--map-park)" stroke="none"/>');
   const mpu = proj.mPerUnit, walkD = [], roadD = [];
   streets.segments.forEach((sg) => {
     if (!inside(sg.c)) return;
@@ -62,16 +74,17 @@ export function drawFlatMap({ proj, view, streets, ground, foot, surveyed, sel, 
     const laneD = ground.lanes.filter(inside).map(P).join("");
     if (laneD) parts.push('<path d="' + laneD + '" fill="none" stroke="var(--map-road)" stroke-width="' + (ROAD.lane / mpu).toFixed(2) + '" stroke-linecap="round"/>');
   }
-  if (foot) {
-    const fp = [];
-    for (let fi = 0; fi < foot.length; fi++) {
-      const b4 = foot[fi].b;
+  const fp = [];
+  [foot, context].forEach((list) => {
+    if (!list) return;
+    for (let fi = 0; fi < list.length; fi++) {
+      const b4 = list[fi].b;
       if (proj.x(b4[2]) < vx0 || proj.x(b4[0]) > vx1) continue;
       if (proj.y(b4[1]) < vy0 || proj.y(b4[3]) > vy1) continue;
-      fp.push(P(foot[fi].p) + "Z");
+      fp.push(P(list[fi].p) + "Z");
     }
-    if (fp.length) parts.push('<path d="' + fp.join("") + '" fill="var(--map-foot)" stroke="var(--map-foot-line)" stroke-width="' + (0.6 * z).toFixed(2) + '"/>');
-  }
+  });
+  if (fp.length) parts.push('<path d="' + fp.join("") + '" fill="var(--map-foot)" stroke="var(--map-foot-line)" stroke-width="' + (0.6 * z).toFixed(2) + '"/>');
   const pick = arterialPicks(streets, proj);
   Object.keys(pick).forEach((name) => {
     const sg = pick[name].sg, a = sg.c[0], b = sg.c[sg.c.length - 1];

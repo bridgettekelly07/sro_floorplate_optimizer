@@ -3,6 +3,7 @@
   // SVG is rebuilt on a short timer after a zoom and only its viewBox moves
   // while panning.
   import { drawFlatMap, resetView, refitView, clampView, zoomView, viewBox } from "../lib/flatMap.js";
+  import { wheelZoom, EASE } from "../lib/zoom.js";
 
   let { data, proj, scen, colourOf, sel, onSelect, onHover } = $props();
   let el = $state();
@@ -14,7 +15,7 @@
     const w = el ? el.clientWidth : 0, h = el ? el.clientHeight : 0;
     return (w > 0 && h > 0) ? h / w : proj.H / proj.W;
   }
-  const svg = $derived(drawnView ? drawFlatMap({ proj, view: drawnView, streets: data.streets, ground: data.ground, foot: data.foot, surveyed: data.surveyed, sel, colourOf, scen }) : "");
+  const svg = $derived(drawnView ? drawFlatMap({ proj, view: drawnView, streets: data.streets, ground: data.ground, foot: data.foot, context: data.context, terrain: data.terrain, surveyed: data.surveyed, sel, colourOf, scen }) : "");
 
   $effect(() => { if (el && proj && !view) { view = resetView(proj, aspect()); drawnView = view; } });
   $effect(() => {   // keep the view fitted to the stage as it resizes
@@ -31,16 +32,36 @@
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => { timer = null; drawnView = view; }, 70);
   }
-  export function zoom(f, ax, ay) { view = zoomView(view, proj, aspect(), f, ax, ay); schedule(); }
+  // zoom eases toward a target width over a few frames, the point under the
+  // cursor staying put; a wheel's step follows the scroll distance
+  let targetW = null, anchor = null, easing = false;
+  export function zoom(f, ax, ay) {
+    targetW = Math.max(proj.W / 60, Math.min(Math.max(proj.W, proj.H / aspect()), (targetW == null ? view.w : targetW) * f));
+    anchor = ax == null ? null : [ax, ay];
+    if (!easing) { easing = true; requestAnimationFrame(step); }
+  }
+  function step() {
+    if (targetW == null || !view) { easing = false; return; }
+    const d = targetW - view.w;
+    const done = Math.abs(d) < view.w * 0.001;
+    const w = done ? targetW : view.w + d * EASE;
+    view = zoomView(view, proj, aspect(), w / view.w, anchor && anchor[0], anchor && anchor[1]);
+    const s = el.querySelector("svg");
+    if (s) s.setAttribute("viewBox", viewBox(view));
+    onHover(null);
+    if (done) { targetW = null; anchor = null; easing = false; drawnView = view; }
+    else requestAnimationFrame(step);
+  }
   export function fit() { view = resetView(proj, aspect()); drawnView = view; }
 
   function toUser(e) {
     const r = el.getBoundingClientRect();
     return [view.x + (e.clientX - r.left) / r.width * view.w, view.y + (e.clientY - r.top) / r.height * view.h];
   }
-  function wheel(e) { e.preventDefault(); const u = toUser(e); zoom(e.deltaY > 0 ? 1.18 : 1 / 1.18, u[0], u[1]); }
+  function wheel(e) { e.preventDefault(); const u = toUser(e); zoom(wheelZoom(e), u[0], u[1]); }
   function down(e) {
     if (e.target.closest("button")) return;
+    targetW = null; anchor = null;
     panning = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y }; moved = false;
     el.setPointerCapture(e.pointerId);
   }

@@ -45,6 +45,25 @@ City's non-market housing dataset, the obvious place to look for this stock, **e
 single room accommodation — which is why the building list had to come from Appendix B of the survey
 rather than from open data.
 
+## City open data drawn by the map
+
+All from the City of Vancouver Open Data portal under the Open Government Licence - Vancouver, rebuilt by
+`tools/city-data.py` for a context extent wider than the stock: the downtown peninsula, False Creek and the
+blocks east to Clark Drive. Retrieved 2026-09-30. None of these is a source for any rule; they are the
+ground the stock stands on.
+
+| Dataset | Dataset id | Used for |
+|---|---|---|
+| Elevation contour lines - 1-metre contours | `elevation-contour-lines-1-metre-contours` | the terrain: a heightfield interpolated between the two nearest contour levels at each 15 m cell, and every second contour drawn on it |
+| Shoreline 2002 | `shoreline-2002` | the land: the shoreline flood-filled from known land on a 6 m grid; everything else is water |
+| Building Footprints 2009 | `building-footprints-2009` | the city around the surveyed extent, every footprint at its LiDAR height; and the measured parts of each SRO's massing |
+| Building Footprints 2015 | `building-footprints-2015` | the surveyed extent's footprints, which the SRO records index into |
+| Public streets | `public-streets` | the street centrelines by use, drawn at a pavement width with a sidewalk band and a curb line |
+| Sidewalk condition rating 2021 | `sidewalk-condition-rating` | the centreline of each sidewalk segment, for where the sidewalks are; the condition rating is not used |
+| Lanes, Parks | `lanes`, `parks-polygon-representation` | the lanes and the parks |
+| Public trees | `public-trees` | every street and park tree the City maintains, at the height class and trunk diameter it records |
+| Property parcel polygons | `property-parcel-polygons` | the lot under each SRO, matched by civic address |
+
 ## Note on Currency
 
 All three primary sources were put to Council for amendment at the December 9, 2025 public hearing, as one exercise aimed at accelerating SRO replacement: the SRA By-law "to improve tenant protections" (Recommendation E), the DTES Plan (G), and the Guidelines for the *Upgrade* of designated rooms (H). The substance of each sits in appendices to the Report that are not part of the summary, so it establishes that the sources moved, not how.

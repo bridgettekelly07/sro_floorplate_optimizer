@@ -4,10 +4,13 @@
 // feeds this class its data, colours and selection.
 import * as THREE from "three";
 import { css, hexOf } from "./colours.js";
-import { segInside, arterialPicks, ROAD } from "./projection.js";
+import { arterialPicks } from "./projection.js";
+import { paintGround } from "./groundTexture.js";
+import { wheelZoom, EASE } from "./zoom.js";
 import { FLOOR_M, NOMINAL_H, floorsOf } from "./typicalFloor.js";
 
 const NAME_PX = 10, NAME_S = 4;   // street-name type size on screen, and the texture oversampling
+
 
 export class District3D {
   // wrap: the element the canvas goes in; labels: the overlay for building names
@@ -53,11 +56,16 @@ export class District3D {
     this.matRoad = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
     this.matWalk = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
     this.matPark = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
+    this.matTerrain = new THREE.MeshLambertMaterial({ color: 0xffffff });
+    this.matContour = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35 });
+    this.matContour5 = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.8 });
+    this.matTree = new THREE.MeshLambertMaterial({ color: 0xffffff });
+    this.matTrunk = new THREE.MeshLambertMaterial({ color: 0xffffff });
     this.matSel = new THREE.LineBasicMaterial({ color: 0x000000 });
     this.matStorey = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.22 });
     this.gGround = new THREE.Group(); this.gFoot = new THREE.Group(); this.gStreets = new THREE.Group();
-    this.gSro = new THREE.Group(); this.gSel = new THREE.Group(); this.gNames = new THREE.Group();
-    this.scene.add(this.gGround, this.gFoot, this.gStreets, this.gNames, this.gSro, this.gSel);
+    this.gSro = new THREE.Group(); this.gSel = new THREE.Group(); this.gNames = new THREE.Group(); this.gTrees = new THREE.Group();
+    this.scene.add(this.gGround, this.gFoot, this.gStreets, this.gNames, this.gTrees, this.gSro, this.gSel);
     this.sroMeshes = [];
     this.bindPointer();
     this.ready = true;
@@ -76,11 +84,28 @@ export class District3D {
     this.matPark.color.set(css("--m3-park") || "#dfe7db");
     this.matSel.color.set(css("--ink") || "#1d2320");
     this.matStorey.color.set(css("--ink") || "#1d2320");
+    this.matContour.color.set(css("--m3-contour") || "#bfb9aa");
+    this.matContour5.color.set(css("--m3-contour") || "#bfb9aa");
+    this.matTree.color.set(css("--m3-tree") || "#8aa58a");
+    this.matTrunk.color.set(css("--m3-trunk") || "#8b7d6b");
     this.needFoot = true; this.dirty = true;
   }
 
   // ---- geometry ----
   clear(g) { while (g.children.length) g.remove(g.children[0]); }
+
+  // the ground's height in scene units at a point in projection units
+  yAt(x, z) {
+    const t = this.data && this.data.terrain;
+    if (!t) return 0;
+    return t.at(this.proj.lon(x), this.proj.lat(z)) / this.mPerUnit;
+  }
+  // the lowest ground under a ring, so a building on a slope sits in it, not over it
+  baseOf(ring) {
+    let y = Infinity;
+    for (const p of ring) y = Math.min(y, this.yAt(this.proj.x(p[0]), this.proj.y(p[1])));
+    return y === Infinity ? 0 : y;
+  }
 
   // One merged geometry from many rings: a triangulated roof and one quad per
   // edge, coloured per vertex so a single draw covers the whole district.
@@ -91,7 +116,8 @@ export class District3D {
       if (c.length > 1 && c[0][0] === c[c.length - 1][0] && c[0][1] === c[c.length - 1][1]) c.pop();
       if (c.length < 3) return;
       const xz = c.map((p) => [proj.x(p[0]), proj.y(p[1])]);
-      const y = Math.max(0.5, it.h) / this.mPerUnit;
+      const base = it.base || 0, y0 = base - 0.6 / this.mPerUnit;   // sunk a little, so no gap opens on a slope
+      const y = base + Math.max(0.5, it.h) / this.mPerUnit;
       let tris;
       try { tris = THREE.ShapeUtils.triangulateShape(xz.map((p) => new THREE.Vector2(p[0], p[1])), []); } catch { tris = []; }
       const r = it.col.r, g = it.col.g, b = it.col.b;
@@ -99,8 +125,8 @@ export class District3D {
       tris.forEach((t) => { for (let k = 0; k < 3; k++) push(xz[t[k]][0], y, xz[t[k]][1], 1); });
       for (let i = 0; i < xz.length; i++) {
         const a = xz[i], q = xz[(i + 1) % xz.length];
-        push(a[0], 0, a[1], 0.86); push(q[0], 0, q[1], 0.86); push(q[0], y, q[1], 0.86);
-        push(a[0], 0, a[1], 0.86); push(q[0], y, q[1], 0.86); push(a[0], y, a[1], 0.86);
+        push(a[0], y0, a[1], 0.86); push(q[0], y0, q[1], 0.86); push(q[0], y, q[1], 0.86);
+        push(a[0], y0, a[1], 0.86); push(q[0], y, q[1], 0.86); push(a[0], y, a[1], 0.86);
       }
     });
     const geo = new THREE.BufferGeometry();
@@ -148,12 +174,66 @@ export class District3D {
     this.ground.scale.set(proj.W * 8, proj.H * 8, 1);
     this.ground.position.set(proj.W / 2, -0.05, proj.H / 2);
   }
+  // The terrain: one vertex per heightfield cell, the painted ground as its
+  // texture, lit so the slopes read. Without a heightfield the land is flat.
   buildGround() {
     this.clear(this.gGround);
-    const g = this.data.ground;
-    if (!g) return;
-    this.gGround.add(new THREE.Mesh(this.polys(g.land, 0.02), this.matLand));
-    this.gGround.add(new THREE.Mesh(this.polys(g.parks.map((p) => p.r), 0.06), this.matPark));
+    const proj = this.proj, t = this.data.terrain;
+    // the heightfield covers the streets' extent, which runs wider than the map's frame
+    const bb = t ? t.bbox : proj.bbox;
+    const ext = { x0: proj.x(bb[0]), x1: proj.x(bb[2]), z0: proj.y(bb[3]), z1: proj.y(bb[1]) };
+    const cv = paintGround(proj, this.data, this.renderer.capabilities.maxTextureSize, ext, bb);
+    const tex = new THREE.CanvasTexture(cv);
+    if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = this.renderer.capabilities.getMaxAnisotropy ? this.renderer.capabilities.getMaxAnisotropy() : 1;
+    if (this.matTerrain.map) this.matTerrain.map.dispose();
+    this.matTerrain.map = tex; this.matTerrain.needsUpdate = true;
+    const uvOf = (x, z) => [(x - ext.x0) / (ext.x1 - ext.x0), 1 - (z - ext.z0) / (ext.z1 - ext.z0)];
+    let geo;
+    if (t) {
+      const nx = t.nx, ny = t.ny, pos = [], uv = [], idx = [];
+      const lat0 = (bb[1] + bb[3]) / 2, kx = 111320 * Math.cos(lat0 * Math.PI / 180), ky = 110540;
+      for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
+        const x = proj.x(bb[0] + i * t.cell / kx), z = proj.y(bb[1] + j * t.cell / ky);
+        pos.push(x, t.heights[j * nx + i] / this.mPerUnit, z);
+        uv.push(...uvOf(x, z));
+      }
+      for (let j = 0; j < ny - 1; j++) for (let i = 0; i < nx - 1; i++) {
+        const a = j * nx + i, b = a + 1, c = a + nx, d = c + 1;
+        idx.push(a, b, c, b, d, c);   // wound so the normals face up: z runs south
+      }
+      geo = new THREE.BufferGeometry();
+      geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+      geo.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+      geo.setIndex(idx);
+      geo.computeVertexNormals();
+    } else {
+      geo = new THREE.PlaneGeometry(ext.x1 - ext.x0, ext.z1 - ext.z0);
+      geo.rotateX(-Math.PI / 2); geo.translate((ext.x0 + ext.x1) / 2, 0.02, (ext.z0 + ext.z1) / 2);
+    }
+    this.gGround.add(new THREE.Mesh(geo, this.matTerrain));
+    this.buildContours();
+  }
+  // The City's 1-metre contours, laid just above the ground they describe:
+  // every metre faint, every fifth metre stronger.
+  buildContours() {
+    const t = this.data.terrain, proj = this.proj;
+    if (!t || !t.contours.length) return;
+    const lift = 0.25 / this.mPerUnit, one = [], five = [];
+    t.contours.forEach((c) => {
+      const out = Math.abs(c.z % 5) < 1e-6 ? five : one;
+      for (let i = 1; i < c.pts.length; i++) {
+        const a = c.pts[i - 1], b = c.pts[i];
+        const ax = proj.x(a[0]), az = proj.y(a[1]), bx = proj.x(b[0]), bz = proj.y(b[1]);
+        out.push(ax, this.yAt(ax, az) + lift, az, bx, this.yAt(bx, bz) + lift, bz);
+      }
+    });
+    [[one, this.matContour], [five, this.matContour5]].forEach(([seg, mat]) => {
+      if (!seg.length) return;
+      const g = new THREE.BufferGeometry();
+      g.setAttribute("position", new THREE.Float32BufferAttribute(seg, 3));
+      this.gGround.add(new THREE.LineSegments(g, mat));
+    });
   }
   // Footprints that an SRO already stands on are drawn by the SRO itself.
   buildFoot() {
@@ -165,30 +245,47 @@ export class District3D {
     const colour = new THREE.Color(css("--m3-bldg") || "#d8d2c3"), items = [];
     for (let i = 0; i < foot.length; i++) {
       if (skip[i]) continue;
-      items.push({ pts: foot[i].p, h: foot[i].h || NOMINAL_H, col: colour });
+      items.push({ pts: foot[i].p, h: foot[i].h || NOMINAL_H, col: colour, base: this.baseOf(foot[i].p) });
     }
+    // the city around the surveyed extent: the 2009 footprints at their LiDAR heights
+    (this.data.context || []).forEach((f) => {
+      items.push({ pts: f.p, h: f.h || NOMINAL_H, col: colour, base: this.baseOf(f.p) });
+    });
     this.gFoot.add(new THREE.Mesh(this.extrude(items), this.matBldg));
   }
+  // The street surfaces are in the ground texture; what remains here is the names.
   buildStreets() {
     this.clear(this.gStreets);
-    const { streets, ground } = this.data, proj = this.proj, u = 1 / this.mPerUnit, walk = [], road = [];
-    streets.segments.forEach((sg) => {
-      if (!segInside(sg.c, proj.bbox)) return;
-      const half = (ROAD.pave[sg.u] || ROAD.pave[0]) / 2 * u;
-      this.strip(walk, sg.c, half + ROAD.walk * u, 0.08);
-      this.strip(road, sg.c, half, 0.1);
-    });
-    if (ground) ground.lanes.forEach((c) => { if (segInside(c, proj.bbox)) this.strip(road, c, ROAD.lane / 2 * u, 0.1); });
-    if (walk.length) this.gStreets.add(new THREE.Mesh(this.flatGeo(walk), this.matWalk));
-    if (road.length) this.gStreets.add(new THREE.Mesh(this.flatGeo(road), this.matRoad));
+    const proj = this.proj;
     this.streetLabels = [];
-    const pick = arterialPicks(streets, proj);
+    const pick = arterialPicks(this.data.streets, proj);
     Object.keys(pick).forEach((name) => {
       const sg = pick[name].sg, a = sg.c[0], b = sg.c[sg.c.length - 1];
-      this.streetLabels.push({ text: name, x: (proj.x(a[0]) + proj.x(b[0])) / 2, z: (proj.y(a[1]) + proj.y(b[1])) / 2,
+      const x = (proj.x(a[0]) + proj.x(b[0])) / 2, z = (proj.y(a[1]) + proj.y(b[1])) / 2;
+      this.streetLabels.push({ text: name, x, z, y: this.yAt(x, z),
                                ax: proj.x(a[0]), az: proj.y(a[1]), bx: proj.x(b[0]), bz: proj.y(b[1]) });
     });
     this.buildNames();
+  }
+  // The City's public trees: a canopy and a trunk each, instanced, sized by
+  // the height the City records, standing on the ground.
+  buildTrees() {
+    this.clear(this.gTrees);
+    const trees = this.data.trees, proj = this.proj;
+    if (!trees || !trees.length) return;
+    const u = 1 / this.mPerUnit, n = trees.length;
+    const canopy = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 7, 5), this.matTree, n);
+    const trunk = new THREE.InstancedMesh(new THREE.CylinderGeometry(1, 1, 1, 5), this.matTrunk, n);
+    const m = new THREE.Matrix4(), q = new THREE.Quaternion(), pos = new THREE.Vector3(), scl = new THREE.Vector3();
+    trees.forEach((t, i) => {
+      const x = proj.x(t.lon), z = proj.y(t.lat), y = this.yAt(x, z), h = Math.max(2, t.h);
+      const r = Math.max(1, Math.min(6, h * 0.28)), dia = Math.max(0.15, t.d / 100);
+      pos.set(x, y + h * 0.62 * u, z); scl.set(r * u, h * 0.45 * u, r * u);
+      canopy.setMatrixAt(i, m.compose(pos, q, scl));
+      pos.set(x, y + h * 0.3 * u, z); scl.set(dia * 0.5 * u, h * 0.6 * u, dia * 0.5 * u);
+      trunk.setMatrixAt(i, m.compose(pos, q, scl));
+    });
+    this.gTrees.add(canopy, trunk);
   }
 
   // ---- street names, painted on the road ----
@@ -215,7 +312,7 @@ export class District3D {
       const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1),
         new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.9, depthWrite: false, side: THREE.DoubleSide }));
       m.rotation.order = "YXZ"; m.rotation.x = -Math.PI / 2;
-      m.position.set(l.x, 0.16, l.z);
+      m.position.set(l.x, l.y + 0.16, l.z);
       const dx = l.bx - l.ax, dz = l.bz - l.az, len = Math.hypot(dx, dz) || 1;
       m.userData = { l, dx: dx / len, dz: dz / len, len, pw: tex.image.width / NAME_S, ph: tex.image.height / NAME_S };
       m.visible = false;
@@ -230,12 +327,12 @@ export class District3D {
     this.nameMeshes.forEach((m) => {
       const u = m.userData, l = u.l;
       m.visible = false;
-      const q = this.toScreen(l.x, 0, l.z);
+      const q = this.toScreen(l.x, l.y, l.z);
       if (!q.on || q.x < 30 || q.x > W - 30 || q.y < 20 || q.y > H - 20) return;
       let dx = u.dx, dz = u.dz;
-      const qa = this.toScreen(l.ax, 0, l.az), qb = this.toScreen(l.bx, 0, l.bz);
+      const qa = this.toScreen(l.ax, l.y, l.az), qb = this.toScreen(l.bx, l.y, l.bz);
       if (qb.x < qa.x) { dx = -dx; dz = -dz; }
-      const cd = this.toScreen(l.x + dx, 0, l.z + dz), cn = this.toScreen(l.x - dz, 0, l.z + dx);
+      const cd = this.toScreen(l.x + dx, l.y, l.z + dz), cn = this.toScreen(l.x - dz, l.y, l.z + dx);
       const pxD = Math.hypot(cd.x - q.x, cd.y - q.y), pxN = Math.hypot(cn.x - q.x, cn.y - q.y);
       if (pxD < 1e-6 || pxN < 1e-6 || pxN / pxD < 0.15 || pxD / pxN < 0.15) return;
       let w = u.pw * far / pxD, h = u.ph * far / pxN;
@@ -264,14 +361,15 @@ export class District3D {
       const rec = mass && mass[i] && mass[i].parts.length ? mass[i] : null;
       const pts = (b.foot != null && foot && foot[b.foot]) ? foot[b.foot].p : b.poly;
       const h = b.hgtM || floorsOf(b) * FLOOR_M;
+      const base = rec ? Math.min(...rec.parts.map((p) => this.baseOf(p.r))) : pts ? this.baseOf(pts) : this.yAt(proj.x(b.lon), proj.y(b.lat));
       let mesh, cx, cz, top = h;
       if (rec) {
-        mesh = new THREE.Mesh(this.extrude(rec.parts.map((p) => ({ pts: p.r, h: p.h || NOMINAL_H, col: colour }))), this.matBldg);
+        mesh = new THREE.Mesh(this.extrude(rec.parts.map((p) => ({ pts: p.r, h: p.h || NOMINAL_H, col: colour, base }))), this.matBldg);
         let sx = 0, sz = 0, nn = 0;
         rec.parts.forEach((p) => { top = Math.max(top, p.h || 0); p.r.forEach((q) => { sx += proj.x(q[0]); sz += proj.y(q[1]); nn++; }); });
         cx = sx / nn; cz = sz / nn;
       } else if (pts) {
-        mesh = new THREE.Mesh(this.extrude([{ pts, h, col: colour }]), this.matBldg);
+        mesh = new THREE.Mesh(this.extrude([{ pts, h, col: colour, base }]), this.matBldg);
         let sx = 0, sz = 0;
         pts.forEach((p) => { sx += proj.x(p[0]); sz += proj.y(p[1]); });
         cx = sx / pts.length; cz = sz / pts.length;
@@ -281,9 +379,9 @@ export class District3D {
         const rr = 7 / this.mPerUnit, y = h / this.mPerUnit;
         mesh = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 20), new THREE.MeshLambertMaterial({ color: colour }));
         mesh.scale.set(rr, y, rr);
-        mesh.position.set(cx, y / 2, cz);
+        mesh.position.set(cx, base + y / 2, cz);
       }
-      mesh.userData = { s: i, cx, cz, top: top / this.mPerUnit, est: !b.hgtM };
+      mesh.userData = { s: i, cx, cz, base, top: base + top / this.mPerUnit, est: !b.hgtM };
       this.gradient(mesh, i);
       this.gSro.add(mesh);
       this.sroMeshes.push(mesh);
@@ -295,7 +393,7 @@ export class District3D {
         if (c.length > 1 && c[0][0] === c[c.length - 1][0] && c[0][1] === c[c.length - 1][1]) c.pop();
         const levels = Math.max(1, Math.round(rg.h / FLOOR_M)), pitch = rg.h / levels;
         for (let lv = 1; lv < levels; lv++) {
-          const y = lv * pitch / this.mPerUnit;
+          const y = base + lv * pitch / this.mPerUnit;
           for (let q = 0; q < c.length; q++) {
             const a = c[q], d = c[(q + 1) % c.length];
             seg.push(proj.x(a[0]), y, proj.y(a[1]), proj.x(d[0]), y, proj.y(d[1]));
@@ -319,10 +417,10 @@ export class District3D {
     if (strength == null) return;
     const geo = mesh.geometry, col = geo.getAttribute("color"), pos = geo.getAttribute("position");
     if (!col || !pos) return;
-    const top = mesh.userData.top || 1;
+    const y0 = mesh.userData.base || 0, span = Math.max(1e-6, (mesh.userData.top || 1) - y0);
     const base = new THREE.Color(hexOf(css("--scen-0"))), hot = new THREE.Color(hexOf(css("--scen-1"))), c = new THREE.Color();
     for (let k = 0; k < pos.count; k++) {
-      const f = Math.max(0, Math.min(1, pos.getY(k) / top));
+      const f = Math.max(0, Math.min(1, (pos.getY(k) - y0) / span));
       c.copy(base).lerp(hot, f * strength);
       col.setXYZ(k, c.r, c.g, c.b);
     }
@@ -342,7 +440,7 @@ export class District3D {
   build() {
     if (!this.ready || !this.data || !this.data.streets || !this.proj) return;
     this.scale();
-    if (this.needFoot) { this.buildGround(); this.buildFoot(); this.buildStreets(); this.needFoot = false; }
+    if (this.needFoot) { this.buildGround(); this.buildFoot(); this.buildStreets(); this.buildTrees(); this.needFoot = false; }
     this.buildSro();
     this.select();
     this.dirty = true;
@@ -395,6 +493,7 @@ export class District3D {
     this.data.surveyed.forEach((b) => { if (b.lon != null) { xs.push(proj.x(b.lon)); zs.push(proj.y(b.lat)); } });
     const x0 = xs.length ? Math.min(...xs) : 0, x1 = xs.length ? Math.max(...xs) : proj.W;
     const z0 = zs.length ? Math.min(...zs) : 0, z1 = zs.length ? Math.max(...zs) : proj.H;
+    this._zoomTarget = null; this.zoomAnchor = null;
     this.cam = { r: Math.max(x1 - x0, z1 - z0), theta: Math.PI / 2 + 0.5, phi: 1.12, tx: (x0 + x1) / 2, tz: (z0 + z1) / 2 };
     const corners = [[x0, z0], [x1, z0], [x0, z1], [x1, z1]];
     for (let pass = 0; pass < 4; pass++) {
@@ -405,7 +504,29 @@ export class District3D {
     }
     this.clamp(); this.dirty = true;
   }
-  zoom(f) { if (!this.ready) return; this.cam.r *= f; this.clamp(); this.dirty = true; }
+  zoom(f) { if (!this.ready) return; this.zoomTo(this.zoomTarget * f, null, null); }
+  // Set where the zoom is heading; the loop eases the camera there over a few
+  // frames and keeps the ground point under the cursor where it was.
+  get zoomTarget() { return this._zoomTarget == null ? this.cam.r : this._zoomTarget; }
+  zoomTo(r, ndc, ground) {
+    const proj = this.proj;
+    this._zoomTarget = Math.max(proj.W * 0.02, Math.min(proj.W * 2.2, r));
+    this.zoomAnchor = ndc && ground ? { ndc, g: ground } : null;
+    this.dirty = true;
+  }
+  easeZoom() {
+    if (this._zoomTarget == null) return;
+    const c = this.cam, d = this._zoomTarget - c.r;
+    if (Math.abs(d) < c.r * 0.0005) { c.r = this._zoomTarget; this._zoomTarget = null; }
+    else { c.r += d * EASE; this.dirty = true; }
+    this.clamp(); this.place();
+    const a = this.zoomAnchor;
+    if (a) {
+      const g1 = this.groundPointAt(a.ndc);
+      if (g1) { c.tx += a.g.x - g1.x; c.tz += a.g.z - g1.z; this.clamp(); this.place(); }
+    }
+    if (this._zoomTarget == null) this.zoomAnchor = null;
+  }
   resize() {
     if (!this.ready) return;
     const w = this.wrap.clientWidth || 600, h = this.wrap.clientHeight || Math.max(380, Math.round(w * 0.64));
@@ -423,8 +544,9 @@ export class District3D {
     this.ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
     return this.ndc;
   }
-  groundPoint(e) {
-    this.ray.setFromCamera(this.ndcOf(e), this.camera);
+  groundPoint(e) { return this.groundPointAt(this.ndcOf(e)); }
+  groundPointAt(ndc) {
+    this.ray.setFromCamera(ndc, this.camera);
     const hits = this.ray.intersectObject(this.ground, false);
     return hits.length ? hits[0].point : null;
   }
@@ -449,6 +571,7 @@ export class District3D {
       if (pointers.size > 1) { down = null; return; }
       const orbit = e.button === 2 || e.shiftKey || e.ctrlKey || e.metaKey;
       if (orbit && self.plan) { self.cam.phi = 0.12; self.cam.theta = -Math.PI / 2; self.setPlan(false); if (self.onPlanChange) self.onPlanChange(false); }
+      self._zoomTarget = null; self.zoomAnchor = null;
       down = { x: e.clientX, y: e.clientY, moved: false, orbit, theta: self.cam.theta, phi: self.cam.phi, g: self.groundPoint(e) };
       self.wrap.classList.toggle("orbiting", orbit);
       e.stopPropagation();
@@ -486,18 +609,16 @@ export class District3D {
     el.addEventListener("pointerleave", () => { self.hover = null; self.onHover(null); self.wrap.classList.remove("picking"); self.dirty = true; });
     el.addEventListener("wheel", (e) => {
       e.preventDefault(); e.stopPropagation();
-      const g0 = self.groundPoint(e);
-      self.cam.r *= e.deltaY > 0 ? 1.15 : 1 / 1.15;
-      self.clamp(); self.place();
-      const g1 = self.groundPoint(e);
-      if (g0 && g1) { self.cam.tx += g0.x - g1.x; self.cam.tz += g0.z - g1.z; self.clamp(); }
-      self.dirty = true;
+      // the step follows the scroll distance, so a trackpad's many small
+      // events add up to the same zoom as a mouse wheel's few large ones
+      const ndc = self.ndcOf(e);
+      self.zoomTo(self.zoomTarget * wheelZoom(e), { x: ndc.x, y: ndc.y }, self.groundPointAt(ndc));
     }, { passive: false });
     function pinch() {
       const pts = Array.from(pointers.values());
       if (pts.length < 2) return;
       const d = Math.hypot(pts[0].clientX - pts[1].clientX, pts[0].clientY - pts[1].clientY);
-      if (lastPinch) { self.cam.r *= lastPinch / d; self.clamp(); self.dirty = true; }
+      if (lastPinch) { self._zoomTarget = null; self.cam.r *= lastPinch / d; self.clamp(); self.dirty = true; }
       lastPinch = d;
     }
     function hover(e) {
@@ -542,6 +663,7 @@ export class District3D {
       if (!this.dirty) return;
       this.dirty = false;
       try {
+        this.easeZoom();
         this.place(); this.placeNames();
         this.renderer.render(this.scene, this.camera);
         this.drawLabels();

@@ -10,6 +10,7 @@
 
   onMount(() => {
     d3 = new District3D(wrap, labels, { onSelect, onHover });
+    if (import.meta.env.DEV) window.__d3 = d3;   // for poking at the scene from the console
     d3.onPlanChange = onPlanChange;
     d3.setData(data, proj);
     if (!d3.init()) { onFail("this browser could not start a WebGL context."); return; }

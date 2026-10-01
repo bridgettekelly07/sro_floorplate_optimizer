@@ -1,4 +1,6 @@
 // The data the page draws from: static JSON files published beside the app.
+import { decodeTerrain, decodeLines, decodeTrees } from "./terrain.js";
+
 const BASE = import.meta.env.BASE_URL + "data/";
 
 async function getJson(name) {
@@ -26,9 +28,11 @@ export function decodeFootprints(d) {
 // Every file loads on its own; whatever fails leaves its slot null and the
 // rest of the tool still works.
 export async function loadAll() {
-  const [streets, buildings, footprints, massing, records, ground] = await Promise.all([
+  const [streets, buildings, footprints, massing, records, ground, terrain, trees, sidewalks, context] = await Promise.all([
     getJson("dtes-streets.json"), getJson("sro-buildings.json"), getJson("footprints.json"),
-    getJson("sro-massing.json"), getJson("sro-records.json"), getJson("dtes-ground.json")
+    getJson("sro-massing.json"), getJson("sro-records.json"), getJson("dtes-ground.json"),
+    getJson("dtes-terrain.json"), getJson("dtes-trees.json"), getJson("dtes-sidewalks.json"),
+    getJson("dtes-context.json")
   ]);
   const mass = [];
   if (massing && massing.buildings) massing.buildings.forEach((rec) => { mass[rec.i] = rec; });
@@ -38,7 +42,11 @@ export async function loadAll() {
     foot: decodeFootprints(footprints),
     mass: massing ? mass : null,
     records: (records && records.records) || {},
-    ground: (ground && ground.land) ? ground : null
+    ground: (ground && ground.land) ? ground : null,
+    terrain: decodeTerrain(terrain),
+    trees: decodeTrees(trees),
+    sidewalks: decodeLines(sidewalks),
+    context: decodeFootprints(context)
   };
 }
 
