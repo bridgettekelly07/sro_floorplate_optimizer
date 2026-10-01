@@ -50,8 +50,8 @@
   --m3-water: #b9c1b8;
   --m3-road: #ffffff;
   --m3-walk: #f4f1ea;
-  --m3-park: #d9dab6;
-  --m3-park-low: #7f9165;
+  --m3-park: #d6d8b4;
+  --m3-park-low: #7d8f66;
   --m3-park-stipple: #5f6e48;
   --m3-exposure: 1;
   /* edges of the 3D buildings: colour and screen width, context then SRO,
@@ -67,7 +67,9 @@
   --m3-road-line-a: 0.35;
   --m3-curb: #cfd5cb;
   --m3-sidewalk: #f7f6f2;
-  --m3-tree: #cbdcb0;
+  --m3-tree: #a3c184;
+  --m3-tree-dark: #5f7f4b;
+  --m3-tree-alpha: 0.85;   /* canopy opacity; 1 is solid */
   --m3-trunk: #6f6f6b;
   --map-water: #b9c1b8;
   --map-road: #ffffff;
@@ -141,6 +143,8 @@
     --m3-curb: #40484a;
     --m3-sidewalk: #212724;
     --m3-tree: #3f6b4b;
+    --m3-tree-dark: #2a4833;
+    --m3-tree-alpha: 0.85;
     --m3-trunk: #4a4036;
     --map-water: #0e1416;
     --map-road: #23292a;
@@ -214,6 +218,8 @@
   --m3-curb: #40484a;
   --m3-sidewalk: #212724;
   --m3-tree: #3f6b4b;
+  --m3-tree-dark: #2a4833;
+  --m3-tree-alpha: 0.85;
   --m3-trunk: #4a4036;
   --map-water: #0e1416;
   --map-road: #23292a;

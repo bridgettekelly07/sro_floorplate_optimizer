@@ -12,6 +12,8 @@ import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeome
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial.js";
 import { facadeLines, storeyLines } from "./facade.js";
 import { curbRuns } from "./curbs.js";
+import { paintCanopyAtlas, CANOPY_SEEDS, FASTIGIATE, drawnHeight } from "./canopy.js";
+import { shadePark, toneOf, prng as parkPrng, PARK, hex as hexRgb, mix as mixRgb } from "./parkShade.js";
 import { arterialPicks, segInside, ROAD } from "./projection.js";
 
 const NAME_PX = 10, NAME_S = 4;   // street-name type size on screen, and the texture oversampling
@@ -51,7 +53,7 @@ export class District3D {
   }
 
   // ---- data and style ----
-  setData(data, proj) { this.data = data; this.proj = proj; this.needFoot = true; }
+  setData(data, proj) { this.data = data; this.proj = proj; this.needFoot = true; this.parkShades = null; }
   // colourOf(b, i) -> hex; gradientOf(i) -> 0..1 strength of the roof fade, or null
   setStyle(colourOf, gradientOf) { this.colourOf = colourOf; this.gradientOf = gradientOf; }
   setSelected(i) { this.sel = i; if (this.ready) { this.select(); this.dirty = true; } }
@@ -91,13 +93,24 @@ export class District3D {
     const dashed = (opacity) => new THREE.LineDashedMaterial({ color: 0x000000, transparent: true, opacity, dashSize: 1, gapSize: 1 });
     this.matContour = dashed(0.45); this.matContour5 = dashed(0.85);
     this.matContourPark = dashed(0.8); this.matContourPark5 = dashed(1);
-    // canopies at a variety of transparencies, one alpha per tree
-    this.matTree = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, depthWrite: false });
-    this.matTree.customProgramCacheKey = () => "canopy-alpha";
+    this.matGrass = new THREE.LineBasicMaterial({ vertexColors: true });   // the grass strokes carry their own colour
+    // canopies: a painted lobed canopy from the atlas on a quad that always faces
+    // the camera; cut out by alpha, so nothing is translucent
+    this.matTree = new THREE.MeshBasicMaterial({ color: 0xffffff, alphaTest: 0.5, side: THREE.DoubleSide, transparent: true, opacity: 1 });
+    this.matTree.customProgramCacheKey = () => "canopy-billboard";
     this.matTree.onBeforeCompile = (sh) => {
-      sh.vertexShader = sh.vertexShader.replace("void main() {", "attribute float aAlpha;\nvarying float vAlpha;\nvoid main() {\n\tvAlpha = aAlpha;");
-      sh.fragmentShader = sh.fragmentShader.replace("void main() {", "varying float vAlpha;\nvoid main() {").replace("#include <color_fragment>", "#include <color_fragment>\n\tdiffuseColor.a *= vAlpha;");
+      sh.vertexShader = sh.vertexShader
+        .replace("void main() {", "attribute float aCell;\nattribute float aFlip;\nuniform float uLift;\nvoid main() {")
+        .replace("#include <uv_vertex>", "#include <uv_vertex>\n\tvMapUv = vec2(((aFlip > 0.5 ? 1.0 - uv.x : uv.x) + aCell) / " + CANOPY_SEEDS.length.toFixed(1) + ", uv.y);")
+        .replace("#include <project_vertex>", `
+\tvec4 mvPosition = modelViewMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);
+\tvec2 sc = vec2(length(instanceMatrix[0].xyz), length(instanceMatrix[1].xyz));
+\tmvPosition.xy += position.xy * sc;
+\tmvPosition.z += uLift;   // toward the camera, in front of the trunk
+\tgl_Position = projectionMatrix * mvPosition;`);
+      sh.uniforms.uLift = this.canopyLift;
     };
+    this.canopyLift = { value: 0 };
     this.matTrunk = new THREE.MeshBasicMaterial({ color: 0xffffff });
     // building edges: screen-width lines, colour and width from the theme
     // tokens, with a graphite grain worked into the shader so the line breaks
@@ -156,7 +169,10 @@ export class District3D {
     this.matContour5.color.set(css("--m3-contour") || "#bfb9aa");
     this.matContourPark.color.set(css("--m3-contour-park") || "#ffffff");
     this.matContourPark5.color.set(css("--m3-contour-park") || "#ffffff");
-    this.matTree.color.set(css("--m3-tree") || "#8aa58a");
+    this.matTree.color.set(0xffffff);   // the atlas carries the greens
+    const treeA = parseFloat(css("--m3-tree-alpha"));
+    this.matTree.opacity = Number.isFinite(treeA) ? treeA : 1;
+    this.matTree.transparent = this.matTree.opacity < 1;
     this.matTrunk.color.set(css("--m3-trunk") || "#8b7d6b");
     this.needFoot = true; this.dirty = true;
   }
@@ -294,7 +310,8 @@ export class District3D {
     // the heightfield covers the streets' extent, which runs wider than the map's frame
     const bb = t ? t.bbox : proj.bbox;
     const ext = { x0: proj.x(bb[0]), x1: proj.x(bb[2]), z0: proj.y(bb[3]), z1: proj.y(bb[1]) };
-    const cv = paintGround(proj, this.data, this.renderer.capabilities.maxTextureSize, ext, bb);
+    if (!this.parkShades) this.parkShades = this.shadeParks();   // no colour in it, so it survives a theme change
+    const cv = paintGround(proj, this.data, this.renderer.capabilities.maxTextureSize, ext, bb, this.parkShades);
     const tex = new THREE.CanvasTexture(cv);
     if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = this.renderer.capabilities.getMaxAnisotropy ? this.renderer.capabilities.getMaxAnisotropy() : 1;
@@ -379,6 +396,58 @@ export class District3D {
     const l = this.fatLines(new Float32Array(pos), this.matCurb);
     if (l) this.gGround.add(l);
   }
+  // Every park's shading, read from the contour lines that run through it
+  shadeParks() {
+    const parks = this.data.ground && this.data.ground.parks, t = this.data.terrain, proj = this.proj, out = new Map();
+    if (!parks || !t || !t.contours.length) return out;
+    const u = 1 / this.mPerUnit;
+    const levels = [...new Set(t.contours.map((c) => c.z))].sort((a, b) => a - b);
+    const step = levels.length > 1 ? levels[1] - levels[0] : 2;
+    const segs = [];
+    t.contours.forEach((c) => { for (let i = 1; i < c.pts.length; i++) { const a = c.pts[i - 1], b = c.pts[i]; segs.push({ ax: proj.x(a[0]), az: proj.y(a[1]), bx: proj.x(b[0]), bz: proj.y(b[1]), z: c.z }); } });
+    const height = (x, z) => t.at(proj.lon(x), proj.lat(z));
+    parks.forEach((p, pi) => {
+      let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+      p.r.forEach((q) => { const x = proj.x(q[0]), z = proj.y(q[1]); x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); });
+      const w = x1 - x0, h = z1 - z0;
+      if (w <= 0 || h <= 0) return;
+      const margin = 60 * u, near = segs.filter((sg) => Math.max(sg.ax, sg.bx) >= x0 - margin && Math.min(sg.ax, sg.bx) <= x1 + margin && Math.max(sg.az, sg.bz) >= z0 - margin && Math.min(sg.az, sg.bz) <= z1 + margin);
+      const res = Math.max(1 * u, Math.sqrt((w * h) / 1.2e6));   // a metre, coarser only for a very large park
+      out.set(pi, shadePark({ x0, z0, w, h }, res, near, step, p.r.map((q) => [proj.x(q[0]), proj.y(q[1])]), height));
+    });
+    return out;
+  }
+  // Grass strokes over the parks: short leaning lines draped on the ground,
+  // coloured between the ground tone and the stroke colour, more and darker
+  // the lower the ground sits in its park. Geometry, so crisp at any zoom.
+  buildGrass() {
+    const parks = this.data.ground && this.data.ground.parks, shades = this.parkShades;
+    if (!parks || !shades) return;
+    const hi = css("--m3-park") || "#dfe7db", lo = css("--m3-park-low") || hi, S = hexRgb(css("--m3-park-stipple") || "#5f6e48");
+    const u = 1 / this.mPerUnit, lift = 0.1 * u, pos = [], col = [], tmp = new THREE.Color();
+    parks.forEach((p, pi) => {
+      const sh = shades.get(pi);
+      if (!sh) return;
+      const { box } = sh, r = parkPrng(97 + pi), n = Math.min(40000, Math.round((box.w * box.h) * this.mPerUnit * this.mPerUnit / PARK.strokePer * 0.6));
+      for (let i = 0; i < n; i++) {
+        const x = box.x0 + r() * box.w, z = box.z0 + r() * box.h, smp = sh.sample(x, z);
+        if (!smp) continue;
+        const low = smp.lowness;
+        if (r() > 0.45 + 0.55 * low) continue;   // sparser on the high ground
+        const len = (PARK.strokeLen[0] + r() * (PARK.strokeLen[1] - PARK.strokeLen[0])) * u, a = PARK.strokeLean + (r() - 0.5) * PARK.strokeSpread;
+        const bx = x + Math.cos(a) * len, bz = z + Math.sin(a) * len;
+        const c = mixRgb(toneOf(smp, sh, hi, lo), S, PARK.strokeMix[0] + (PARK.strokeMix[1] - PARK.strokeMix[0]) * low);
+        tmp.setRGB(c[0] / 255, c[1] / 255, c[2] / 255, THREE.SRGBColorSpace);
+        pos.push(x, this.yAt(x, z) + lift, z, bx, this.yAt(bx, bz) + lift, bz);
+        col.push(tmp.r, tmp.g, tmp.b, tmp.r, tmp.g, tmp.b);
+      }
+    });
+    if (!pos.length) return;
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+    g.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
+    this.gGround.add(new THREE.LineSegments(g, this.matGrass));
+  }
   // a quick raster of the parks over the terrain, to ask whether a point is in one
   parkMask() {
     const parks = this.data.ground && this.data.ground.parks, t = this.data.terrain, proj = this.proj;
@@ -447,19 +516,31 @@ export class District3D {
     const trees = this.data.trees, proj = this.proj;
     if (!trees || !trees.length) return;
     const u = 1 / this.mPerUnit, n = trees.length;
-    const canopyGeo = new THREE.SphereGeometry(1, 7, 5), alpha = new Float32Array(n);
+    // the atlas, painted in the theme's greens; which cell and whether to mirror, per tree
+    if (this.matTree.map) this.matTree.map.dispose();
+    const atlas = new THREE.CanvasTexture(paintCanopyAtlas(256, css("--m3-tree") || "#a3c184", css("--m3-tree-dark") || "#5f7f4b"));
+    atlas.colorSpace = THREE.SRGBColorSpace; atlas.anisotropy = 4;
+    this.matTree.map = atlas; this.matTree.needsUpdate = true;
+    this.canopyLift.value = 0.6 * u;   // 60 cm toward the camera, past any trunk
+    const canopyGeo = new THREE.PlaneGeometry(1, 1), cell = new Float32Array(n), flip = new Float32Array(n);
     let seed = 5;
-    for (let i = 0; i < n; i++) { seed = (seed * 9301 + 49297) % 233280; alpha[i] = 0.45 + 0.5 * (seed / 233280); }
-    canopyGeo.setAttribute("aAlpha", new THREE.InstancedBufferAttribute(alpha, 1));
+    const next = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+    // no mirroring: the shade stays to the lower right on every tree, one light for the whole drawing
+    for (let i = 0; i < n; i++) { cell[i] = Math.floor(next() * CANOPY_SEEDS.length); flip[i] = 0; }
+    canopyGeo.setAttribute("aCell", new THREE.InstancedBufferAttribute(cell, 1));
+    canopyGeo.setAttribute("aFlip", new THREE.InstancedBufferAttribute(flip, 1));
     const canopy = new THREE.InstancedMesh(canopyGeo, this.matTree, n);
     const trunk = new THREE.InstancedMesh(new THREE.CylinderGeometry(1, 1, 1, 5), this.matTrunk, n);
     const m = new THREE.Matrix4(), q = new THREE.Quaternion(), pos = new THREE.Vector3(), scl = new THREE.Vector3();
     trees.forEach((t, i) => {
-      const x = proj.x(t.lon), z = proj.y(t.lat), y = this.yAt(x, z), h = Math.max(2, t.h);
+      const x = proj.x(t.lon), z = proj.y(t.lat), y = this.yAt(x, z), h = drawnHeight(t.h);   // the class, squeezed to 15..60 ft
       const r = Math.max(1, Math.min(6, h * 0.28)), dia = Math.max(0.15, t.d / 100);
-      pos.set(x, y + h * 0.62 * u, z); scl.set(r * u, h * 0.45 * u, r * u);
+      // the quad is as wide as the canopy's reach (lobes run to about 1.25 radii); its scale is read by the shader
+      pos.set(x, y + h * 0.62 * u, z); scl.set(r * 2.3 * u, r * 2.3 * FASTIGIATE * u, 1);   // the quad has the atlas cell's aspect
       canopy.setMatrixAt(i, m.compose(pos, q, scl));
-      pos.set(x, y + h * 0.3 * u, z); scl.set(dia * 0.5 * u, h * 0.6 * u, dia * 0.5 * u);
+      // the trunk runs up to the canopy's centre; the canopy quad sits a little
+      // toward the camera, so its paint covers the trunk's top from any angle
+      pos.set(x, y + h * 0.31 * u, z); scl.set(dia * 0.5 * u, h * 0.62 * u, dia * 0.5 * u);
       trunk.setMatrixAt(i, m.compose(pos, q, scl));
     });
     this.gTrees.add(canopy, trunk);
@@ -625,7 +706,7 @@ export class District3D {
   build() {
     if (!this.ready || !this.data || !this.data.streets || !this.proj) return;
     this.scale();
-    if (this.needFoot) { this.buildGround(); this.buildCurbs(); this.buildFoot(); this.buildStreets(); this.buildTrees(); this.needFoot = false; }
+    if (this.needFoot) { this.buildGround(); this.buildGrass(); this.buildCurbs(); this.buildFoot(); this.buildStreets(); this.buildTrees(); this.needFoot = false; }
     this.buildSro();
     this.select();
     this.dirty = true;
