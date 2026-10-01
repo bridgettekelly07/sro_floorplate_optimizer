@@ -20,7 +20,8 @@
       if (!alive) return;
       onBusy && onBusy(true);
       await tick();
-      await new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
+      // one paint before the heavy work; a hidden tab never paints, so fall back to a short timer
+      await new Promise((r) => { let done = false; const go = () => { if (!done) { done = true; setTimeout(r, 0); } }; requestAnimationFrame(go); setTimeout(go, 300); });
       if (!alive) return;
       try { fn(); } finally { onBusy && onBusy(false); }
     });

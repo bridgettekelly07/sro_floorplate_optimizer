@@ -4,13 +4,15 @@
 // feeds this class its data, colours and selection.
 import * as THREE from "three";
 import { css, hexOf } from "./colours.js";
-import { arterialPicks } from "./projection.js";
 import { paintGround } from "./groundTexture.js";
 import { wheelZoom, EASE } from "./zoom.js";
 import { FLOOR_M, NOMINAL_H, floorsOf } from "./typicalFloor.js";
 import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2.js";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry.js";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial.js";
+import { facadeLines, storeyLines } from "./facade.js";
+import { curbRuns } from "./curbs.js";
+import { arterialPicks, segInside, ROAD } from "./projection.js";
 
 const NAME_PX = 10, NAME_S = 4;   // street-name type size on screen, and the texture oversampling
 
@@ -33,6 +35,9 @@ float graphite( vec3 p, vec2 px ) {
   return smoothstep( 0.22, 0.62, g ) * 1.15;
 }
 `;
+
+// procedural windows on the DTES buildings (facade.js): off for now
+const WINDOWS = false;
 
 export class District3D {
   // wrap: the element the canvas goes in; labels: the overlay for building names
@@ -75,16 +80,25 @@ export class District3D {
     this.ground = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ color: 0xffffff }));
     this.ground.rotation.x = -Math.PI / 2;
     this.scene.add(this.ground);
-    this.matBldg = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
+    // unlit and flat: the drawing is carried by the ink edges, as in an axonometric line drawing
+    this.matBldg = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide });
     this.matLand = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
     this.matRoad = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
     this.matWalk = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
     this.matPark = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
     this.matTerrain = new THREE.MeshBasicMaterial({ color: 0xffffff });   // unlit: the painted ground at its own colour, the contours carry the slope
-    this.matContour = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35 });
-    this.matContour5 = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.8 });
-    this.matTree = new THREE.MeshLambertMaterial({ color: 0xffffff });
-    this.matTrunk = new THREE.MeshLambertMaterial({ color: 0xffffff });
+    // contours: dashed, in the contour colour on the land and white over the parks
+    const dashed = (opacity) => new THREE.LineDashedMaterial({ color: 0x000000, transparent: true, opacity, dashSize: 1, gapSize: 1 });
+    this.matContour = dashed(0.45); this.matContour5 = dashed(0.85);
+    this.matContourPark = dashed(0.8); this.matContourPark5 = dashed(1);
+    // canopies at a variety of transparencies, one alpha per tree
+    this.matTree = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, depthWrite: false });
+    this.matTree.customProgramCacheKey = () => "canopy-alpha";
+    this.matTree.onBeforeCompile = (sh) => {
+      sh.vertexShader = sh.vertexShader.replace("void main() {", "attribute float aAlpha;\nvarying float vAlpha;\nvoid main() {\n\tvAlpha = aAlpha;");
+      sh.fragmentShader = sh.fragmentShader.replace("void main() {", "varying float vAlpha;\nvoid main() {").replace("#include <color_fragment>", "#include <color_fragment>\n\tdiffuseColor.a *= vAlpha;");
+    };
+    this.matTrunk = new THREE.MeshBasicMaterial({ color: 0xffffff });
     // building edges: screen-width lines, colour and width from the theme
     // tokens, with a graphite grain worked into the shader so the line breaks
     // up like pencil on paper instead of printing as a solid rule
@@ -102,6 +116,8 @@ export class District3D {
       return m;
     };
     this.matEdge = edgePen(); this.matEdgeSro = edgePen();
+    this.matWin = edgePen(); this.matWin.opacity = 0.7;   // the windows: a finer line than the edges
+    this.matCurb = edgePen(); this.matCurb.opacity = 0.8;  // the curb lines along the streets
     this.matSel = new THREE.LineBasicMaterial({ color: 0x000000 });
     this.matStorey = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.22 });
     this.gGround = new THREE.Group(); this.gFoot = new THREE.Group(); this.gStreets = new THREE.Group();
@@ -132,10 +148,14 @@ export class District3D {
     this.matEdgeSro.color.set(css("--m3-edge-sro") || "#6b665c");
     this.edgeWSro = parseFloat(css("--m3-edge-sro-w")) || 1.6;
     const grain = parseFloat(css("--m3-edge-grain"));
-    this.matEdge.uniforms.uGrainAmt.value = this.matEdgeSro.uniforms.uGrainAmt.value = Number.isFinite(grain) ? grain : 0.6;
+    this.matEdge.uniforms.uGrainAmt.value = this.matEdgeSro.uniforms.uGrainAmt.value = this.matWin.uniforms.uGrainAmt.value = this.matCurb.uniforms.uGrainAmt.value = Number.isFinite(grain) ? grain : 0.6;
+    this.matWin.color.set(css("--m3-edge") || "#2b2b2b");
+    this.matCurb.color.set(css("--m3-road-line") || "#2b2b2b");
     this.edgeScale();
     this.matContour.color.set(css("--m3-contour") || "#bfb9aa");
     this.matContour5.color.set(css("--m3-contour") || "#bfb9aa");
+    this.matContourPark.color.set(css("--m3-contour-park") || "#ffffff");
+    this.matContourPark5.color.set(css("--m3-contour-park") || "#ffffff");
     this.matTree.color.set(css("--m3-tree") || "#8aa58a");
     this.matTrunk.color.set(css("--m3-trunk") || "#8b7d6b");
     this.needFoot = true; this.dirty = true;
@@ -168,7 +188,7 @@ export class District3D {
   // ink edges come out with it: the roof outline and a vertical at every
   // corner that turns more than a few degrees, cheaper than finding them after.
   extrude(items) {
-    const proj = this.proj, pos = [], col = [], edge = [];
+    const proj = this.proj, pos = [], col = [], edge = [], groundLift = 0.06 / this.mPerUnit;
     this.lastEdges = edge;
     items.forEach((it) => {
       const c = it.pts.slice();
@@ -184,9 +204,16 @@ export class District3D {
       tris.forEach((t) => { for (let k = 0; k < 3; k++) push(xz[t[k]][0], y, xz[t[k]][1], 1); });
       for (let i = 0; i < xz.length; i++) {
         const a = xz[i], q = xz[(i + 1) % xz.length], p = xz[(i + xz.length - 1) % xz.length];
-        push(a[0], y0, a[1], 0.86); push(q[0], y0, q[1], 0.86); push(q[0], y, q[1], 0.86);
-        push(a[0], y0, a[1], 0.86); push(q[0], y, q[1], 0.86); push(a[0], y, a[1], 0.86);
+        push(a[0], y0, a[1], 1); push(q[0], y0, q[1], 1); push(q[0], y, q[1], 1);
+        push(a[0], y0, a[1], 1); push(q[0], y, q[1], 1); push(a[0], y, a[1], 1);
         edge.push(a[0], y, a[1], q[0], y, q[1]);                        // the roof outline
+        // where the wall meets the ground: draped on the terrain, in a few pieces on a long wall
+        const wl = Math.hypot(q[0] - a[0], q[1] - a[1]) * this.mPerUnit, pieces = Math.max(1, Math.min(5, Math.ceil(wl / 8)));
+        let gx = a[0], gz = a[1], gy = this.yAt(gx, gz) + groundLift;
+        for (let k = 1; k <= pieces; k++) {
+          const t = k / pieces, hx = a[0] + (q[0] - a[0]) * t, hz = a[1] + (q[1] - a[1]) * t, hy = this.yAt(hx, hz) + groundLift;
+          edge.push(gx, gy, gz, hx, hy, hz); gx = hx; gz = hz; gy = hy;
+        }
         const ux = a[0] - p[0], uz = a[1] - p[1], vx = q[0] - a[0], vz = q[1] - a[1];
         const cross = ux * vz - uz * vx, dot = ux * vx + uz * vz;
         if (Math.abs(Math.atan2(cross, dot)) > 0.35) edge.push(a[0], y0, a[1], a[0], y, a[1]);   // a corner over 20°
@@ -197,6 +224,20 @@ export class District3D {
     geo.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
     geo.computeVertexNormals();
     return geo;
+  }
+  // a footprint ring as façade input: scene units, not closed
+  facadeItem(pts, h, base, narrow, shop) {
+    const c = pts.slice();
+    if (c.length > 1 && c[0][0] === c[c.length - 1][0] && c[0][1] === c[c.length - 1][1]) c.pop();
+    return { xz: c.map((p) => [this.proj.x(p[0]), this.proj.y(p[1])]), h, base, narrow, shop };
+  }
+  fatLines(positions, mat) {
+    if (!positions.length) return null;
+    const g = new LineSegmentsGeometry();
+    g.setPositions(positions);
+    const l = new LineSegments2(g, mat);
+    l.computeLineDistances();
+    return l;
   }
   // the ink edges of the last extrude(), as lines with a screen width
   edgeLines(mat) {
@@ -290,21 +331,74 @@ export class District3D {
   buildContours() {
     const t = this.data.terrain, proj = this.proj;
     if (!t || !t.contours.length) return;
-    const lift = 0.25 / this.mPerUnit, one = [], five = [];
+    const lift = 0.25 / this.mPerUnit, u = 1 / this.mPerUnit;
+    const inPark = this.parkMask();
+    // four runs: land / park, by metre / by five metres; each carries the
+    // distance along its contour so the dashes run continuously through it
+    const runs = { one: { pos: [], dist: [] }, five: { pos: [], dist: [] }, pone: { pos: [], dist: [] }, pfive: { pos: [], dist: [] } };
     t.contours.forEach((c) => {
-      const out = Math.abs(c.z % 5) < 1e-6 ? five : one;
+      const isFive = Math.abs(c.z % 5) < 1e-6;
+      let d = 0, ax = proj.x(c.pts[0][0]), az = proj.y(c.pts[0][1]), ay = this.yAt(ax, az) + lift;
       for (let i = 1; i < c.pts.length; i++) {
-        const a = c.pts[i - 1], b = c.pts[i];
-        const ax = proj.x(a[0]), az = proj.y(a[1]), bx = proj.x(b[0]), bz = proj.y(b[1]);
-        out.push(ax, this.yAt(ax, az) + lift, az, bx, this.yAt(bx, bz) + lift, bz);
+        const b = c.pts[i], bx = proj.x(b[0]), bz = proj.y(b[1]), by = this.yAt(bx, bz) + lift;
+        const len = Math.hypot(bx - ax, bz - az), park = inPark((ax + bx) / 2, (az + bz) / 2);
+        const run = runs[(park ? "p" : "") + (isFive ? "five" : "one")];
+        run.pos.push(ax, ay, az, bx, by, bz); run.dist.push(d, d + len);
+        d += len; ax = bx; az = bz; ay = by;
       }
     });
-    [[one, this.matContour], [five, this.matContour5]].forEach(([seg, mat]) => {
-      if (!seg.length) return;
+    [["one", this.matContour], ["five", this.matContour5], ["pone", this.matContourPark], ["pfive", this.matContourPark5]].forEach(([k, mat]) => {
+      const run = runs[k];
+      if (!run.pos.length) return;
       const g = new THREE.BufferGeometry();
-      g.setAttribute("position", new THREE.Float32BufferAttribute(seg, 3));
+      g.setAttribute("position", new THREE.Float32BufferAttribute(run.pos, 3));
+      g.setAttribute("lineDistance", new THREE.Float32BufferAttribute(run.dist, 1));
+      mat.dashSize = 2.4 * u; mat.gapSize = 1.6 * u;
       this.gGround.add(new THREE.LineSegments(g, mat));
     });
+  }
+  // Curb lines for the streets inside the surveyed extent, as crisp geometry
+  // draped on the ground; the context outside keeps the softer painted line.
+  buildCurbs() {
+    const streets = this.data.streets, proj = this.proj;
+    if (!streets) return;
+    const u = 1 / this.mPerUnit;
+    const picked = streets.segments.filter((sg) => segInside(sg.c, proj.bbox)).map((sg) => ({
+      pts: sg.c.map((p) => [proj.x(p[0]), proj.y(p[1])]),
+      hw: (ROAD.pave[sg.u] || ROAD.pave[0]) / 2 * u,
+    }));
+    const runs = curbRuns(picked, 1.5 * u, { slack: 0.25 * u });
+    const lift = 0.08 * u, pos = [];
+    runs.forEach((r) => {
+      let [ax, az] = r[0], ay = this.yAt(ax, az) + lift;
+      for (let i = 1; i < r.length; i++) {
+        const [bx, bz] = r[i], by = this.yAt(bx, bz) + lift;
+        pos.push(ax, ay, az, bx, by, bz); ax = bx; az = bz; ay = by;
+      }
+    });
+    const l = this.fatLines(new Float32Array(pos), this.matCurb);
+    if (l) this.gGround.add(l);
+  }
+  // a quick raster of the parks over the terrain, to ask whether a point is in one
+  parkMask() {
+    const parks = this.data.ground && this.data.ground.parks, t = this.data.terrain, proj = this.proj;
+    if (!parks || !parks.length || !t) return () => false;
+    const x0 = proj.x(t.bbox[0]), x1 = proj.x(t.bbox[2]), z0 = proj.y(t.bbox[3]), z1 = proj.y(t.bbox[1]);
+    const W = 2048, H = Math.max(1, Math.round(W * (z1 - z0) / (x1 - x0)));
+    const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+    const ctx = cv.getContext("2d");
+    ctx.fillStyle = "#fff";
+    parks.forEach((p) => {
+      ctx.beginPath();
+      p.r.forEach((q, i) => { const x = (proj.x(q[0]) - x0) / (x1 - x0) * W, y = (proj.y(q[1]) - z0) / (z1 - z0) * H; if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y); });
+      ctx.closePath(); ctx.fill();
+    });
+    const px = ctx.getImageData(0, 0, W, H).data;
+    return (x, z) => {
+      const i = Math.floor((x - x0) / (x1 - x0) * W), j = Math.floor((z - z0) / (z1 - z0) * H);
+      if (i < 0 || j < 0 || i >= W || j >= H) return false;
+      return px[(j * W + i) * 4] > 127;
+    };
   }
   // Footprints that an SRO already stands on are drawn by the SRO itself.
   buildFoot() {
@@ -313,10 +407,12 @@ export class District3D {
     if (!foot) return;
     const skip = {};
     this.data.surveyed.forEach((b) => { if (b.foot != null) skip[b.foot] = true; });
-    const colour = new THREE.Color(css("--m3-bldg") || "#d8d2c3"), items = [];
+    const colour = new THREE.Color(css("--m3-bldg") || "#d8d2c3"), items = [], faces = [];
     for (let i = 0; i < foot.length; i++) {
       if (skip[i]) continue;
-      items.push({ pts: foot[i].p, h: foot[i].h || NOMINAL_H, col: colour, base: this.baseOf(foot[i].p) });
+      const h = foot[i].h || NOMINAL_H, base = this.baseOf(foot[i].p);
+      items.push({ pts: foot[i].p, h, col: colour, base });
+      if (foot[i].h) faces.push(this.facadeItem(foot[i].p, h, base, false, true));   // only a measured height gets a façade
     }
     // the city around the surveyed extent: the 2009 footprints at their LiDAR heights
     (this.data.context || []).forEach((f) => {
@@ -325,6 +421,10 @@ export class District3D {
     const geo = this.extrude(items);
     this.gFoot.add(new THREE.Mesh(geo, this.matBldg));
     this.gFoot.add(this.edgeLines(this.matEdge));
+    // the DTES footprints get floor lines and windows; the 2009 context stays plain
+    if (WINDOWS) { const win = this.fatLines(facadeLines(faces, this.mPerUnit), this.matWin); if (win) this.gFoot.add(win); }
+    const st = storeyLines(faces, this.mPerUnit);
+    if (st.length) this.gFoot.add(new THREE.LineSegments(this.flatGeo(st), this.matStorey));
   }
   // The street surfaces are in the ground texture; what remains here is the names.
   buildStreets() {
@@ -347,7 +447,11 @@ export class District3D {
     const trees = this.data.trees, proj = this.proj;
     if (!trees || !trees.length) return;
     const u = 1 / this.mPerUnit, n = trees.length;
-    const canopy = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 7, 5), this.matTree, n);
+    const canopyGeo = new THREE.SphereGeometry(1, 7, 5), alpha = new Float32Array(n);
+    let seed = 5;
+    for (let i = 0; i < n; i++) { seed = (seed * 9301 + 49297) % 233280; alpha[i] = 0.45 + 0.5 * (seed / 233280); }
+    canopyGeo.setAttribute("aAlpha", new THREE.InstancedBufferAttribute(alpha, 1));
+    const canopy = new THREE.InstancedMesh(canopyGeo, this.matTree, n);
     const trunk = new THREE.InstancedMesh(new THREE.CylinderGeometry(1, 1, 1, 5), this.matTrunk, n);
     const m = new THREE.Matrix4(), q = new THREE.Quaternion(), pos = new THREE.Vector3(), scl = new THREE.Vector3();
     trees.forEach((t, i) => {
@@ -450,14 +554,21 @@ export class District3D {
         // a hundred-block placement has no outline: a column marks it
         cx = proj.x(b.lon); cz = proj.y(b.lat);
         const rr = 7 / this.mPerUnit, y = h / this.mPerUnit;
-        mesh = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 20), new THREE.MeshLambertMaterial({ color: colour }));
+        mesh = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 20), new THREE.MeshBasicMaterial({ color: colour }));
         mesh.scale.set(rr, y, rr);
         mesh.position.set(cx, base + y / 2, cz);
       }
       mesh.userData = { s: i, cx, cz, base, top: base + top / this.mPerUnit, est: !b.hgtM };
       this.gradient(mesh, i);
       this.gSro.add(mesh);
-      if (rec || pts) this.gSro.add(this.edgeLines(this.matEdgeSro));
+      if (rec || pts) {
+        this.gSro.add(this.edgeLines(this.matEdgeSro));
+        if (WINDOWS) {
+          const faces = rec ? rec.parts.map((p) => this.facadeItem(p.r, p.h || NOMINAL_H, base, true, true)) : [this.facadeItem(pts, h, base, true, true)];
+          const win = this.fatLines(facadeLines(faces, this.mPerUnit), this.matWin);
+          if (win) this.gSro.add(win);
+        }
+      }
       this.sroMeshes.push(mesh);
       // storey markers: one faint line around each part at every floor level
       const rings = rec ? rec.parts.map((p) => ({ r: p.r, h: p.h || NOMINAL_H })) : (pts ? [{ r: pts, h }] : []);
@@ -514,7 +625,7 @@ export class District3D {
   build() {
     if (!this.ready || !this.data || !this.data.streets || !this.proj) return;
     this.scale();
-    if (this.needFoot) { this.buildGround(); this.buildFoot(); this.buildStreets(); this.buildTrees(); this.needFoot = false; }
+    if (this.needFoot) { this.buildGround(); this.buildCurbs(); this.buildFoot(); this.buildStreets(); this.buildTrees(); this.needFoot = false; }
     this.buildSro();
     this.select();
     this.dirty = true;
@@ -545,8 +656,12 @@ export class District3D {
     this.matEdge.linewidth = this.edgeW * f; this.matEdge.opacity = 0.8 * Math.min(1, f * 1.5);
     this.matEdgeSro.linewidth = this.edgeWSro * f; this.matEdgeSro.opacity = 0.8 * Math.min(1, f * 1.5);
     this.matEdge.visible = this.matEdgeSro.visible = f > 0.02;
+    // the windows are finer and go first, gone by the time the edges are half width
+    const g = Math.max(0, Math.min(1, (f - 0.45) / 0.55));
+    this.matWin.linewidth = this.edgeW * 0.6 * g; this.matWin.opacity = 0.7 * g; this.matWin.visible = g > 0.02;
+    this.matCurb.linewidth = this.edgeW * 0.7 * f; this.matCurb.opacity = 0.8 * Math.min(1, f * 1.5); this.matCurb.visible = f > 0.02;
     // grain cells of about 0.35 m along the edge
-    this.matEdge.uniforms.uGrain.value = this.matEdgeSro.uniforms.uGrain.value = this.mPerUnit / 0.35;
+    this.matEdge.uniforms.uGrain.value = this.matEdgeSro.uniforms.uGrain.value = this.matWin.uniforms.uGrain.value = this.matCurb.uniforms.uGrain.value = this.mPerUnit / 0.35;
   }
   place() {
     const c = this.cam;
@@ -618,7 +733,7 @@ export class District3D {
     if (!this.ready) return;
     const w = this.wrap.clientWidth || 600, h = this.wrap.clientHeight || Math.max(380, Math.round(w * 0.64));
     this.renderer.setSize(w, h, false);
-    this.matEdge.resolution.set(w, h); this.matEdgeSro.resolution.set(w, h);
+    this.matEdge.resolution.set(w, h); this.matEdgeSro.resolution.set(w, h); this.matWin.resolution.set(w, h); this.matCurb.resolution.set(w, h);
     this.persp.aspect = w / h;
     this.persp.updateProjectionMatrix();
     if (this.plan) this.place();

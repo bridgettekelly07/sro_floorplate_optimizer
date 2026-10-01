@@ -9,7 +9,7 @@
       <span><i class="swatch" style="background:var(--scen-1)"></i>Converts, half the tenants displaced</span>
       <span><i class="swatch" style="background:var(--scen-x)"></i>No compliant scheme under these thresholds</span>
       <span><i class="swatch" style="background:var(--map-unsurveyed)"></i>Outside the policy</span>
-      <span><i class="swatch grad"></i>In 3D, a converting building fades from green at the ground to red at the roof: the redder the roof, the larger the share displaced</span>
+      <span><i class="swatch grad"></i>In 3D, a converting building shades from the “nobody displaced” colour at the ground toward the “displaced” colour at the roof: the stronger the roof, the larger the share displaced</span>
     </div>
   {:else}
     <div class="legend">
