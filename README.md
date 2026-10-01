@@ -1,5 +1,7 @@
 # SRO Conversion & Displacement in the DTES
 
+**Live:** https://bridgettekelly07.github.io/sro_floorplate_optimizer/
+
 A tool that translates Vancouver's rules for converting SRA-designated rooms into self-contained units
 into one explicit operation: given a floor of rooms and a proposed scheme of merges, it tests the scheme
 against the three numeric provisions the City applies, cites the clause behind each result, and counts the
