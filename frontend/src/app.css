@@ -42,7 +42,7 @@
   --map-foot-line: #cfcabf;
   --m3-ground: #f3f1ec;
   --m3-sky: #f3f1ec;
-  --m3-bldg: #f7f5f0;
+  --m3-bldg: #e3e0d9;
   --m3-street: #cfcac0;
   --m3-lane: #faf9f6;
   --m3-glass: #2e3634;
@@ -52,7 +52,13 @@
   --m3-walk: #f3f1ec;
   --m3-park: #e4eadf;
   --m3-exposure: 1;
-  --m3-edge: #b8b3a6;
+  /* edges of the 3D buildings: colour and screen width, context then SRO,
+     and how much graphite grain breaks the line (0 solid, 1 full) */
+  --m3-edge: #242424;
+  --m3-edge-w: 1.2;
+  --m3-edge-sro: #ffffff;
+  --m3-edge-sro-w: 2;
+  --m3-edge-grain: 0.6;
   --m3-contour: #e2ded5;
   --m3-curb: #dcd8cf;
   --m3-sidewalk: #f7f6f2;
@@ -116,7 +122,11 @@
     --m3-walk: #1c2220;
     --m3-park: #1a2620;
     --m3-exposure: 0.6;
-    --m3-edge: #3e4541;
+    --m3-edge: #cfcfcf;
+    --m3-edge-w: 1.2;
+    --m3-edge-sro: #ffffff;
+    --m3-edge-sro-w: 2;
+    --m3-edge-grain: 0.6;
     --m3-contour: #2e3531;
     --m3-curb: #40484a;
     --m3-sidewalk: #212724;
@@ -180,7 +190,11 @@
   --m3-walk: #1c2220;
   --m3-park: #1a2620;
   --m3-exposure: 0.6;
-  --m3-edge: #3e4541;
+  --m3-edge: #cfcfcf;
+  --m3-edge-w: 1.2;
+  --m3-edge-sro: #ffffff;
+  --m3-edge-sro-w: 2;
+  --m3-edge-grain: 0.6;
   --m3-contour: #2e3531;
   --m3-curb: #40484a;
   --m3-sidewalk: #212724;

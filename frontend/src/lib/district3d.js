@@ -8,9 +8,31 @@ import { arterialPicks } from "./projection.js";
 import { paintGround } from "./groundTexture.js";
 import { wheelZoom, EASE } from "./zoom.js";
 import { FLOOR_M, NOMINAL_H, floorsOf } from "./typicalFloor.js";
+import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2.js";
+import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry.js";
+import { LineMaterial } from "three/examples/jsm/lines/LineMaterial.js";
 
 const NAME_PX = 10, NAME_S = 4;   // street-name type size on screen, and the texture oversampling
 
+
+// Graphite: a coarse break-up along the line's length plus a fine speckle in
+// screen pixels, so the stroke reads as deposited on a tooth, not drawn by a pen.
+const GRAIN_GLSL = `
+uniform float uGrain, uGrainAmt;
+varying vec3 vGrainPos;
+float gHash( vec3 p ) { p = fract( p * 0.3183099 + vec3( 0.1, 0.2, 0.3 ) ); p *= 17.0; return fract( p.x * p.y * p.z * ( p.x + p.y + p.z ) ); }
+float gNoise( vec3 p ) {
+  vec3 i = floor( p ), f = fract( p ); f = f * f * ( 3.0 - 2.0 * f );
+  return mix( mix( mix( gHash( i ), gHash( i + vec3( 1, 0, 0 ) ), f.x ), mix( gHash( i + vec3( 0, 1, 0 ) ), gHash( i + vec3( 1, 1, 0 ) ), f.x ), f.y ),
+              mix( mix( gHash( i + vec3( 0, 0, 1 ) ), gHash( i + vec3( 1, 0, 1 ) ), f.x ), mix( gHash( i + vec3( 0, 1, 1 ) ), gHash( i + vec3( 1, 1, 1 ) ), f.x ), f.y ), f.z );
+}
+float graphite( vec3 p, vec2 px ) {
+  float along = gNoise( p ) * 0.6 + gNoise( p * 3.1 ) * 0.4;        // pressure varying along the stroke
+  float speck = gHash( vec3( floor( px / 1.5 ), 7.0 ) );              // the tooth of the paper
+  float g = along * 0.65 + speck * 0.35;
+  return smoothstep( 0.22, 0.62, g ) * 1.15;
+}
+`;
 
 export class District3D {
   // wrap: the element the canvas goes in; labels: the overlay for building names
@@ -63,7 +85,23 @@ export class District3D {
     this.matContour5 = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.8 });
     this.matTree = new THREE.MeshLambertMaterial({ color: 0xffffff });
     this.matTrunk = new THREE.MeshLambertMaterial({ color: 0xffffff });
-    this.matEdge = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.55 });
+    // building edges: screen-width lines, colour and width from the theme
+    // tokens, with a graphite grain worked into the shader so the line breaks
+    // up like pencil on paper instead of printing as a solid rule
+    const edgePen = () => {
+      const m = new LineMaterial({ color: 0x000000, linewidth: 1, transparent: true, opacity: 0.8, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+      m.uniforms.uGrain = { value: 1 }; m.uniforms.uGrainAmt = { value: 0.6 };
+      m.customProgramCacheKey = () => "graphite";
+      m.onBeforeCompile = (sh) => {
+        sh.vertexShader = sh.vertexShader
+          .replace("void main() {", "varying vec3 vGrainPos;\nvoid main() {\n\tvGrainPos = ( modelMatrix * vec4( position.y < 0.5 ? instanceStart : instanceEnd, 1.0 ) ).xyz;")
+        sh.fragmentShader = sh.fragmentShader
+          .replace("void main() {", GRAIN_GLSL + "\nvoid main() {")
+          .replace("gl_FragColor = vec4( diffuseColor.rgb, alpha );", "alpha *= mix( 1.0, graphite( vGrainPos * uGrain, gl_FragCoord.xy ), uGrainAmt );\n\tgl_FragColor = vec4( diffuseColor.rgb, alpha );");
+      };
+      return m;
+    };
+    this.matEdge = edgePen(); this.matEdgeSro = edgePen();
     this.matSel = new THREE.LineBasicMaterial({ color: 0x000000 });
     this.matStorey = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.22 });
     this.gGround = new THREE.Group(); this.gFoot = new THREE.Group(); this.gStreets = new THREE.Group();
@@ -90,6 +128,12 @@ export class District3D {
     this.matSel.color.set(css("--ink") || "#1d2320");
     this.matStorey.color.set(css("--ink") || "#1d2320");
     this.matEdge.color.set(css("--m3-edge") || "#b9b4a8");
+    this.edgeW = parseFloat(css("--m3-edge-w")) || 1;
+    this.matEdgeSro.color.set(css("--m3-edge-sro") || "#6b665c");
+    this.edgeWSro = parseFloat(css("--m3-edge-sro-w")) || 1.6;
+    const grain = parseFloat(css("--m3-edge-grain"));
+    this.matEdge.uniforms.uGrainAmt.value = this.matEdgeSro.uniforms.uGrainAmt.value = Number.isFinite(grain) ? grain : 0.6;
+    this.edgeScale();
     this.matContour.color.set(css("--m3-contour") || "#bfb9aa");
     this.matContour5.color.set(css("--m3-contour") || "#bfb9aa");
     this.matTree.color.set(css("--m3-tree") || "#8aa58a");
@@ -98,7 +142,13 @@ export class District3D {
   }
 
   // ---- geometry ----
-  clear(g) { while (g.children.length) g.remove(g.children[0]); }
+  clear(g) {
+    while (g.children.length) {
+      const o = g.children[0];
+      o.traverse((c) => { if (c.geometry) c.geometry.dispose(); });   // materials are shared and kept
+      g.remove(o);
+    }
+  }
 
   // the ground's height in scene units at a point in projection units
   yAt(x, z) {
@@ -147,6 +197,14 @@ export class District3D {
     geo.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
     geo.computeVertexNormals();
     return geo;
+  }
+  // the ink edges of the last extrude(), as lines with a screen width
+  edgeLines(mat) {
+    const g = new LineSegmentsGeometry();
+    g.setPositions(this.lastEdges);
+    const l = new LineSegments2(g, mat);
+    l.computeLineDistances();
+    return l;
   }
   flatGeo(pos) {
     const g = new THREE.BufferGeometry();
@@ -266,7 +324,7 @@ export class District3D {
     });
     const geo = this.extrude(items);
     this.gFoot.add(new THREE.Mesh(geo, this.matBldg));
-    this.gFoot.add(new THREE.LineSegments(this.flatGeo(this.lastEdges), this.matEdge));
+    this.gFoot.add(this.edgeLines(this.matEdge));
   }
   // The street surfaces are in the ground texture; what remains here is the names.
   buildStreets() {
@@ -399,7 +457,7 @@ export class District3D {
       mesh.userData = { s: i, cx, cz, base, top: base + top / this.mPerUnit, est: !b.hgtM };
       this.gradient(mesh, i);
       this.gSro.add(mesh);
-      if (rec || pts) this.gSro.add(new THREE.LineSegments(this.flatGeo(this.lastEdges), this.matEdge));
+      if (rec || pts) this.gSro.add(this.edgeLines(this.matEdgeSro));
       this.sroMeshes.push(mesh);
       // storey markers: one faint line around each part at every floor level
       const rings = rec ? rec.parts.map((p) => ({ r: p.r, h: p.h || NOMINAL_H })) : (pts ? [{ r: pts, h }] : []);
@@ -478,8 +536,21 @@ export class District3D {
     this.camera = on ? this.ortho : this.persp;
     this.resize(); this.place(); this.dirty = true;
   }
+  // The edges keep their screen width up close, then thin and fade as the
+  // camera pulls back, or at the city scale they would merge into a wash.
+  edgeScale() {
+    if (!this.cam) return;
+    const W = this.proj.W, r = this.cam.r;
+    const f = Math.max(0, Math.min(1, (Math.log(W * 0.9) - Math.log(r)) / (Math.log(W * 0.9) - Math.log(W * 0.08))));
+    this.matEdge.linewidth = this.edgeW * f; this.matEdge.opacity = 0.8 * Math.min(1, f * 1.5);
+    this.matEdgeSro.linewidth = this.edgeWSro * f; this.matEdgeSro.opacity = 0.8 * Math.min(1, f * 1.5);
+    this.matEdge.visible = this.matEdgeSro.visible = f > 0.02;
+    // grain cells of about 0.35 m along the edge
+    this.matEdge.uniforms.uGrain.value = this.matEdgeSro.uniforms.uGrain.value = this.mPerUnit / 0.35;
+  }
   place() {
     const c = this.cam;
+    this.edgeScale();
     if (this.plan) {
       this.ortho.position.set(c.tx, c.r, c.tz);
       this.ortho.up.set(0, 0, -1);
@@ -547,6 +618,7 @@ export class District3D {
     if (!this.ready) return;
     const w = this.wrap.clientWidth || 600, h = this.wrap.clientHeight || Math.max(380, Math.round(w * 0.64));
     this.renderer.setSize(w, h, false);
+    this.matEdge.resolution.set(w, h); this.matEdgeSro.resolution.set(w, h);
     this.persp.aspect = w / h;
     this.persp.updateProjectionMatrix();
     if (this.plan) this.place();
