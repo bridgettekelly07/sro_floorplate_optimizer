@@ -3,11 +3,14 @@
 How the tool's answers are checked, in the form the assignment asks for: for each case, the input, the
 source, the expected result worked without the tool, and what the tool actually did. The three cases are
 a typical case, a boundary-and-conflict case, and a case with missing information. All three are asserted
-in `tests/test_hand_worked.py`; run everything with:
+in `frontend/tests/evaluate.test.js`; run everything from the repository root with:
 
 ```
-python3 -m unittest discover -s tests
+npm test
 ```
+
+*This write-up was made when the tool was a Python command line. The cases and the figures are
+unchanged; the commands named below belonged to that version.*
 
 ## The example floor
 

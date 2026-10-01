@@ -31,14 +31,14 @@ one that passes while losing the fewest rooms.
 4. Report rooms lost, and compensation as a range with the reason. State that passing is a precondition,
    not an approval: the Guidelines say qualifying rooms "will be considered", and a permit is still required
    under s.4.1.
-5. If a threshold is questioned, quote the passage from `source/source_extract.md` rather than the tool's
-   summary, and check the version and access date in `source/citation.md`.
+5. If a threshold is questioned, quote the passage from `documentation/source_extract.md` rather than the tool's
+   summary, and check the version and access date in `documentation/citation.md`.
 
 ## Where things are
 
 - `sro/rules.py`: every threshold with the clause behind it, gathered in a `Policy`; the default is the sources'.
 - `sro/evaluate.py`: the operation. `sro/optimize.py`: the search, under any policy.
-- `source/source_extract.md`, `source/citation.md`: the annotated passages and their authority.
+- `documentation/source_extract.md`, `documentation/citation.md`: the annotated passages and their authority.
 - `TESTING.md`: the three hand-worked cases and what the tool did with them.
 - `web/index.html` (`node server.js`): the same operation as a browser tool, with the plan as the editor.
 

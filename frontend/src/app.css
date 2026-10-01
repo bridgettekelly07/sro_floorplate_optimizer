@@ -1,296 +1,270 @@
+/* Colour tokens, light and dark, and the primitives every component shares. */
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
-
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  color-scheme: light;
+  --paper: #f2efe8;
+  --surface: #fbf9f5;
+  --sunk: #e9e5db;
+  --ink: #1d2320;
+  --ink-2: #4c5450;
+  --ink-3: #7d847e;
+  --rule: #cdc8bc;
+  --rule-soft: #e0dbd0;
+  --pass: #2d6a4c;
+  --pass-soft: #d9e7dd;
+  --fail: #a33a29;
+  --fail-soft: #f2dcd6;
+  --edge: #8a6a2f;
+  --edge-soft: #f0e6cf;
+  --accent: #2d6a4c;
+  /* model */
+  --m-ground: #e6e2d8;
+  --m-slab-sra: #ddd3bd;
+  --m-slab-keep: #e8d7ab;
+  --m-slab-unit: #bcd4c3;
+  --m-slab-short: #e3c3b8;
+  --m-wall: #ada79a;
+  --m-pod: #9fb3bd;
+  --m-select: #2d6a4c;
+  --map-ink: #c3bdb0;
+  --map-arterial: #9c9486;
+  --map-dot: #2d6a4c;
+  --map-dot-sel: #a33a2d;
+  --map-market: #b4553f;
+  --map-nonmarket: #3f7d5c;
+  --map-market-lit: #c9634a;
+  --map-nonmarket-lit: #4a9c6f;
+  --map-unsurveyed: #9a948a;
+  --scen-0: #3f9a66;
+  --scen-1: #b8382a;
+  --scen-x: #1d2320;
+  --scen-works: #e6b400;
+  --map-foot: #ddd8cc;
+  --map-foot-line: #cbc5b7;
+  --m3-ground: #f4f1ea;
+  --m3-sky: #e9e5db;
+  --m3-bldg: #d8d2c3;
+  --m3-street: #b9b2a3;
+  --m3-lane: #d3cdbf;
+  --m3-glass: #2e3634;
+  --m3-trim: #f3eee2;
+  --m3-water: #d9e0df;
+  --m3-road: #e3dfd5;
+  --m3-walk: #ece8de;
+  --m3-park: #dfe7db;
+  --map-water: #d9e0df;
+  --map-road: #e3dfd5;
+  --map-walk: #ece8de;
+  --map-park: #dfe7db;
 }
-
 @media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #141816;
+    --surface: #1c211e;
+    --sunk: #232825;
+    --ink: #e8e9e4;
+    --ink-2: #b0b5af;
+    --ink-3: #848a84;
+    --rule: #383e3a;
+    --rule-soft: #2a2f2c;
+    --pass: #7fc59d;
+    --pass-soft: #1f3a2c;
+    --fail: #e08d78;
+    --fail-soft: #3d241d;
+    --edge: #d5b169;
+    --edge-soft: #372e19;
+    --accent: #7fc59d;
+    --m-ground: #1f2422;
+    --m-slab-sra: #4a4638;
+    --m-slab-keep: #5a4a28;
+    --m-slab-unit: #34523f;
+    --m-slab-short: #4f342c;
+    --m-wall: #5d635c;
+    --m-pod: #48606b;
+    --m-select: #7fc59d;
+    --map-ink: #333a36;
+    --map-arterial: #4c5450;
+    --map-dot: #7fc59d;
+    --map-dot-sel: #e08d78;
+    --map-market: #d98b72;
+    --map-nonmarket: #6fae8b;
+    --map-market-lit: #ee9c80;
+    --map-nonmarket-lit: #8ad7a8;
+    --map-unsurveyed: #6d736c;
+    --scen-0: #58c08a;
+    --scen-1: #e8705a;
+    --scen-x: #f1efe8;
+    --scen-works: #f7d24a;
+    --map-foot: #262b28;
+    --map-foot-line: #323834;
+    --m3-ground: #171b19;
+    --m3-sky: #101312;
+    --m3-bldg: #565e58;
+    --m3-street: #6f776f;
+    --m3-lane: #3a413c;
+    --m3-glass: #0c0f0e;
+    --m3-trim: #b9c1ba;
+    --m3-water: #0e1416;
+    --m3-road: #23292a;
+    --m3-walk: #1c2220;
+    --m3-park: #1a2620;
+    --map-water: #0e1416;
+    --map-road: #23292a;
+    --map-walk: #1c2220;
+    --map-park: #1a2620;
   }
 }
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #141816;
+  --surface: #1c211e;
+  --sunk: #232825;
+  --ink: #e8e9e4;
+  --ink-2: #b0b5af;
+  --ink-3: #848a84;
+  --rule: #383e3a;
+  --rule-soft: #2a2f2c;
+  --pass: #7fc59d;
+  --pass-soft: #1f3a2c;
+  --fail: #e08d78;
+  --fail-soft: #3d241d;
+  --edge: #d5b169;
+  --edge-soft: #372e19;
+  --accent: #7fc59d;
+  --m-ground: #1f2422;
+  --m-slab-sra: #4a4638;
+  --m-slab-keep: #5a4a28;
+  --m-slab-unit: #34523f;
+  --m-slab-short: #4f342c;
+  --m-wall: #5d635c;
+  --m-pod: #48606b;
+  --m-select: #7fc59d;
+  --map-ink: #333a36;
+  --map-arterial: #4c5450;
+  --map-dot: #7fc59d;
+  --map-dot-sel: #e08d78;
+  --map-market: #d98b72;
+  --map-nonmarket: #6fae8b;
+  --map-market-lit: #ee9c80;
+  --map-nonmarket-lit: #8ad7a8;
+  --map-unsurveyed: #6d736c;
+  --scen-0: #58c08a;
+  --scen-1: #e8705a;
+  --scen-x: #f1efe8;
+  --scen-works: #f7d24a;
+  --map-foot: #262b28;
+  --map-foot-line: #323834;
+  --m3-ground: #171b19;
+  --m3-sky: #101312;
+  --m3-bldg: #565e58;
+  --m3-street: #6f776f;
+  --m3-lane: #3a413c;
+  --m3-glass: #0c0f0e;
+  --m3-trim: #b9c1ba;
+  --m3-water: #0e1416;
+  --m3-road: #23292a;
+  --m3-walk: #1c2220;
+  --m3-park: #1a2620;
+  --map-water: #0e1416;
+  --map-road: #23292a;
+  --map-walk: #1c2220;
+  --map-park: #1a2620;
+}
 
+
+[hidden] { display: none !important; }
+
+html, body { height: 100%; margin: 0; }
 body {
-  margin: 0;
-}
-
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
   font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
+/* the frame: the map fills the window, the tool lives in a sidebar that scrolls */
+.app { display: flex; height: 100vh; height: 100dvh; }
+@media (max-width: 900px) { .app { flex-direction: column; height: auto; } }
 
-.counter {
-  font-size: 16px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  color: var(--accent);
-  background: var(--accent-bg);
-  border: 2px solid transparent;
-  transition: border-color 0.3s;
-  margin-bottom: 24px;
-
-  &:hover {
-    border-color: var(--accent-border);
-  }
-  &:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
+.label {
+  font-family: "IBM Plex Sans Condensed", "IBM Plex Sans", sans-serif;
+  font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em;
+  font-size: 11px; color: var(--ink-3);
 }
-
-.hero {
-  position: relative;
-
-  .base,
-  .framework,
-  .vite {
-    inset-inline: 0;
-    margin: 0 auto;
-  }
-
-  .base {
-    width: 170px;
-    position: relative;
-    z-index: 0;
-  }
-
-  .framework,
-  .vite {
-    position: absolute;
-  }
-
-  .framework {
-    z-index: 1;
-    top: 34px;
-    height: 28px;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
-      scale(1.4);
-  }
-
-  .vite {
-    z-index: 0;
-    top: 107px;
-    height: 26px;
-    width: auto;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
-      scale(0.8);
-  }
+h1 {
+  font-family: "IBM Plex Sans Condensed", "IBM Plex Sans", sans-serif;
+  font-weight: 600; font-size: clamp(26px, 4.4vw, 38px);
+  letter-spacing: -0.01em; line-height: 1.1; margin: 6px 0 8px; text-wrap: balance;
 }
-
-#app {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
+h2 {
+  font-family: "IBM Plex Sans Condensed", "IBM Plex Sans", sans-serif;
+  font-weight: 600; font-size: 15px; text-transform: uppercase;
+  letter-spacing: 0.09em; margin: 0;
 }
+p { margin: 0 0 10px; }
 
-#center {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-  place-content: center;
-  place-items: center;
-  flex-grow: 1;
-
-  @media (max-width: 1024px) {
-    padding: 32px 20px 24px;
-    gap: 18px;
-  }
+button {
+  font: inherit; font-size: 12.5px; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--rule); padding: 5px 10px; cursor: pointer;
 }
+button:hover:not(:disabled) { background: var(--sunk); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+button.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.btnrow { display: flex; flex-wrap: wrap; gap: 6px; }
 
-#next-steps {
-  display: flex;
-  border-top: 1px solid var(--border);
-  text-align: left;
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 11.5px; color: var(--ink-3); }
+.legend span { display: flex; align-items: center; gap: 5px; }
+.swatch { width: 10px; height: 10px; flex: none; display: inline-block; }
 
-  & > div {
-    flex: 1 1 0;
-    padding: 32px;
-    @media (max-width: 1024px) {
-      padding: 24px 20px;
-    }
-  }
-
-  .icon {
-    margin-bottom: 16px;
-    width: 22px;
-    height: 22px;
-  }
-
-  @media (max-width: 1024px) {
-    flex-direction: column;
-    text-align: center;
-  }
+/* ---- results ---- */
+.tally { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); border: 1px solid var(--rule); }
+.tally div { padding: 9px 11px; border-right: 1px solid var(--rule-soft); }
+.tally div:last-child { border-right: none; }
+.tally b {
+  display: block; font-family: "IBM Plex Sans Condensed", sans-serif; font-size: 24px;
+  font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.15;
 }
-
-#docs {
-  border-right: 1px solid var(--border);
-
-  @media (max-width: 1024px) {
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
+.note {
+  font-family: "IBM Plex Serif", Georgia, serif; font-size: 13.5px; line-height: 1.55;
+  color: var(--ink-2); border-left: 2px solid var(--rule); padding-left: 12px; margin: 12px 0 0;
 }
+.note strong { color: var(--ink); font-weight: 400; font-style: italic; }
 
-#next-steps ul {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  gap: 8px;
-  margin: 32px 0 0;
-
-  .logo {
-    height: 18px;
-  }
-
-  a {
-    color: var(--text-h);
-    font-size: 16px;
-    border-radius: 6px;
-    background: var(--social-bg);
-    display: flex;
-    padding: 6px 12px;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    transition: box-shadow 0.3s;
-
-    &:hover {
-      box-shadow: var(--shadow);
-    }
-    .button-icon {
-      height: 18px;
-      width: 18px;
-    }
-  }
-
-  @media (max-width: 1024px) {
-    margin-top: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-
-    li {
-      flex: 1 1 calc(50% - 8px);
-    }
-
-    a {
-      width: 100%;
-      justify-content: center;
-      box-sizing: border-box;
-    }
-  }
+/* ---- section rhythm ---- */
+.sec-num {
+  font-family: "IBM Plex Sans Condensed", sans-serif; font-weight: 600;
+  font-size: 18px; letter-spacing: 0.12em; color: var(--ink-3);
+  border: 1px solid var(--rule); padding: 2px 7px; margin-right: 10px;
 }
+.sec-head { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap;
+  border-bottom: 2px solid var(--ink); padding-bottom: 8px; margin: 34px 0 16px; }
+.sec-head h2 { font-size: 18px; letter-spacing: 0.06em; }
+.sec-head .note { font-size: 12.5px; color: var(--ink-3); margin-left: auto; font-family: "IBM Plex Sans", sans-serif; text-transform: none; letter-spacing: 0; border: none; padding: 0; margin-top: 0; }
 
-#spacer {
-  height: 88px;
-  border-top: 1px solid var(--border);
-  @media (max-width: 1024px) {
-    height: 48px;
-  }
+/* ---- inputs ---- */
+.field { display: grid; gap: 3px; margin-bottom: 9px; }
+.field label { font-family: "IBM Plex Sans Condensed", sans-serif; font-size: 10px;
+  text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); }
+.field input, .field select {
+  font: inherit; font-size: 13px; background: var(--sunk); color: var(--ink);
+  border: 1px solid transparent; border-bottom-color: var(--rule); padding: 5px 6px;
+  font-variant-numeric: tabular-nums; width: 100%;
 }
-
-.ticks {
-  position: relative;
-  width: 100%;
-
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: -4.5px;
-    border: 5px solid transparent;
-  }
-
-  &::before {
-    left: 0;
-    border-left-color: var(--border);
-  }
-  &::after {
-    right: 0;
-    border-right-color: var(--border);
-  }
-}
+.field input:focus, .field select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.hint-s { font-size: 11px; color: var(--ink-3); }
+details.assume { border-top: 1px solid var(--rule-soft); padding-top: 10px; margin-top: 4px; }
+details.assume summary { cursor: pointer; font-family: "IBM Plex Sans Condensed", sans-serif;
+  font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 10px; }
+details.assume summary:hover { color: var(--ink); }
+.out-head { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--rule-soft); }
+table.dist { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 12px; }
+table.dist th { text-align: left; font-family: "IBM Plex Sans Condensed", sans-serif; font-size: 10px;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); padding: 4px 6px;
+  border-bottom: 1px solid var(--rule); }
+table.dist td { padding: 4px 6px; border-bottom: 1px solid var(--rule-soft); }
+table.dist td.n, table.dist th.n { text-align: right; font-variant-numeric: tabular-nums; }
+table.dist tr.pick { cursor: pointer; }
+table.dist tr.pick:hover { background: var(--sunk); }
+.src { font-family: "IBM Plex Serif", Georgia, serif; font-size: 11.5px; color: var(--ink-3); margin-top: 3px; }

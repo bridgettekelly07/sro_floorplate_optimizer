@@ -1,14 +1,14 @@
 {
   "name": "sro-floorplate-optimizer",
   "private": true,
-  "workspaces": ["frontend", "backend"],
+  "workspaces": [
+    "frontend"
+  ],
   "scripts": {
-    "dev": "concurrently -n api,web \"npm run dev -w backend\" \"npm run dev -w frontend\"",
+    "dev": "npm run dev -w frontend",
     "build": "npm run build -w frontend",
-    "start": "npm start -w backend"
-  },
-  "devDependencies": {
-    "concurrently": "^9.0.0"
+    "preview": "npm run preview -w frontend",
+    "test": "npm test -w frontend"
   },
   "engines": {
     "node": ">=20.11"
