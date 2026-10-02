@@ -24,6 +24,7 @@
       <div class="t"><b>{count(out.council)}</b><span>need Council · over {small} rooms lost</span></div>
       <div class="t"><b>{money(out.comp)}</b><span>compensation, s.4.8(i)</span></div>
     </div>
+    {#if ui.mapMode === "people"}
     <div class="label bar-head">Every tenant the policy reaches</div>
     <StockBar parts={[
       { n: out.lost, label: WHO[0].label, colour: who("lost"), dark: true },
@@ -32,6 +33,7 @@
       { n: out.stuckTenants, label: WHO[3].label, colour: who("stuck"), dark: true },
       { n: out.noPlanTenants, label: WHO[4].label, colour: who("none"), dark: true }
     ]} />
+    {/if}
   </div>
 {/if}
 
