@@ -1,6 +1,5 @@
 <script>
   import BuildingSection from "./BuildingSection.svelte";
-  import PolicySection from "./PolicySection.svelte";
   import { ui, setTheme } from "../lib/state.svelte.js";
   let { data, district } = $props();
   const summary = $derived(data && data.surveyed && data.surveyed.length
@@ -29,14 +28,6 @@
     <BuildingSection {data} {district} />
   </section>
 
-  <section class="sb">
-    <div class="sec-head">
-      <span class="sec-num">02</span><h2>Policy</h2>
-      <span class="note">Applied to every building at once</span>
-    </div>
-    <PolicySection {data} {district} />
-  </section>
-
 </aside>
 
 <style>
@@ -50,10 +41,6 @@
   .side { flex: 0 0 460px; width: 460px; min-width: 0; overflow-y: auto; overscroll-behavior: contain; order: 2;
     border-left: 1px solid var(--rule); padding: 18px 18px 40px; background: var(--paper); }
   .sb { margin-top: 4px; }
-  .sb + .sb { margin-top: 26px; }
-  .sb > .sec-head { margin-bottom: 12px; }
-  footer { margin-top: 28px; border-top: 1px solid var(--rule); padding-top: 14px; font-size: 12px; color: var(--ink-3); }
-  footer p { max-width: 80ch; }
   @media (max-width: 900px) {
     .side { flex: none; width: auto; border-left: none; border-top: 1px solid var(--rule); overflow: visible; }
   }

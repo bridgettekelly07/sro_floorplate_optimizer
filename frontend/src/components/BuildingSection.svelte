@@ -9,19 +9,17 @@
   import { evaluate } from "../lib/evaluate.js";
   import { planSvg } from "../lib/planSvg.js";
   import { cardColour } from "../lib/colours.js";
-  import { pct, num } from "../lib/format.js";
-  import { SURVEY } from "../lib/survey.js";
+  import { pct } from "../lib/format.js";
   import BuildingCard from "./BuildingCard.svelte";
   import ThresholdSliders from "./ThresholdSliders.svelte";
   import BuildingTests from "./BuildingTests.svelte";
-  import Tile from "./Tile.svelte";
 
   let { data, district } = $props();
 
   const i = $derived(ui.sel);
   const b = $derived(data && i !== null ? data.surveyed[i] : null);
   const proposed = $derived(ui.planView === "proposed");
-  const scen = $derived(ui.scenColour && district ? district.scen : null);
+  const scen = $derived(ui.mapMode !== "tenure" && district ? district.scen : null);
 
   // the model of this building under the live thresholds
   const plan = $derived(b ? planOf(data, i, ui.liveAssume) : null);
@@ -29,28 +27,20 @@
   const floors = $derived(plan && plan.placed ? buildFloors(plan, opt, ui.tenancy[i]) : []);
   const ev = $derived(floors.length ? evaluate(floors, ui.live) : null);
   const drawn = $derived(floors.length ? planSvg(planFromState(plan, floors, !proposed), { minUnit: ui.live.minUnit, proposed }) : null);
-  const sc = $derived(district && district.scen[i]);
   const meanSf = $derived(floors.length ? floors[0].rooms.reduce((t, r) => t + r.area, 0) / floors[0].rooms.length : 0);
-  // the lesson in one plain sentence: why this many people leave at this minimum
+  const f0 = $derived(floors.length ? evaluate([floors[0]], ui.live) : null);   // the floor that is drawn, on its own
+  const topShort = $derived(floors.length > 1 && floors[floors.length - 1].rooms.length < floors[0].rooms.length ? floors[floors.length - 1].rooms.length : 0);
+  // the lesson in one short sentence: why this many people leave at this minimum
   const whyLine = $derived.by(() => {
     if (!ev) return "";
     const sf = Math.round(meanSf), min = ui.live.minUnit, pol = ui.live;
-    const at = `At about ${sf} SF a room`;
-    if (!(opt && opt.feasible)) {
-      if (sf * 2 < min - 1e-9) return `${at} is too small for two of them to reach ${min} SF, so every unit would need three rooms, and three-room units cannot leave enough rooms standing to pass the other tests. Under these thresholds this building cannot convert; only a smaller minimum changes that.`;
-      return `${at} cannot be merged into units that reach ${min} SF without losing more rooms than the ${Math.round(pol.maxReduction * 100)}% cut allows, or returning fewer than the ${Math.round(pol.minReplace * 100)}% the plan requires. Under these thresholds this building cannot convert.`;
-    }
-    const sizes = ev.units.map((u) => u.idx.length), pairs = sizes.filter((n) => n === 2).length, triples = sizes.filter((n) => n >= 3).length, singles = sizes.filter((n) => n === 1).length;
-    if (!ev.units.length) {
-      if (pol.maxMerge < 2 && sf < min - 1e-9) return `${at} does not reach ${min} SF, and a unit may take only one room, so no unit can be made. Every room is kept and nobody leaves.`;
-      return `Nothing has to convert under these thresholds: keeping every room already passes, so every room is kept and nobody leaves.`;
-    }
-    if (sf >= min - 1e-9) return `${at} already reaches ${min} SF, so rooms convert in place${ev.lost ? ` and only ${ev.lost} ${ev.lost === 1 ? "tenant leaves" : "tenants leave"} to balance the tests` : " and nobody has to leave"}.`;
-    if (!ev.lost) return `${at} falls short of ${min} SF, but the Guidelines accept an average across all converted rooms, so every room converts in place and nobody has to leave.`;
-    const merges = triples > pairs ? "three rooms" : "two rooms";
-    const cost = triples > pairs ? "each three-room unit sends two tenants away" : "each pair sends one tenant away";
-    if (singles > pairs + triples) return `${at} falls short of ${min} SF, but the Guidelines accept an average across all converted rooms, so most rooms convert in place and the ${pairs + triples} merged ${pairs + triples === 1 ? "unit carries" : "units carry"} the average: ${cost}.`;
-    return `${at} does not reach ${min} SF on its own, so a unit is ${merges} knocked together, and ${cost}. That is where the ${ev.displaced} come from.`;
+    if (!(opt && opt.feasible)) return `No way to merge ${sf} SF rooms into ${min} SF units passes all three tests. The building cannot convert, and nobody is displaced.`;
+    const sizes = ev.units.map((u) => u.idx.length), pairs = sizes.filter((n) => n === 2).length, triples = sizes.filter((n) => n >= 3).length;
+    if (!ev.units.length) return pol.maxMerge < 2 && sf < min - 1e-9 ? `Rooms of ${sf} SF fall short of ${min} SF and may not merge, so no unit is made. Nobody leaves.` : `Keeping every room already passes. Nobody leaves.`;
+    if (sf >= min - 1e-9) return `Rooms of ${sf} SF already reach ${min} SF, so they convert in place${ev.lost ? ` and ${ev.lost} ${ev.lost === 1 ? "tenant leaves" : "tenants leave"} to balance the tests` : " and nobody leaves"}.`;
+    if (!ev.lost) return `Rooms of ${sf} SF fall short of ${min} SF, but the average across converted rooms passes, so nobody leaves.`;
+    const merges = triples > pairs ? "three rooms become one unit, and two tenants leave each time" : "two rooms become one unit, and one tenant leaves each time";
+    return `Rooms of ${sf} SF fall short of ${min} SF, so ${merges}. That is the ${ev.displaced} displaced.`;
   });
 
   // selecting a building brings its plan into view
@@ -59,14 +49,6 @@
     tick().then(() => { const el = document.getElementById("bp-plan"); if (el) el.scrollIntoView({ behavior: "smooth", block: "nearest" }); });
   });
 
-  function setTenancy(e) {
-    ui.tenancy[i] = Math.max(0, num(e.currentTarget.value) || 0);
-  }
-  function showOnMap() {
-    ui.scenColour = true;
-    const el = document.getElementById("map-stage");
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-  }
 </script>
 
 {#if b}
@@ -76,6 +58,14 @@
 <div class="stage-bar">
   <span class="label">{b ? b.name + " · " + b.addr : "No building selected"}</span>
 </div>
+{#if ev}
+  <div class="facts">
+    <span><b>{ev.original}</b><em>rooms</em></span>
+    <span><b>{floors[0].rooms.length}</b><em>per floor{topShort ? ", " + topShort + " on the top" : ""}</em></span>
+    <span><b>{floors.length}</b><em>{floors.length === 1 ? "floor" : "floors"} of rooms</em></span>
+    <span><b>{Math.round(meanSf)} SF</b><em>each</em></span>
+  </div>
+{/if}
 
 <div id="bp-plan" class="plan-stage">
   {#if !b}
@@ -90,41 +80,27 @@
   <div class="legend plan-legend">
     <span><i class="swatch unit"></i>Converted: a self-contained unit of {ui.live.minUnit} SF or more</span>
     <span><i class="swatch short"></i>Converted, but under {ui.live.minUnit} SF</span>
-    <span><i class="swatch keep"></i>Kept as an SRA room</span>
+    <span><i class="swatch keep"></i>Kept as an SRO room</span>
     <span><i class="swatch pod"></i>Bathroom and kitchen, Guidelines p.5–6</span>
     <span><i class="swatch circ"></i>Corridor and stair</span>
     {#if plan.roomsEnd < plan.L - 0.3}<span><i class="swatch hatch"></i>Floor Appendix B does not count as rooms</span>{/if}
   </div>
 {/if}
 
+{#if ev && f0}
+  <div class="label out-head">The whole building, under the thresholds below</div>
+  <div class="outcome">
+    <div class="o unit"><i></i><b>{ev.units.length}</b><span class="label">Units</span><small>{f0.units.length} on the floor drawn</small></div>
+    <div class="o keep"><i></i><b>{ev.untouched.length}</b><span class="label">Kept as SRO</span><small>{f0.untouched.length} on the floor drawn</small></div>
+    <div class="o lost"><i></i><b>{ev.displaced}</b><span class="label">Tenants displaced</span></div>
+    <div class="o share"><i></i><b>{pct(ev.original ? ev.lost / ev.original : 0)}</b><span class="label">Of the building</span></div>
+  </div>
+{/if}
+
 <ThresholdSliders />
 
 {#if ev}
-  <div class="tally"><Tile n={ev.original} label="Rooms" /><Tile n={floors[0].rooms.length} label="Per floor" /><Tile n={Math.round(meanSf) + " SF"} label="Each" /></div>
-  <div class="tally gap"><Tile n={ev.units.length} label="Units" /><Tile n={ev.untouched.length} label="Kept as SRA" />
-    <Tile n={ev.displaced} label="Tenants displaced" /><Tile n={pct(ev.original ? ev.lost / ev.original : 0)} label="Of the building" /></div>
-  <p class="why gap">{whyLine}</p>
-  <p class="note">
-    {#if opt && opt.feasible}
-      <strong>The scheme that loses the fewest rooms under these thresholds</strong>{ev.size.viaAverage ? ", the size test on the average fallback" : ""}:
-      {opt.units} units, {opt.kept} rooms kept as SRA, <strong>{opt.lost} tenants displaced</strong> of {opt.original}. Every scheme of adjacent merges was searched; none loses fewer.
-    {:else}
-      <strong>No scheme of adjacent merges passes these thresholds</strong> under the {ui.strict ? "strict" : "average"} reading{opt && opt.reason ? ": " + opt.reason : ""}.
-      The building does not convert, and nobody is displaced.
-    {/if}
-    The working is below the plan.</p>
-  <div class="field gap" style="max-width:200px"><label for="bp-ten">Tenancy of every room, years</label>
-    <input type="number" id="bp-ten" min="0" step="0.5" value={ui.tenancy[i] ?? SURVEY.tenancyYears} onchange={setTenancy}>
-    <span class="hint-s">Survey average 4.6; drives the compensation bracket of s.4.8(i)</span></div>
-  <p class="note gap"><strong>Under the policy:</strong>
-    {#if !district}not yet run{:else if !sc}outside the stock the policy reaches
-    {:else if sc.state === "converted"}{sc.units} units · {sc.lost} tenants displaced · {sc.lost === 0 ? "no rooms lost" : sc.lost <= district.policy.smallLoss ? "within the " + district.policy.smallLoss + "-room route of s.4.3A" : "over the " + district.policy.smallLoss + "-room route, so Council"}
-    {:else if sc.state === "infeasible"}no compliant conversion under these thresholds
-    {:else if sc.state === "self-contained"}already self-contained apartments by its record, so it stands outside the stock the policy reaches; the tests above describe a conversion this building does not need
-    {:else}left as it is{/if}.
-    {#if sc && sc.state === "converted"}<button type="button" class="inline" title="Colour the map by the policy and show this building’s displaced tenants" onclick={showOnMap}>Show on the map</button>{/if}
-  </p>
-  <p class="src gap">Every floor is this floor: the scheme is repeated on each residential storey, and the tests are ratios, so the building passes exactly when its floor does.</p>
+  <p class="why">{whyLine}</p>
   <BuildingTests {ev} policy={ui.live} />
 {/if}
 
@@ -141,8 +117,24 @@
   .plan-legend .swatch.pod { border: 1px dashed var(--ink-3); }
   .plan-legend .swatch.circ { background: var(--plan-circ); border: 1px solid var(--rule); }
   .plan-legend .swatch.hatch { background: repeating-linear-gradient(45deg, var(--rule) 0 1px, transparent 1px 3px); }
-  .gap { margin-top: 12px; }
   .why { font-size: 13.5px; line-height: 1.5; color: var(--ink); margin: 12px 0 6px; padding-left: 10px; border-left: 2px solid var(--accent); }
-  .tally.gap { margin-top: 10px; }
-  button.inline { margin-left: 6px; }
+  /* the building's facts, in the card's own stats style, over the plan they describe */
+  .facts { display: flex; flex-wrap: wrap; gap: 4px 18px; font-variant-numeric: tabular-nums; font-size: 12px;
+    border: 1px solid var(--rule); border-bottom: none; padding: 7px 10px; background: var(--surface); }
+  .facts span { display: flex; gap: 6px; align-items: baseline; }
+  .facts b { font-family: "IBM Plex Sans Condensed", sans-serif; font-weight: 600; font-size: 15px; }
+  .facts em { font-style: normal; color: var(--ink-3); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; }
+  /* what the plan adds up to: one cell per figure, each carrying the plan colour it refers to */
+  .out-head { margin-top: 12px; }
+  .outcome { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 6px; }
+  .o { position: relative; border: 1px solid var(--rule); border-top: 3px solid var(--ink-3); background: var(--surface); padding: 8px 10px 8px; }
+  .o b { display: block; font-family: "IBM Plex Sans Condensed", sans-serif; font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .o .label { display: block; margin-top: 3px; font-size: 9.5px; }
+  .o small { display: block; margin-top: 5px; font-size: 11px; line-height: 1.3; color: var(--ink-3); }
+  .o i { position: absolute; top: 8px; right: 8px; width: 11px; height: 11px; border: 1.5px solid transparent; }
+  .o.unit { border-top-color: var(--plan-unit-line); } .o.unit i { background: var(--plan-unit); border-color: var(--plan-unit-line); }
+  .o.keep { border-top-color: var(--plan-keep-line); } .o.keep i { background: var(--plan-keep); border-color: var(--plan-keep-line); }
+  .o.lost { border-top-color: var(--accent); } .o.lost i { display: none; }
+  .o.share { border-top-color: var(--ink-3); } .o.share i { display: none; }
+  @media (max-width: 520px) { .outcome { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 </style>

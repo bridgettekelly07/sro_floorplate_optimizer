@@ -1,15 +1,21 @@
 <script>
   import { ui } from "../lib/state.svelte.js";
-  import { CLASSES, classVar } from "../lib/colours.js";
+  import { CLASSES, classVar, WHO } from "../lib/colours.js";
 </script>
 
 <div class="map-legend">
-  {#if ui.scenColour}
+  {#if ui.mapMode === "policy"}
     <div class="legend">
       <span class="classes"><b>Tenants displaced by the conversion</b>
         {#each CLASSES as c, k}<span><i class="swatch" style={"background:var(" + classVar(k) + ")"}></i>{c.label}</span>{/each}
       </span>
       <span><i class="swatch" style="background:var(--scen-x)"></i>Cannot convert under these thresholds</span>
+    </div>
+  {:else if ui.mapMode === "people"}
+    <div class="legend">
+      <span class="classes"><b>Where every tenant goes, as bands of the building</b>
+        {#each WHO.slice(0, 4) as w (w.key)}<span><i class="swatch" style={"background:var(" + w.v + ")"}></i>{w.label}</span>{/each}
+      </span>
     </div>
   {:else}
     <div class="legend">
@@ -23,6 +29,4 @@
   .map-legend { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2;
     background: color-mix(in srgb, var(--surface) 88%, transparent); padding: 8px 14px; border-top: 1px solid var(--rule); }
   .map-legend .legend { gap: 4px 18px; justify-content: space-between; }
-  .classes { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; }
-  .classes b { font-weight: 500; font-size: 11px; flex-basis: 100%; }
 </style>

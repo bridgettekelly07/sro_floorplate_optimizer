@@ -15,10 +15,10 @@
     { title: "", tick: "City", rows: [
       { store: "live", key: "minUnit", label: "Minimum unit size", min: 60, max: 400, step: 5, scale: 1, fmt: "sf",
         plain: "How big a converted unit must be.",
-        cite: "SRA Guidelines p.4; DTES Plan 9.2.11" },
+        cite: "SRO Guidelines p.4; DTES Plan 9.2.11" },
       { store: "live", key: "maxReduction", label: "Largest cut in rooms", min: 0, max: 100, step: 5, scale: 100, fmt: "pct",
         plain: "The most rooms a building may lose.",
-        cite: "SRA Guidelines p.4" },
+        cite: "SRO Guidelines p.4" },
       { store: "live", key: "minReplace", label: "Least replaced as units", min: 0, max: 100, step: 5, scale: 100, fmt: "pct",
         plain: "How many of the old rooms must come back as homes.",
         cite: "DTES Plan 9.2.7" },

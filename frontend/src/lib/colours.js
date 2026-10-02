@@ -40,8 +40,29 @@ export function displacedClass(s) {
   return k;
 }
 export function classVar(k) { return "--scen-c" + k; }
-// scen: the scenario by index, or null when the map is coloured by tenure
-export function mapColourHex(b, i, scen) {
+
+// Where every tenant the policy reaches goes, and the colour each fate takes on the map and in the readout.
+export const WHO = [
+  { key: "lost", label: "Displaced: their room is lost", v: "--who-lost" },
+  { key: "units", label: "Re-housed in a new unit", v: "--who-unit" },
+  { key: "kept", label: "Stay in a room kept as SRO", v: "--who-keep" },
+  { key: "stuck", label: "Building cannot convert, left as it is", v: "--who-stuck" },
+  { key: "none", label: "No footprint to draw", v: "--map-unsurveyed" }
+];
+// The "people" map: a building's massing split into bands by the share of its rooms that meet
+// each fate, bottom up: the rooms kept, the rooms re-housed as units, and on top the rooms lost.
+// A building that cannot convert is slate through its height; one the policy does not reach is grey.
+export function bandsOf(s) {
+  if (s && s.state === "infeasible") return [{ share: 1, hex: hexOf(css("--who-stuck")) }];
+  if (!s || s.state !== "converted" || !s.n) return [{ share: 1, hex: hexOf(css("--map-unsurveyed")) }];
+  const out = [];
+  if (s.kept) out.push({ share: s.kept / s.n, hex: hexOf(css("--who-keep")) });
+  if (s.units) out.push({ share: s.units / s.n, hex: hexOf(css("--who-unit")) });
+  if (s.lost) out.push({ share: s.lost / s.n, hex: hexOf(css("--who-lost")) });
+  return out;
+}
+// scen: the scenario by index, or null when the map is coloured by tenure; mode: "policy" or "people"
+export function mapColourHex(b, i, scen, mode = "policy") {
   if (scen) {
     const s = scen[i];
     if (s && s.state === "infeasible") return hexOf(css("--scen-x"));
@@ -50,8 +71,8 @@ export function mapColourHex(b, i, scen) {
   }
   return hexOf(css(tenureVar(b)));
 }
-export function mapColour(b, i, scen) {
-  if (scen) return mapColourHex(b, i, scen);
+export function mapColour(b, i, scen, mode) {
+  if (scen) return mapColourHex(b, i, scen, mode);
   return "var(" + tenureVar(b) + ")";
 }
 // the building card's bar: the tenure colour as the lit massing shows it

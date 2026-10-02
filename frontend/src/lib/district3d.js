@@ -20,6 +20,7 @@ import { curbRuns } from "./curbs.js";
 import { paintCanopyAtlas, CANOPY_SEEDS, FASTIGIATE, drawnHeight } from "./canopy.js";
 import { shadePark, toneOf, prng as parkPrng, PARK, hex as hexRgb, mix as mixRgb } from "./parkShade.js";
 import { arterialPicks, segInside, ROAD } from "./projection.js";
+import { blockGrid, hidden } from "./occlusion.js";
 
 const NAME_PX = 10, NAME_S = 4;   // street-name type size on screen, and the texture oversampling
 
@@ -54,7 +55,7 @@ export class District3D {
     this.wrap = wrap; this.labels = labels;
     this.onSelect = onSelect; this.onHover = onHover;
     this.on = false; this.ready = false; this.dirty = true; this.needFoot = true;
-    this.hover = null; this.mPerUnit = 1; this.plan = false; this.framed = false;
+    this.hover = null; this.mPerUnit = 1; this.framed = false;
     this.sel = null; this.colourOf = () => "#888888";
     this.data = null; this.proj = null;
   }
@@ -62,7 +63,8 @@ export class District3D {
   // ---- data and style ----
   setData(data, proj) { this.data = data; this.proj = proj; this.needFoot = true; this.parkShades = null; this.shore = undefined; this.outline = undefined; this.shoreBytes = undefined; }
   // colourOf(b, i) -> hex: the policy colour, or the tenure colour, for each SRO's whole massing
-  setStyle(colourOf) { this.colourOf = colourOf; }
+  // bandsOf(b, i) -> [{ share, hex }] bottom up, or null: the massing split into bands by where its tenants go
+  setStyle(colourOf, bandsOf) { this.colourOf = colourOf; this.bandsOf = bandsOf || null; }
   setSelected(i) { this.sel = i; if (this.ready) { this.select(); this.dirty = true; } }
 
   init() {
@@ -76,7 +78,6 @@ export class District3D {
     this.wrap.insertBefore(r.domElement, this.labels);
     this.scene = new THREE.Scene();
     this.persp = new THREE.PerspectiveCamera(40, 1, 1, 30000);
-    this.ortho = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, 30000);
     this.camera = this.persp;
     this.ray = new THREE.Raycaster();
     this.ndc = { x: 0, y: 0 };
@@ -281,6 +282,12 @@ export class District3D {
       const xz = c.map((p) => [proj.x(p[0]), proj.y(p[1])]);
       const base = it.base || 0, y0 = base - 0.6 / this.mPerUnit;   // sunk a little, so no gap opens on a slope
       const y = base + Math.max(0.5, it.h) / this.mPerUnit;
+      if (this.obsCur) {   // the prism, in plan, for the street names to keep clear of
+        const bb = [Infinity, Infinity, -Infinity, -Infinity];
+        xz.forEach((q) => { bb[0] = Math.min(bb[0], q[0]); bb[1] = Math.min(bb[1], q[1]); bb[2] = Math.max(bb[2], q[0]); bb[3] = Math.max(bb[3], q[1]); });
+        this.obsCur.push({ xz, top: y, bb });
+        this.obsGrid = null;
+      }
       let tris;
       try { tris = THREE.ShapeUtils.triangulateShape(xz.map((p) => new THREE.Vector2(p[0], p[1])), []); } catch { tris = []; }
       const r = it.col.r, g = it.col.g, b = it.col.b;
@@ -559,6 +566,7 @@ export class District3D {
   // Footprints that an SRO already stands on are drawn by the SRO itself.
   buildFoot() {
     this.clear(this.gFoot);
+    this.obsFoot = []; this.obsCur = this.obsFoot; this.obsGrid = null;
     const foot = this.data.foot;
     if (!foot) return;
     const skip = {};
@@ -685,11 +693,15 @@ export class District3D {
     if (l) this.gBridges.add(l);
   }
   // BC Place: the roof, oculus and masts on the drum the footprint gives, centred on its round part
+  // The roof sits on the centre of the footprint's extent, at the ring's mean radius from there: the
+  // drum is a rounded oval, and a circle fitted to its rounder side would stand off to one corner.
   addStadium({ ring, base, h }) {
     const proj = this.proj, u = 1 / this.mPerUnit;
     const lat = ring[0][1], kx = 111320 * Math.cos(lat * Math.PI / 180), ky = 110540;
-    const c = roundCentre(ring, kx, ky);
-    const g = stadiumGeometry(proj.x(c.x), proj.y(c.y), c.r * u, base + h * u, u);
+    const xs = ring.map((q) => q[0]), ys = ring.map((q) => q[1]);
+    const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+    const r = ring.reduce((t, q) => t + Math.hypot((q[0] - cx) * kx, (q[1] - cy) * ky), 0) / ring.length;
+    const g = stadiumGeometry(proj.x(cx), proj.y(cy), r * u, base + h * u, u);
     const geo = new THREE.BufferGeometry();
     geo.setAttribute("position", new THREE.Float32BufferAttribute(g.pos, 3));
     geo.computeVertexNormals();
@@ -849,34 +861,61 @@ export class District3D {
       this.gNames.add(m); this.nameMeshes.push(m);
     });
   }
+  // The blocks the street names must keep clear of: every extruded prism, on a grid of about 60 m cells.
+  blocks() {
+    if (!this.obsGrid) this.obsGrid = blockGrid((this.obsFoot || []).concat(this.obsSro || []), 60 / this.mPerUnit);
+    return this.obsGrid;
+  }
+  // Would a name of this size, lying on the road at (x, z) along (dx, dz), show through a building?
+  // Its ink is sampled at the corners and the middle of each long edge (the glyphs fill about the middle
+  // 60% of the texture's height); the name is drawn over the massing, so any sample a building hides
+  // from the camera would put ink across that building.
+  nameCovered(x, z, dx, dz, w, h) {
+    const grid = this.blocks(), cam = this.camera.position, down = false;
+    const nx = -dz, nz = dx;
+    for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j += 2) {
+      const px = x + dx * w * i / 2 + nx * h * j * 0.3, pz = z + dz * w * i / 2 + nz * h * j * 0.3;
+      if (hidden(grid, px, this.yAt(px, pz), pz, cam, down)) return true;
+    }
+    return false;
+  }
   placeNames() {
     this.namePlaced = [];
     if (!this.nameMeshes) return;
     const W = this.renderer.domElement.clientWidth, H = this.renderer.domElement.clientHeight;
     const far = Math.max(0.7, Math.min(1, Math.pow(this.proj.W * 0.22 / this.cam.r, 0.25)));
+    const SLIDE = [0, 0.15, -0.15, 0.3, -0.3];   // where along its stretch a name may sit: the middle first
     this.nameMeshes.forEach((m) => {
       const u = m.userData, l = u.l;
       m.visible = false;
-      const q = this.toScreen(l.x, l.y, l.z);
-      if (!q.on || q.x < 30 || q.x > W - 30 || q.y < 20 || q.y > H - 20) return;
       let dx = u.dx, dz = u.dz;
       const qa = this.toScreen(l.ax, l.y, l.az), qb = this.toScreen(l.bx, l.y, l.bz);
       if (qb.x < qa.x) { dx = -dx; dz = -dz; }
-      const cd = this.toScreen(l.x + dx, l.y, l.z + dz), cn = this.toScreen(l.x - dz, l.y, l.z + dx);
-      const pxD = Math.hypot(cd.x - q.x, cd.y - q.y), pxN = Math.hypot(cn.x - q.x, cn.y - q.y);
-      if (pxD < 1e-6 || pxN < 1e-6 || pxN / pxD < 0.15 || pxD / pxN < 0.15) return;
-      let w = u.pw * far / pxD, h = u.ph * far / pxN;
-      if (w > u.len * 0.9) return;                        // the name would spill past its straight stretch of road
-      const sw = u.pw * far;
-      for (let i = 0; i < this.namePlaced.length; i++) {
-        // names as discs on screen: two may not sit within each other's reach, whatever their angle
-        const o = this.namePlaced[i];
-        if (Math.hypot(o[0] - q.x, o[1] - q.y) < (o[2] + sw) / 2 * 0.55 + 10) return;
+      for (const f of SLIDE) {
+        const x = l.x + u.dx * u.len * f, z = l.z + u.dz * u.len * f, y = this.yAt(x, z);
+        const q = this.toScreen(x, y, z);
+        if (!q.on || q.x < 30 || q.x > W - 30 || q.y < 20 || q.y > H - 20) continue;
+        const cd = this.toScreen(x + dx, y, z + dz), cn = this.toScreen(x - dz, y, z + dx);
+        const pxD = Math.hypot(cd.x - q.x, cd.y - q.y), pxN = Math.hypot(cn.x - q.x, cn.y - q.y);
+        if (pxD < 1e-6 || pxN < 1e-6 || pxN / pxD < 0.15 || pxD / pxN < 0.15) break;
+        const w = u.pw * far / pxD, h = u.ph * far / pxN;
+        if (w / 2 + Math.abs(f) * u.len > u.len * 0.45) continue;   // the name would spill past its straight stretch of road
+        if (this.nameCovered(x, z, dx, dz, w, h)) continue;         // a building would stand over it from here
+        const sw = u.pw * far;
+        let clash = false;
+        for (let i = 0; i < this.namePlaced.length && !clash; i++) {
+          // names as discs on screen: two may not sit within each other's reach, whatever their angle
+          const o = this.namePlaced[i];
+          if (Math.hypot(o[0] - q.x, o[1] - q.y) < (o[2] + sw) / 2 * 0.55 + 10) clash = true;
+        }
+        if (clash) continue;
+        this.namePlaced.push([q.x, q.y, sw]);
+        m.position.set(x, y + 0.16, z);
+        m.scale.set(w, h, 1);
+        m.rotation.y = Math.atan2(-dz, dx);
+        m.visible = true;
+        break;
       }
-      this.namePlaced.push([q.x, q.y, sw]);
-      m.scale.set(w, h, 1);
-      m.rotation.y = Math.atan2(-dz, dx);
-      m.visible = true;
     });
   }
 
@@ -884,22 +923,30 @@ export class District3D {
   buildSro() {
     this.clear(this.gSro);
     this.sroMeshes = [];
+    this.obsSro = []; this.obsCur = this.obsSro; this.obsGrid = null;
     const { surveyed, mass, foot } = this.data, proj = this.proj;
     surveyed.forEach((b, i) => {
       if (b.lon == null) return;
       const colour = new THREE.Color(this.colourOf(b, i));
+      const bands = this.bandsOf ? this.bandsOf(b, i) : null;
+      // one prism per part in a single colour, or a stack of prisms, one per band, each as tall as its share
+      const items = (parts) => parts.flatMap(({ pts, h }) => {
+        if (!bands || bands.length < 2) return [{ pts, h, col: bands ? new THREE.Color(bands[0].hex) : colour, base }];
+        let acc = 0;
+        return bands.map((bd) => { const it = { pts, h: h * bd.share, col: new THREE.Color(bd.hex), base: base + acc / this.mPerUnit }; acc += h * bd.share; return it; });
+      });
       const rec = mass && mass[i] && mass[i].parts.length ? mass[i] : null;
       const pts = (b.foot != null && foot && foot[b.foot]) ? foot[b.foot].p : b.poly;
       const h = b.hgtM || floorsOf(b) * FLOOR_M;
       const base = rec ? Math.min(...rec.parts.map((p) => this.baseOf(p.r))) : pts ? this.baseOf(pts) : this.yAt(proj.x(b.lon), proj.y(b.lat));
       let mesh, cx, cz, top = h;
       if (rec) {
-        mesh = new THREE.Mesh(this.extrude(rec.parts.map((p) => ({ pts: p.r, h: p.h || NOMINAL_H, col: colour, base }))), this.matBldg);
+        mesh = new THREE.Mesh(this.extrude(items(rec.parts.map((p) => ({ pts: p.r, h: p.h || NOMINAL_H })))), this.matBldg);
         let sx = 0, sz = 0, nn = 0;
         rec.parts.forEach((p) => { top = Math.max(top, p.h || 0); p.r.forEach((q) => { sx += proj.x(q[0]); sz += proj.y(q[1]); nn++; }); });
         cx = sx / nn; cz = sz / nn;
       } else if (pts) {
-        mesh = new THREE.Mesh(this.extrude([{ pts, h, col: colour, base }]), this.matBldg);
+        mesh = new THREE.Mesh(this.extrude(items([{ pts, h }])), this.matBldg);
         let sx = 0, sz = 0;
         pts.forEach((p) => { sx += proj.x(p[0]); sz += proj.y(p[1]); });
         cx = sx / pts.length; cz = sz / pts.length;
@@ -975,11 +1022,6 @@ export class District3D {
   }
 
   // ---- camera ----
-  setPlan(on) {
-    this.plan = on;
-    this.camera = on ? this.ortho : this.persp;
-    this.resize(); this.place(); this.dirty = true;
-  }
   // The edges keep their screen width up close, then thin and fade as the
   // camera pulls back, or at the city scale they would merge into a wash.
   edgeScale() {
@@ -999,15 +1041,6 @@ export class District3D {
   place() {
     const c = this.cam;
     this.edgeScale();
-    if (this.plan) {
-      this.ortho.position.set(c.tx, c.r, c.tz);
-      this.ortho.up.set(0, 0, -1);
-      this.ortho.lookAt(c.tx, 0, c.tz);
-      const hh = c.r * Math.tan(20 * Math.PI / 180), aspect = this.persp.aspect || 1;
-      this.ortho.left = -hh * aspect; this.ortho.right = hh * aspect; this.ortho.top = hh; this.ortho.bottom = -hh;
-      this.ortho.updateProjectionMatrix(); this.ortho.updateMatrixWorld();
-      return;
-    }
     const sp = Math.max(0.12, Math.min(1.5, c.phi));
     this.camera.position.set(c.tx + c.r * Math.sin(sp) * Math.cos(c.theta), c.r * Math.cos(sp), c.tz + c.r * Math.sin(sp) * Math.sin(c.theta));
     this.camera.lookAt(c.tx, 0, c.tz);
@@ -1069,7 +1102,6 @@ export class District3D {
     this.matEdge.resolution.set(w, h); this.matEdgeSro.resolution.set(w, h); this.matWin.resolution.set(w, h); this.matCurb.resolution.set(w, h);
     this.persp.aspect = w / h;
     this.persp.updateProjectionMatrix();
-    if (this.plan) this.place();
     this.dirty = true;
   }
 
@@ -1106,7 +1138,6 @@ export class District3D {
       pointers.set(e.pointerId, e);
       if (pointers.size > 1) { down = null; return; }
       const orbit = e.button === 2 || e.shiftKey || e.ctrlKey || e.metaKey;
-      if (orbit && self.plan) { self.cam.phi = 0.12; self.cam.theta = -Math.PI / 2; self.setPlan(false); if (self.onPlanChange) self.onPlanChange(false); }
       self._zoomTarget = null; self.zoomAnchor = null;
       down = { x: e.clientX, y: e.clientY, moved: false, orbit, theta: self.cam.theta, phi: self.cam.phi, g: self.groundPoint(e) };
       self.wrap.classList.toggle("orbiting", orbit);

@@ -1,14 +1,17 @@
 <script>
-  let { on3d, onPlan, onPolicy, zoomIn, zoomOut, fit, toggle3d, togglePlan, togglePolicy } = $props();
+  let { mode, zoomIn, zoomOut, setMode } = $props();
+  const MODES = [
+    { key: "policy", name: "Policy", title: "Colour each building by how many of its tenants the policy displaces" },
+    { key: "people", name: "People", title: "Split each building by where its tenants go: kept, re-housed, displaced" }
+  ];
 </script>
 
 <div class="map-zoom">
   <button type="button" title="Zoom in" aria-label="Zoom in" onclick={zoomIn}>+</button>
   <button type="button" title="Zoom out" aria-label="Zoom out" onclick={zoomOut}>&minus;</button>
-  <button type="button" title="Fit the whole district" onclick={fit}>Fit</button>
-  <button type="button" class:on={on3d} title="The district in 3D, at LiDAR height" onclick={toggle3d}>3D</button>
-  <button type="button" class:on={on3d && onPlan} title="Look straight down: the district in plan, without perspective" onclick={togglePlan}>Plan</button>
-  <button type="button" class:on={onPolicy} title="Colour the stock by the policy: who it displaces" onclick={togglePolicy}>Policy</button>
+  {#each MODES as m (m.key)}
+    <button type="button" class:on={mode === m.key} title={m.title} onclick={() => setMode(m.key)}>{m.name}</button>
+  {/each}
 </div>
 
 <style>

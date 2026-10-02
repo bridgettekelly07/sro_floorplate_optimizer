@@ -34,22 +34,28 @@
   --map-market-lit: #7a8db5;
   --map-nonmarket-lit: #d6daef;
   /* the typical floor: kept rooms on paper, converted units in the park green, a unit under the minimum in salmon */
-  --plan-keep: #fbf9f5;
+  --plan-keep: #d8ebe5;
+  --plan-keep-line: #6f9c92;
   --plan-unit: #dfe3c3;
   --plan-unit-line: #7d8f66;
   --plan-short: #f3d6cb;
   --plan-short-line: #e18f7c;
-  --plan-circ: #dde2e0;
+  --plan-circ: #ffffff;
   --map-unsurveyed: #b9c1b8;
-  --scen-0: #f0dd8f;
+  --scen-0: #f6e8b4;
   --scen-1: #e9a090;
   /* the policy map's four classes of tenants displaced: none, a few, some, many */
-  --scen-c0: #f0dd8f;
+  --scen-c0: #f6e8b4;
   --scen-c1: #eec98f;
   --scen-c2: #ebb08e;
   --scen-c3: #e18f7c;
   --scen-x: #8da2b8;        /* cannot convert: a slate blue against the yellow-to-salmon ramp */
   --scen-works: #b9c1b8;
+  /* where every tenant goes: the ramp's salmon, the butter yellow for a new unit (the parks own the greens), a quiet blue-green grey for a room kept, slate for a building left as it is */
+  --who-lost: #e18f7c;
+  --who-unit: #f6e8b4;
+  --who-keep: #b9c9c6;
+  --who-stuck: #8da2b8;
   --map-foot: #e4e7e0;
   --map-foot-line: #b9c1b8;
   --m3-ground: #f4f1ea;
@@ -125,12 +131,13 @@
     --map-nonmarket: #c9cde8;
     --map-market-lit: #9eaed3;
     --map-nonmarket-lit: #dde0f2;
-    --plan-keep: #1d2320;
+    --plan-keep: #2a4a44;
+    --plan-keep-line: #7fbfb0;
     --plan-unit: #3a4f3f;
     --plan-unit-line: #9cc487;
     --plan-short: #5a3b36;
     --plan-short-line: #e8705a;
-    --plan-circ: #2a3331;
+    --plan-circ: #1c211e;
     --map-unsurveyed: #6d736c;
     --scen-0: #58c08a;
     --scen-1: #e8705a;
@@ -140,6 +147,10 @@
     --scen-c3: #e8705a;
     --scen-x: #6f88a3;
     --scen-works: #f7d24a;
+    --who-lost: #e8705a;
+    --who-unit: #d9c27a;
+    --who-keep: #5f7472;
+    --who-stuck: #6f88a3;
     --map-foot: #262b28;
     --map-foot-line: #323834;
     --m3-ground: #171b19;
@@ -214,12 +225,13 @@
   --map-nonmarket: #c9cde8;
   --map-market-lit: #9eaed3;
   --map-nonmarket-lit: #dde0f2;
-  --plan-keep: #1d2320;
+  --plan-keep: #2a4a44;
+    --plan-keep-line: #7fbfb0;
   --plan-unit: #3a4f3f;
   --plan-unit-line: #9cc487;
   --plan-short: #5a3b36;
   --plan-short-line: #e8705a;
-  --plan-circ: #2a3331;
+  --plan-circ: #1c211e;
   --map-unsurveyed: #6d736c;
   --scen-0: #58c08a;
   --scen-1: #e8705a;

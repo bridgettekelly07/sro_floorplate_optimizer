@@ -13,9 +13,7 @@ export const ui = $state({
   scope: "all",           // the policy reaches every SRO in Appendix B
   sel: null,              // the selected building, by Appendix B index
   planView: "existing",   // the rooms as they stand, until a threshold moves
-  scenColour: true,       // the map coloured by the policy rather than by tenure
-  mode3d: false,
-  plan3d: false,          // the 3D view looked at straight down
+  mapMode: "policy",      // "tenure", or the policy read two ways: "policy" (classes of tenants displaced), "people" (where every tenant goes)
   tenancy: {},            // years typed for every room, by building index
   theme: (typeof document !== "undefined" && document.documentElement.dataset.theme) || "dark"
 });

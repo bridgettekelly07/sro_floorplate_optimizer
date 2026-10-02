@@ -92,12 +92,3 @@ export function optimise(runs, strict, policy, minU) {
     area: best.area, runs: best.path.map(walkRun), reason: "" };
 }
 
-// The result on one floor, repeated on every residential storey: the tests
-// are ratios, so a building of identical floors passes exactly when its floor does.
-export function repeatFloors(o, res) {
-  if (!o) return o;
-  const runs = [];
-  for (let f = 0; f < res; f++) o.runs.forEach((r) => runs.push(r));
-  return { feasible: o.feasible, strict: o.strict, original: o.original * res, units: o.units * res,
-           kept: o.kept * res, lost: o.lost * res, area: o.area * res, runs, reason: o.reason };
-}

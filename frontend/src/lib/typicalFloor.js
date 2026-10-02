@@ -5,7 +5,7 @@
 // a shared washroom on the corridor. It is not the footprint's shape, which
 // a floor of equal rooms never fills convincingly. Rooms are spread over the
 // storeys above a retail ground floor.
-import { optimise, repeatFloors } from "./search.js";
+import { optimise } from "./search.js";
 import { SURVEY } from "./survey.js";
 
 export const MIN_AREA = 60, MAX_AREA = 420;   // a room's area, clamped when read from a footprint
@@ -23,7 +23,7 @@ export function guessedHeight(seed) {
   return n * FLOOR_M;
 }
 export const PLAN = { corridor: 1.5, stair: 2.6, minDepth: 2.75, maxDepth: 4.6, minWidth: 2.4, wcPer: 12, wcWidth: 2.4, groundRetail: true };
-// the unit's program, SRA Guidelines p.5-6: a complete bathroom and a kitchen
+// the unit's program, SRO Guidelines p.5-6: a complete bathroom and a kitchen
 // run with a 24" fridge. The source dimensions only the fridge; these are
 // conventional minimums in metres (5' x 8' bath, 8' x 2' kitchen, 3' door).
 export const POD = { bath: [1.52, 2.44], kitchen: [2.44, 0.61], kitchenMin: 1.5, door: 0.9 };
@@ -156,40 +156,76 @@ export function typicalPlan(b, outline, assume) {
                 take.filter((r) => r.side === 1).map((r) => r.sf)].filter((r) => r.length);
   const outlineUV = [[0, 0], [L, 0], [L, W], [0, W]];
   return { ring: outlineUV, L, W, stair: 0, cores, start, corridor: PLAN.corridor, dbl, depth, width,
-           rooms: take, perFloor: per, placed: take.length, storeys: floorsOf(b), res,
+           rooms: take, perFloor: per, placed: take.length, storeys: floorsOf(b), res, total: b.rooms || per * res,
            sf: take.length ? take.reduce((t, r) => t + r.sf, 0) / take.length : 0,
            footSf: footM2 * SF, runs, narrow: width < PLAN.minWidth, capped, squeezed,
            circ, cap, roomsEnd: L, rect, lon0, lat0, source: outline.source, schematic: true };
 }
 
-// The least-loss scheme on the typical floor, repeated on every residential storey.
+// The least-loss scheme on the typical floor, stacked into the building: as many full floors as
+// the record's rooms fill, then one shorter floor with the rooms left over, so the building holds
+// exactly the rooms Appendix B counts. On the short floor a unit the cut would halve stays as rooms.
 export function optimumFor(plan, strict, policy) {
   if (!plan || !plan.placed) return null;
-  return repeatFloors(optimise(plan.runs.map((r) => r.slice()), strict, policy), plan.res);
+  return stackFloors(optimise(plan.runs.map((r) => r.slice()), strict, policy), plan);
+}
+export function floorCounts(plan) {
+  const per = plan.rooms.length, rooms = plan.total || per * plan.res;
+  const full = Math.max(1, Math.floor(rooms / per)), rem = rooms - full * per;
+  const counts = []; for (let f = 0; f < full; f++) counts.push(per);
+  if (rem > 0) counts.push(rem);
+  return counts;
+}
+function stackFloors(o, plan) {
+  if (!o) return o;
+  const counts = floorCounts(plan), per = plan.rooms.length;
+  if (!o.feasible) {
+    const n = counts.reduce((t, c) => t + c, 0);
+    return { ...o, original: n, kept: n, floors: counts };
+  }
+  let original = 0, units = 0, kept = 0, area = 0;
+  const runs = [];
+  counts.forEach((count) => {
+    original += count;
+    if (count === per) { o.runs.forEach((r) => runs.push(r)); units += o.units; kept += o.kept; area += o.area; return; }
+    let base = 0;
+    o.runs.forEach((r, ri) => {
+      const areas = plan.runs[ri], left = Math.max(0, Math.min(areas.length, count - base));
+      const groups = r.groups.filter((g) => g.every((k) => k < left));
+      const cut = r.groups.filter((g) => !g.every((k) => k < left)).flatMap((g) => g.filter((k) => k < left));
+      const kp = r.kept.filter((k) => k < left).concat(cut);
+      runs.push({ groups, kept: kp });
+      units += groups.length; kept += kp.length;
+      groups.forEach((g) => g.forEach((k) => { area += areas[k]; }));
+      base += areas.length;
+    });
+  });
+  return { feasible: true, strict: o.strict, original, units, kept, lost: original - units - kept, area, runs, reason: "", floors: counts };
 }
 
 // The building's floors state from the plan and the scheme: what the tests run
 // on and what the plan draws. When nothing passes, every room is kept.
 export function buildFloors(p, o, tenancy) {
   const ten = tenancy == null ? SURVEY.tenancyYears : tenancy;
-  const floors = [];
-  for (let f = 0; f < p.res; f++) {
+  const floors = [], counts = (o && o.floors) || floorCounts(p);
+  counts.forEach((count, f) => {
     const fr = [], fj = [];
     const sch = o && o.feasible ? o.runs.slice(f * p.runs.length, (f + 1) * p.runs.length) : null;
     const none = !!(o && !o.feasible);
     p.runs.forEach((run, ri) => {
       const base = fr.length;
       run.forEach((sf) => {
+        if (fr.length >= count) return;   // the short top floor stops here
         fr.push({ id: String(fr.length + 1), area: Math.max(MIN_AREA, Math.min(MAX_AREA, Math.round(sf))), tenancy: ten, keep: none });
         if (fr.length > 1) fj.push(false);
       });
       if (sch && sch[ri]) {
-        sch[ri].kept.forEach((k) => { fr[base + k].keep = true; });
-        sch[ri].groups.forEach((g) => { for (let q = 0; q < g.length - 1; q++) fj[base + g[q]] = true; });
+        sch[ri].kept.forEach((k) => { if (base + k < fr.length) fr[base + k].keep = true; });
+        sch[ri].groups.forEach((g) => { for (let q = 0; q < g.length - 1; q++) if (base + g[q + 1] < fr.length) fj[base + g[q]] = true; });
       }
     });
     floors.push({ rooms: fr, joints: fj });
-  }
+  });
   return floors;
 }
 

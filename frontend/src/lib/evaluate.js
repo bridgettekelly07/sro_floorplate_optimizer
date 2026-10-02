@@ -62,17 +62,14 @@ export function evaluate(floors, policy) {
       size = {
         pass: true,
         edge: units.some((u) => Math.abs(u.area - minUnit) < EPS),
-        working: "every unit ≥ " + minUnit + " SF (smallest " + fmt(min) + "); average fallback not triggered. Average "
-          + fmt(convertedArea) + " ÷ " + units.length + " = " + avg.toFixed(1) + " SF"
+        working: "every unit ≥ " + minUnit + " SF; smallest " + fmt(min) + " SF, average " + avg.toFixed(1) + " SF"
       };
     } else {
       size = {
         pass: avg >= minUnit - EPS,
         edge: Math.abs(avg - minUnit) < EPS,
-        working: short.length + " unit" + (short.length > 1 ? "s" : "") + " below " + minUnit + " SF ("
-          + short.map((u) => u.label + " " + fmt(u.area)).join(", ")
-          + "); average fallback applies: " + fmt(convertedArea) + " ÷ " + units.length
-          + " = " + avg.toFixed(1) + " SF"
+        working: short.length + " of " + units.length + " unit" + (units.length > 1 ? "s" : "") + " below " + minUnit + " SF, so the average applies: "
+          + fmt(convertedArea) + " ÷ " + units.length + " = " + avg.toFixed(1) + " SF"
       };
     }
     size.viaAverage = short.length > 0;

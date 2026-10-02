@@ -6,7 +6,7 @@
   import { onMount, tick } from "svelte";
   import { District3D } from "../lib/district3d.js";
 
-  let { data, proj, scen, theme, colourOf, sel, plan, onSelect, onHover, onFail, onPlanChange, onBusy } = $props();
+  let { data, proj, scen, mode, theme, colourOf, bandsOf, sel, onSelect, onHover, onFail, onBusy } = $props();
   let wrap = $state(), labels = $state();
   let d3 = null, started = $state(false), alive = true;
 
@@ -30,15 +30,13 @@
   onMount(() => {
     d3 = new District3D(wrap, labels, { onSelect, onHover });
     if (import.meta.env.DEV) window.__d3 = d3;   // for poking at the scene from the console
-    d3.onPlanChange = onPlanChange;
     d3.setData(data, proj);
     heavy("init", () => {
       if (!d3.init()) { onFail("this browser could not start a WebGL context."); return; }
       d3.resize();
       d3.fit();
-      d3.setStyle(colourOf);
+      d3.setStyle(colourOf, bandsOf);
       d3.setSelected(sel);
-      d3.setPlan(plan);
       d3.build();
       started = true;
       d3.start(onFail);
@@ -48,19 +46,17 @@
     return () => { alive = false; ro.disconnect(); d3.dispose(); };
   });
 
-  // the policy's colours and gradients, rebuilt whenever the scenario changes
+  // the policy's colours and bands, rebuilt whenever the scenario or the reading of it changes
   $effect(() => {
-    void scen;
+    void scen; void mode;
     if (!started) return;
-    heavy("scene", () => { d3.setStyle(colourOf); d3.build(); });
+    heavy("scene", () => { d3.setStyle(colourOf, bandsOf); d3.build(); });
   });
   $effect(() => { if (started) d3.setSelected(sel); });
-  $effect(() => { if (started) d3.setPlan(plan); });
   // the theme's tokens, re-read once the interface has switched
   $effect(() => { void theme; if (started) heavy("theme", () => { d3.colours(); d3.build(); }); });
 
   export function zoom(f) { d3 && d3.zoom(f); }
-  export function fit() { d3 && d3.fit(); }
 </script>
 
 <div class="map-3d" bind:this={wrap}>

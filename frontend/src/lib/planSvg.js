@@ -20,14 +20,14 @@ export function planSvg(g, { minUnit, proposed }) {
     if (c.kind === "stair") {
       // the flights take the stair's own width; anything more is the entrance lobby beside them
       const landing = 1.0, sw = Math.min(c.w, 2.6), flight = sw / 2, out = c.side === 0 ? c.v : c.v + c.d, inn = c.side === 0 ? c.v + c.d : c.v, dir = c.side === 0 ? 1 : -1;
-      if (c.w > sw + 0.3) h += '<line x1="' + X(c.u + sw) + '" y1="' + Y(c.v) + '" x2="' + X(c.u + sw) + '" y2="' + Y(c.v + c.d) + '" stroke="var(--ink-3)" stroke-width="0.05"/>';
+      if (c.w > sw + 0.3) h += '<line x1="' + X(c.u + sw) + '" y1="' + Y(c.v) + '" x2="' + X(c.u + sw) + '" y2="' + Y(c.v + c.d) + '" stroke="var(--ink-2)" stroke-width="0.06"/>';
       const l0 = out + dir * landing;   // the landing's inner edge
-      h += '<line x1="' + X(c.u + flight) + '" y1="' + Y(l0) + '" x2="' + X(c.u + flight) + '" y2="' + Y(inn) + '" stroke="var(--ink-3)" stroke-width="0.05"/>';
-      h += '<line x1="' + X(c.u + 0.15) + '" y1="' + Y(l0) + '" x2="' + X(c.u + sw - 0.15) + '" y2="' + Y(l0) + '" stroke="var(--ink-3)" stroke-width="0.04"/>';
+      h += '<line x1="' + X(c.u + flight) + '" y1="' + Y(l0) + '" x2="' + X(c.u + flight) + '" y2="' + Y(inn) + '" stroke="var(--ink-2)" stroke-width="0.06"/>';
+      h += '<line x1="' + X(c.u + 0.15) + '" y1="' + Y(l0) + '" x2="' + X(c.u + sw - 0.15) + '" y2="' + Y(l0) + '" stroke="var(--ink-2)" stroke-width="0.05"/>';
       for (let t = 0.28; l0 + dir * t < (c.side === 0 ? inn : l0 + (inn - l0)) - 0.05 && t < Math.abs(inn - l0); t += 0.28) {
         const yy = l0 + dir * t;
-        h += '<line x1="' + X(c.u + 0.15) + '" y1="' + Y(yy) + '" x2="' + X(c.u + flight - 0.08) + '" y2="' + Y(yy) + '" stroke="var(--ink-3)" stroke-width="0.04"/>';
-        h += '<line x1="' + X(c.u + flight + 0.08) + '" y1="' + Y(yy) + '" x2="' + X(c.u + sw - 0.15) + '" y2="' + Y(yy) + '" stroke="var(--ink-3)" stroke-width="0.04"/>';
+        h += '<line x1="' + X(c.u + 0.15) + '" y1="' + Y(yy) + '" x2="' + X(c.u + flight - 0.08) + '" y2="' + Y(yy) + '" stroke="var(--ink-2)" stroke-width="0.05"/>';
+        h += '<line x1="' + X(c.u + flight + 0.08) + '" y1="' + Y(yy) + '" x2="' + X(c.u + sw - 0.15) + '" y2="' + Y(yy) + '" stroke="var(--ink-2)" stroke-width="0.05"/>';
       }
       // the up arrow along the first flight, from the corridor to the landing
       const ax = c.u + flight / 2, a0 = inn - dir * 0.2, a1 = l0 + dir * 0.2;
@@ -82,7 +82,7 @@ export function planSvg(g, { minUnit, proposed }) {
     if (unitOf[r.idx] !== undefined && band >= 1.1) cy = r.side === 0 ? r.v + band / 2 : r.v + POD.bath[1] + band / 2;
     if (unitOf[r.idx] === undefined) h += '<text x="' + X(r.u + r.w / 2) + '" y="' + Y(cy + fs * 0.35) + '" font-size="' + fs.toFixed(2) + '" text-anchor="middle" fill="var(--ink)" pointer-events="none">' + Math.round(r.sf) + ' SF</text>';
     const ny = r.side === 0 ? r.v + fs * 0.9 : r.v + r.d - fs * 0.35;
-    h += '<text x="' + X(r.u + 0.25) + '" y="' + Y(ny) + '" font-size="' + (fs * 0.6).toFixed(2) + '" fill="var(--ink-3)" pointer-events="none">' + r.n + (proposed && r.keep ? " SRA" : "") + '</text>';
+    h += '<text x="' + X(r.u + 0.25) + '" y="' + Y(ny) + '" font-size="' + (fs * 0.6).toFixed(2) + '" fill="var(--ink-3)" pointer-events="none">' + r.n + (proposed && r.keep ? " SRO" : "") + '</text>';
   });
   g.rooms.forEach((r) => { h += window_(r); });
   g.rooms.forEach((r) => { if (unitOf[r.idx] === undefined) h += door(r.u + 0.15, r); });
