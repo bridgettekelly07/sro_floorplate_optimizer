@@ -37,7 +37,7 @@
       {/each}
     </div>
   {/if}
-  {#if b.note}<div class="why">{b.note}</div>{/if}
+  {#if b.note}<div class="why">{b.surveyed ? "" : "Not surveyed: "}{b.note}. <span class="cite">2024 SRO Tenant Survey, Appendix B.</span></div>{/if}
   {#if !b.parcelSf}<div class="why">No parcel matched this address, so the point sits on its hundred block.</div>{/if}
 </div>
 
@@ -58,6 +58,6 @@
   .record { border: 1px solid var(--rule); padding: 8px 10px; margin-top: 6px; }
   .record .label { margin-bottom: 4px; }
   .record .fact { font-size: 12px; color: var(--ink-2); margin: 3px 0; }
-  .record .cite { font-size: 11px; color: var(--ink-3); }
+  .record .cite, .why .cite { font-size: 11px; color: var(--ink-3); font-style: normal; }
   .record .cite a { color: var(--ink-3); }
 </style>

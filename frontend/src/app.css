@@ -69,7 +69,7 @@
   --m3-sidewalk: #f7f6f2;
   --m3-tree: #a3c184;
   --m3-tree-dark: #5f7f4b;
-  --m3-tree-alpha: 0.85;   /* canopy opacity; 1 is solid */
+  --m3-tree-alpha: 1;   /* canopy opacity; 1 is solid */
   --m3-trunk: #6f6f6b;
   --map-water: #b9c1b8;
   --map-road: #ffffff;
@@ -144,7 +144,7 @@
     --m3-sidewalk: #212724;
     --m3-tree: #3f6b4b;
     --m3-tree-dark: #2a4833;
-    --m3-tree-alpha: 0.85;
+    --m3-tree-alpha: 1;
     --m3-trunk: #4a4036;
     --map-water: #0e1416;
     --map-road: #23292a;
@@ -219,7 +219,7 @@
   --m3-sidewalk: #212724;
   --m3-tree: #3f6b4b;
   --m3-tree-dark: #2a4833;
-  --m3-tree-alpha: 0.85;
+  --m3-tree-alpha: 1;
   --m3-trunk: #4a4036;
   --map-water: #0e1416;
   --map-road: #23292a;
