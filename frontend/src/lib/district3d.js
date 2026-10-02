@@ -4,7 +4,9 @@
 // feeds this class its data, colours and selection.
 import * as THREE from "three";
 import { css, hexOf } from "./colours.js";
-import { paintGround } from "./groundTexture.js";
+import { paintGround, waterWash } from "./groundTexture.js";
+import { shoreDistance, shoreOutline, shoreField } from "./terrain.js";
+import { landmarkOf, triangleEdges, roundCentre } from "./landmarks.js";
 import { wheelZoom, EASE } from "./zoom.js";
 import { FLOOR_M, NOMINAL_H, floorsOf } from "./typicalFloor.js";
 import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2.js";
@@ -40,6 +42,8 @@ float graphite( vec3 p, vec2 px ) {
 
 // procedural windows on the DTES buildings (facade.js): off for now
 const WINDOWS = false;
+const SHORE_FLAT = 30;   // metres inland held at sea level: the drawn shoreline wanders this far from the mask's edge
+const SHORE_RISE = 60;   // metres over which the terrain then rises to its recorded height
 
 export class District3D {
   // wrap: the element the canvas goes in; labels: the overlay for building names
@@ -53,7 +57,7 @@ export class District3D {
   }
 
   // ---- data and style ----
-  setData(data, proj) { this.data = data; this.proj = proj; this.needFoot = true; this.parkShades = null; }
+  setData(data, proj) { this.data = data; this.proj = proj; this.needFoot = true; this.parkShades = null; this.shore = undefined; this.outline = undefined; this.shoreBytes = undefined; }
   // colourOf(b, i) -> hex; gradientOf(i) -> 0..1 strength of the roof fade, or null
   setStyle(colourOf, gradientOf) { this.colourOf = colourOf; this.gradientOf = gradientOf; }
   setSelected(i) { this.sel = i; if (this.ready) { this.select(); this.dirty = true; } }
@@ -79,9 +83,13 @@ export class District3D {
     this.hemi = new THREE.HemisphereLight(0xffffff, 0xb5b2a9, 2.4); this.scene.add(this.hemi);
     this.sun = new THREE.DirectionalLight(0xffffff, 1.1); this.sun.position.set(-700, 600, 500); this.scene.add(this.sun);
     this.fill = new THREE.DirectionalLight(0xffffff, 0.5); this.fill.position.set(700, 300, -400); this.scene.add(this.fill);
-    this.ground = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    // the picking plane: the whole ground, drawn by nothing, so drags and clicks have a surface everywhere
+    this.ground = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }));
     this.ground.rotation.x = -Math.PI / 2;
     this.scene.add(this.ground);
+    // the void: the ground beyond the data, a frame around the terrain so nothing lies under it to fight its surface
+    this.void = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial({ color: 0xf4f1ea, side: THREE.DoubleSide }));
+    this.scene.add(this.void);
     // unlit and flat: the drawing is carried by the ink edges, as in an axonometric line drawing
     this.matBldg = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide });
     this.matLand = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
@@ -89,6 +97,36 @@ export class District3D {
     this.matWalk = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
     this.matPark = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
     this.matTerrain = new THREE.MeshBasicMaterial({ color: 0xffffff });   // unlit: the painted ground at its own colour, the contours carry the slope
+    // the water and the shoreline are the shader's: the ground texture is clear over water, and the
+    // shoreline distance field decides, per pixel, whether to show it or the water wash beneath
+    const one = (v, cs) => { const t = new THREE.DataTexture(new Uint8Array(v), 1, 1, THREE.RGBAFormat); if (cs) t.colorSpace = cs; t.needsUpdate = true; return t; };
+    this.shoreMap = { value: one([255, 255, 255, 255]) };          // all land until the data arrives
+    this.waterMap = { value: one([188, 196, 192, 255], THREE.SRGBColorSpace) };
+    // the grid beyond the data continues over the water, drawn in the shader so it cannot fight the surface
+    this.gridStep = { value: 1 }; this.gridOrigin = { value: new THREE.Vector2() }; this.gridColor = { value: new THREE.Color(0xdcd8ce) };
+    this.matTerrain.customProgramCacheKey = () => "shore-terrain";
+    this.matTerrain.onBeforeCompile = (sh) => {
+      sh.uniforms.uShore = this.shoreMap; sh.uniforms.uWater = this.waterMap;
+      sh.uniforms.uGridStep = this.gridStep; sh.uniforms.uGridOrigin = this.gridOrigin; sh.uniforms.uGridColor = this.gridColor;
+      sh.vertexShader = sh.vertexShader
+        .replace("void main() {", "varying vec2 vGroundXZ;\nvoid main() {")
+        .replace("#include <begin_vertex>", "#include <begin_vertex>\n\tvGroundXZ = (modelMatrix * vec4(position, 1.0)).xz;");
+      sh.fragmentShader = sh.fragmentShader
+        .replace("void main() {", "uniform sampler2D uShore;\nuniform sampler2D uWater;\nuniform float uGridStep;\nuniform vec2 uGridOrigin;\nuniform vec3 uGridColor;\nvarying vec2 vGroundXZ;\nvoid main() {")
+        .replace("#include <map_fragment>", `#include <map_fragment>
+#ifdef USE_MAP
+\tfloat sd = texture2D(uShore, vMapUv).r - 0.5;            // positive inland
+\tfloat aa = fwidth(sd) * 0.75;
+\tfloat land = smoothstep(-aa, aa, sd);
+\tvec3 water = texture2D(uWater, vMapUv).rgb;
+\tvec2 gp = (vGroundXZ - uGridOrigin) / uGridStep;          // grid cells; a line at every whole number
+\tvec2 gd = abs(fract(gp - 0.5) - 0.5) / max(fwidth(gp), vec2(1e-6));
+\tfloat line = 1.0 - min(min(gd.x, gd.y), 1.0);              // one pixel wide, anti-aliased
+\twater = mix(water, uGridColor, line);
+\tdiffuseColor.rgb = mix(water, diffuseColor.rgb, land);
+\tdiffuseColor.a = 1.0;
+#endif`);
+    };
     // contours: dashed, in the contour colour on the land and white over the parks
     const dashed = (opacity) => new THREE.LineDashedMaterial({ color: 0x000000, transparent: true, opacity, dashSize: 1, gapSize: 1 });
     this.matContour = dashed(0.45); this.matContour5 = dashed(0.85);
@@ -132,6 +170,7 @@ export class District3D {
     this.matWin = edgePen(); this.matWin.opacity = 0.7;   // the windows: a finer line than the edges
     this.matCurb = edgePen(); this.matCurb.opacity = 0.8;  // the curb lines along the streets
     this.matSel = new THREE.LineBasicMaterial({ color: 0x000000 });
+    this.matGrid = new THREE.LineBasicMaterial({ color: 0xdcd8ce });   // the grid over the ground beyond the data
     this.matStorey = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.22 });
     this.gGround = new THREE.Group(); this.gFoot = new THREE.Group(); this.gStreets = new THREE.Group();
     this.gSro = new THREE.Group(); this.gSel = new THREE.Group(); this.gNames = new THREE.Group(); this.gTrees = new THREE.Group();
@@ -149,7 +188,9 @@ export class District3D {
     this.scene.background = new THREE.Color(css("--m3-sky") || "#e9e5db");
     const exposure = parseFloat(css("--m3-exposure")) || 1;
     this.hemi.intensity = 2.4 * exposure; this.sun.intensity = 1.1 * exposure; this.fill.intensity = 0.5 * exposure;
-    this.ground.material.color.set(css("--m3-water") || "#d9e0df");
+    this.void.material.color.set(css("--m3-void") || css("--m3-sky") || "#f4f1ea");   // beyond the data: a plain ground with a grid
+    this.matGrid.color.set(css("--m3-grid") || "#dcd8ce");
+    this.gridColor.value.set(css("--m3-grid") || "#dcd8ce");
     this.matLand.color.set(css("--m3-ground") || "#f4f1ea");
     this.matRoad.color.set(css("--m3-road") || "#e3dfd5");
     this.matWalk.color.set(css("--m3-walk") || "#ece8de");
@@ -190,7 +231,16 @@ export class District3D {
   yAt(x, z) {
     const t = this.data && this.data.terrain;
     if (!t) return 0;
-    return t.at(this.proj.lon(x), this.proj.lat(z)) / this.mPerUnit;
+    return this.groundM(x, z, t.at(this.proj.lon(x), this.proj.lat(z))) / this.mPerUnit;
+  }
+  // the drawn ground height in metres for a recorded one: the sea bed is held at sea level, so the
+  // painted water sits on the terrain; the land is held there too for SHORE_FLAT metres and then
+  // eases up over SHORE_RISE, so the shoreline lies on a flat surface rather than on the 15 m steps
+  // between a sea cell and the seawall beside it. Everything draped on the ground reads through this.
+  groundM(x, z, h) {
+    let y = Math.max(0, h);
+    if (y > 0 && this.shore) { const r = Math.max(0, Math.min(1, (this.shore.inland(x, z) - SHORE_FLAT) / SHORE_RISE)); y *= r * r * (3 - 2 * r); }
+    return y;
   }
   // the lowest ground under a ring, so a building on a slope sits in it, not over it
   baseOf(ring) {
@@ -304,6 +354,19 @@ export class District3D {
   }
   // The terrain: one vertex per heightfield cell, the painted ground as its
   // texture, lit so the slopes read. Without a heightfield the land is flat.
+  // the shader's two textures over the ground's extent: the shoreline field and the water wash
+  setShoreMaps(ext) {
+    const f = this.shoreBytes;
+    const sh = f ? new THREE.DataTexture(f.data, f.w, f.h, THREE.RedFormat) : null;
+    if (sh) { sh.flipY = true; sh.minFilter = THREE.LinearMipmapLinearFilter; sh.magFilter = THREE.LinearFilter; sh.generateMipmaps = true; sh.needsUpdate = true; }
+    const w = new THREE.CanvasTexture(waterWash(css("--m3-water") || "#d9e0df", ext.x0, ext.z0, ext.x1 - ext.x0, ext.z1 - ext.z0, this.mPerUnit, 1024, this.shore));
+    w.colorSpace = THREE.SRGBColorSpace;
+    if (this.shoreMap.value) this.shoreMap.value.dispose();
+    if (this.waterMap.value) this.waterMap.value.dispose();
+    this.shoreMap.value = sh || this.oneLand(); this.waterMap.value = w;
+  }
+  oneLand() { const t = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1, THREE.RGBAFormat); t.needsUpdate = true; return t; }
+
   buildGround() {
     this.clear(this.gGround);
     const proj = this.proj, t = this.data.terrain;
@@ -311,7 +374,11 @@ export class District3D {
     const bb = t ? t.bbox : proj.bbox;
     const ext = { x0: proj.x(bb[0]), x1: proj.x(bb[2]), z0: proj.y(bb[3]), z1: proj.y(bb[1]) };
     if (!this.parkShades) this.parkShades = this.shadeParks();   // no colour in it, so it survives a theme change
-    const cv = paintGround(proj, this.data, this.renderer.capabilities.maxTextureSize, ext, bb, this.parkShades);
+    if (this.shore === undefined) this.shore = t ? shoreDistance(t, proj) : null;
+    if (this.outline === undefined) this.outline = t ? shoreOutline(t) : null;
+    if (this.shoreBytes === undefined) this.shoreBytes = this.outline ? shoreField(this.outline, t.land.nx, t.land.ny, t.land.cell || this.shore.cellM) : null;
+    this.setShoreMaps(ext);
+    const cv = paintGround(proj, this.data, this.renderer.capabilities.maxTextureSize, ext, bb, this.parkShades, this.shore, this.outline);
     const tex = new THREE.CanvasTexture(cv);
     if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = this.renderer.capabilities.getMaxAnisotropy ? this.renderer.capabilities.getMaxAnisotropy() : 1;
@@ -324,7 +391,7 @@ export class District3D {
       const lat0 = (bb[1] + bb[3]) / 2, kx = 111320 * Math.cos(lat0 * Math.PI / 180), ky = 110540;
       for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
         const x = proj.x(bb[0] + i * t.cell / kx), z = proj.y(bb[1] + j * t.cell / ky);
-        pos.push(x, t.heights[j * nx + i] / this.mPerUnit, z);
+        pos.push(x, this.groundM(x, z, t.heights[j * nx + i]) / this.mPerUnit, z);
         uv.push(...uvOf(x, z));
       }
       for (let j = 0; j < ny - 1; j++) for (let i = 0; i < nx - 1; i++) {
@@ -341,6 +408,7 @@ export class District3D {
       geo.rotateX(-Math.PI / 2); geo.translate((ext.x0 + ext.x1) / 2, 0.02, (ext.z0 + ext.z1) / 2);
     }
     this.gGround.add(new THREE.Mesh(geo, this.matTerrain));
+    this.buildGrid(ext);
     this.buildContours();
   }
   // The City's 1-metre contours, laid just above the ground they describe:
@@ -354,6 +422,7 @@ export class District3D {
     // distance along its contour so the dashes run continuously through it
     const runs = { one: { pos: [], dist: [] }, five: { pos: [], dist: [] }, pone: { pos: [], dist: [] }, pfive: { pos: [], dist: [] } };
     t.contours.forEach((c) => {
+      if (c.z < 0) return;   // below sea level: under the water, not drawn
       const isFive = Math.abs(c.z % 5) < 1e-6;
       let d = 0, ax = proj.x(c.pts[0][0]), az = proj.y(c.pts[0][1]), ay = this.yAt(ax, az) + lift;
       for (let i = 1; i < c.pts.length; i++) {
@@ -486,12 +555,14 @@ export class District3D {
       const c = cen(f.p);
       if (parts.some((p) => f.b[2] >= p.b[0] && f.b[0] <= p.b[2] && f.b[3] >= p.b[1] && f.b[1] <= p.b[3] && (within(c, p.r) || within(p.c, f.p)))) skip[i] = true;
     });
-    const colour = new THREE.Color(css("--m3-bldg") || "#d8d2c3"), items = [], faces = [];
+    const colour = new THREE.Color(css("--m3-bldg") || "#d8d2c3"), items = [], faces = [], domes = [];
     for (let i = 0; i < foot.length; i++) {
       if (skip[i]) continue;
-      const h = foot[i].h || NOMINAL_H, base = this.baseOf(foot[i].p);
+      const lm = landmarkOf(foot[i].p);
+      const h = lm ? lm.baseH : (foot[i].h || NOMINAL_H), base = this.baseOf(foot[i].p);
       items.push({ pts: foot[i].p, h, col: colour, base });
       if (foot[i].h) faces.push(this.facadeItem(foot[i].p, h, base, false, true));   // only a measured height gets a façade
+      if (lm && lm.dome) domes.push({ ring: foot[i].p, base, dome: lm.dome });
     }
     // the city around the surveyed extent: the 2009 footprints at their LiDAR heights
     (this.data.context || []).forEach((f) => {
@@ -500,10 +571,52 @@ export class District3D {
     const geo = this.extrude(items);
     this.gFoot.add(new THREE.Mesh(geo, this.matBldg));
     this.gFoot.add(this.edgeLines(this.matEdge));
+    domes.forEach((d) => this.addDome(d, colour));
     // the DTES footprints get floor lines and windows; the 2009 context stays plain
     if (WINDOWS) { const win = this.fatLines(facadeLines(faces, this.mPerUnit), this.matWin); if (win) this.gFoot.add(win); }
     const st = storeyLines(faces, this.mPerUnit);
     if (st.length) this.gFoot.add(new THREE.LineSegments(this.flatGeo(st), this.matStorey));
+  }
+  // Beyond the data there is nothing to show, so the plane there is plain and carries a simple grid,
+  // on lines a set number of metres apart, aligned so a line falls on each edge of the data's extent.
+  // The terrain covers the grid where there is data.
+  // The lines stop at the data's extent: inside it the water shader draws the same grid, so the two
+  // never overlap and fight for the surface.
+  buildGrid(ext) {
+    const stepM = parseFloat(css("--m3-grid-m")) || 200, step = stepM / this.mPerUnit;
+    this.gridStep.value = step; this.gridOrigin.value.set(ext.x0, ext.z0);
+    const gx0 = this.ground.position.x - this.ground.scale.x / 2, gz0 = this.ground.position.z - this.ground.scale.y / 2;
+    const gx1 = gx0 + this.ground.scale.x, gz1 = gz0 + this.ground.scale.y, y = -0.03, pos = [];
+    // the void as four quads around the data
+    const vy = -0.05, q = [], quad = (x0, z0, x1, z1) => { q.push(x0, vy, z0, x1, vy, z0, x1, vy, z1, x0, vy, z0, x1, vy, z1, x0, vy, z1); };
+    quad(gx0, gz0, gx1, ext.z0); quad(gx0, ext.z1, gx1, gz1); quad(gx0, ext.z0, ext.x0, ext.z1); quad(ext.x1, ext.z0, gx1, ext.z1);
+    this.void.geometry.dispose(); this.void.geometry = this.flatGeo(q);
+    const from = (a, o) => o + Math.ceil((a - o) / step) * step;
+    const eps = step * 1e-3;
+    for (let x = from(gx0, ext.x0); x <= gx1; x += step) {
+      if (x > ext.x0 + eps && x < ext.x1 - eps) { pos.push(x, y, gz0, x, y, ext.z0, x, y, ext.z1, x, y, gz1); }   // broken where the data lies
+      else pos.push(x, y, gz0, x, y, gz1);
+    }
+    for (let z = from(gz0, ext.z0); z <= gz1; z += step) {
+      if (z > ext.z0 + eps && z < ext.z1 - eps) { pos.push(gx0, y, z, ext.x0, y, z, ext.x1, y, z, gx1, y, z); }
+      else pos.push(gx0, y, z, gx1, y, z);
+    }
+    this.gGround.add(new THREE.LineSegments(this.flatGeo(pos), this.matGrid));
+  }
+  // A geodesic sphere on a landmark's footprint: an icosahedron at the building's colour, its
+  // triangles' edges in ink, centred on the round part of the footprint and resting on the ground.
+  addDome({ ring, base, dome }, colour) {
+    const proj = this.proj, u = this.mPerUnit;
+    const lat = ring[0][1], kx = 111320 * Math.cos(lat * Math.PI / 180), ky = 110540;
+    const c = roundCentre(ring, kx, ky), cx = proj.x(c.x), cz = proj.y(c.y);
+    const r = dome.r / u, g = new THREE.IcosahedronGeometry(r, dome.detail || 3);
+    g.translate(cx, base + r + (dome.lift || 0) / u, cz);   // the centre a radius up, plus the lift
+    const n = g.attributes.position.count, col = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) { col[3 * i] = colour.r; col[3 * i + 1] = colour.g; col[3 * i + 2] = colour.b; }
+    g.setAttribute("color", new THREE.BufferAttribute(col, 3));
+    this.gFoot.add(new THREE.Mesh(g, this.matBldg));
+    const edges = this.fatLines(triangleEdges(g.attributes.position.array, g.index ? g.index.array : null), this.matEdge);
+    if (edges) this.gFoot.add(edges);
   }
   // The street surfaces are in the ground texture; what remains here is the names.
   buildStreets() {

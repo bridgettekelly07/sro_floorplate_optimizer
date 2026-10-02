@@ -3,12 +3,21 @@
 // lanes. The contour lines are drawn as geometry, not here. Everything is drawn in projection units
 // through one scale transform, so widths are given in metres.
 import { css } from "./colours.js";
-import { landCanvas } from "./terrain.js";
 import { segInside, ROAD } from "./projection.js";
 import { toneOf, fbm, prng, PARK } from "./parkShade.js";
 
+// the water: a wash, cloudy at a large scale with a fine grain over it
+// the water: a calm cloudy wash, and a deepening with distance from the shore
+export const WATER = {
+  mottle: 0.14, mottleM: 220,     // broad clouds: lightness swing and metres across
+  mottle2: 0.04, mottle2M: 60,    // a faint finer layer
+  deepM: 3000,                    // metres from shore over which most of the deepening happens (an exponential fall-off: 63% there, 86% at twice it)
+  deep: 0.34,                     // how much darker the deep water is, far out
+  washPx: 1024,
+};
+
 // ext: the extent to paint, in projection units {x0, x1, z0, z1}; bb: the same in degrees
-export function paintGround(proj, data, maxSize, ext, bb, shades) {
+export function paintGround(proj, data, maxSize, ext, bb, shades, shore, outline) {
   const W = ext.x1 - ext.x0, H = ext.z1 - ext.z0, mpu = proj.mPerUnit;
   const TW = Math.min(maxSize || 8192, 8192), TH = Math.round(TW * H / W);
   const cv = document.createElement("canvas");
@@ -26,14 +35,17 @@ export function paintGround(proj, data, maxSize, ext, bb, shades) {
   const inside = (c) => segInside(c, bb || proj.bbox);
   const { streets, ground, sidewalks, terrain } = data;
 
-  ctx.fillStyle = css("--m3-water") || "#d9e0df";
-  ctx.fillRect(ext.x0, ext.z0, W, H);
-  // the land: the shoreline mask where there is one, else the land polygon
-  const mask = landCanvas(terrain, css("--m3-ground") || "#f4f1ea", css("--m3-water") || "#d9e0df");
-  if (mask && terrain) {
-    const tb = terrain.bbox;
-    ctx.imageSmoothingEnabled = true;
-    ctx.drawImage(mask, proj.x(tb[0]), proj.y(tb[3]), proj.x(tb[2]) - proj.x(tb[0]), proj.y(tb[1]) - proj.y(tb[3]));
+  // the land: the traced shoreline where there is a mask, else the land polygon. The water is left clear:
+  // the shader paints it from the wash and the shoreline distance field, so the edge is crisp at any zoom.
+  // The land is pushed a texel and a half past the line so no clear texel blends into the shore.
+  if (outline && terrain) {
+    const tb = terrain.bbox, ox = proj.x(tb[0]), oz = proj.y(tb[3]);
+    const sx = (proj.x(tb[2]) - ox) / terrain.land.nx, sz = (proj.y(tb[1]) - oz) / terrain.land.ny;
+    ctx.fillStyle = ctx.strokeStyle = css("--m3-ground") || "#f4f1ea";
+    ctx.beginPath();
+    outline.forEach((r) => { r.forEach(([x, y], i) => { if (i) ctx.lineTo(ox + x * sx, oz + y * sz); else ctx.moveTo(ox + x * sx, oz + y * sz); }); ctx.closePath(); });
+    ctx.lineWidth = 3 * W / TW; ctx.stroke();
+    ctx.fill("evenodd");
   } else if (ground) {
     ctx.fillStyle = css("--m3-ground") || "#f4f1ea";
     ground.land.forEach((r) => { path(r, true); ctx.fill(); });
@@ -95,5 +107,29 @@ function paintParks(ctx, proj, parks, terrain, m, path, texel, shades) {
     ctx.drawImage(off, box.x0 - step / 2, box.z0 - step / 2, cols * step, rows * step);
     ctx.restore();
   });
+}
+// The water wash: the base colour with a cloudy lightness variation at two
+// scales, a function of position in metres, so any two canvases of it join
+// without a seam. Painted at a modest resolution and stretched; the clouds
+// are tens of metres across, so nothing is lost.
+export function waterWash(colour, x0, z0, w, h, mpu, px, shore) {
+  const C = hex(colour), pw = px, ph = Math.max(2, Math.round(pw * h / w));
+  const cv = document.createElement("canvas"); cv.width = pw; cv.height = ph;
+  const ctx = cv.getContext("2d"), img = ctx.createImageData(pw, ph);
+  for (let j = 0; j < ph; j++) for (let i = 0; i < pw; i++) {
+    const xm = (x0 + i / pw * w) * mpu, zm = (z0 + j / ph * h) * mpu;
+    const v = (fbm(xm / WATER.mottleM, zm / WATER.mottleM) - 0.5) * WATER.mottle + (fbm(xm / WATER.mottle2M + 7, zm / WATER.mottle2M + 3) - 0.5) * WATER.mottle2;
+    // deeper away from the shore: darker and a little bluer, fading in steadily all the way out
+    let t = 0;
+    if (shore) t = 1 - Math.exp(-Math.max(0, shore.at(x0 + i / pw * w, z0 + j / ph * h)) / WATER.deepM);
+    const deep = 1 - WATER.deep * t;
+    const k = (j * pw + i) * 4;
+    img.data[k] = Math.max(0, Math.min(255, C[0] * (1 + v * 1.15) * (deep - 0.06 * t)));
+    img.data[k + 1] = Math.max(0, Math.min(255, C[1] * (1 + v) * (deep - 0.03 * t)));
+    img.data[k + 2] = Math.max(0, Math.min(255, C[2] * (1 + v * 0.8) * deep));
+    img.data[k + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+  return cv;
 }
 function hex(c) { const v = parseInt(c.replace("#", ""), 16); return [(v >> 16) & 255, (v >> 8) & 255, v & 255]; }

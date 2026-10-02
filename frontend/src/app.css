@@ -42,12 +42,15 @@
   --map-foot-line: #b9c1b8;
   --m3-ground: #f4f1ea;
   --m3-sky: #f4f1ea;
+  --m3-void: #f4f1ea;       /* the ground beyond the data */
+  --m3-grid: #dcd8ce;       /* the grid drawn over it */
+  --m3-grid-m: 200;         /* its spacing, metres */
   --m3-bldg: #fdfcfa;
   --m3-street: #cfd5cb;
   --m3-lane: #faf9f6;
   --m3-glass: #2e3634;
   --m3-trim: #f3eee2;
-  --m3-water: #b9c1b8;
+  --m3-water: #bcc4c0;
   --m3-road: #ffffff;
   --m3-walk: #f4f1ea;
   --m3-park: #d6d8b4;
@@ -71,7 +74,7 @@
   --m3-tree-dark: #5f7f4b;
   --m3-tree-alpha: 1;   /* canopy opacity; 1 is solid */
   --m3-trunk: #6f6f6b;
-  --map-water: #b9c1b8;
+  --map-water: #bcc4c0;
   --map-road: #ffffff;
   --map-walk: #f4f1ea;
   --map-park: #c5d1bd;
@@ -119,12 +122,16 @@
     --map-foot-line: #323834;
     --m3-ground: #171b19;
     --m3-sky: #101312;
+  --m3-void: #101312;
+  --m3-grid: #1f2422;
+    --m3-void: #101312;
+    --m3-grid: #1f2422;
     --m3-bldg: #565e58;
     --m3-street: #6f776f;
     --m3-lane: #3a413c;
     --m3-glass: #0c0f0e;
     --m3-trim: #b9c1ba;
-    --m3-water: #0e1416;
+    --m3-water: #122331;
     --m3-road: #23292a;
     --m3-walk: #1c2220;
     --m3-park: #223027;
@@ -146,7 +153,7 @@
     --m3-tree-dark: #2a4833;
     --m3-tree-alpha: 1;
     --m3-trunk: #4a4036;
-    --map-water: #0e1416;
+    --map-water: #122331;
     --map-road: #23292a;
     --map-walk: #1c2220;
     --map-park: #1a2620;
@@ -199,7 +206,7 @@
   --m3-lane: #3a413c;
   --m3-glass: #0c0f0e;
   --m3-trim: #b9c1ba;
-  --m3-water: #0e1416;
+  --m3-water: #122331;
   --m3-road: #23292a;
   --m3-walk: #1c2220;
   --m3-park: #223027;
@@ -221,7 +228,7 @@
   --m3-tree-dark: #2a4833;
   --m3-tree-alpha: 1;
   --m3-trunk: #4a4036;
-  --map-water: #0e1416;
+  --map-water: #122331;
   --map-road: #23292a;
   --map-walk: #1c2220;
   --map-park: #1a2620;
