@@ -135,11 +135,11 @@
   .plan-stage :global(svg) { display: block; width: 100%; height: auto; max-height: 460px; }
   .plan-stage .empty { color: var(--ink-3); font-size: 13px; padding: 40px 20px; text-align: center; }
   .plan-legend { margin: 8px 0 2px; }
-  .plan-legend .swatch.unit { background: var(--pass-soft); border: 2px solid var(--pass); }
-  .plan-legend .swatch.short { background: var(--pass-soft); border: 2px solid var(--edge); }
-  .plan-legend .swatch.keep { background: var(--edge-soft); border: 1px solid var(--ink-2); }
+  .plan-legend .swatch.unit { background: var(--plan-unit); border: 2px solid var(--plan-unit-line); }
+  .plan-legend .swatch.short { background: var(--plan-short); border: 2px solid var(--plan-short-line); }
+  .plan-legend .swatch.keep { background: var(--plan-keep); border: 1px solid var(--ink-2); }
   .plan-legend .swatch.pod { border: 1px dashed var(--ink-3); }
-  .plan-legend .swatch.circ { background: var(--sunk); border: 1px solid var(--rule); }
+  .plan-legend .swatch.circ { background: var(--plan-circ); border: 1px solid var(--rule); }
   .plan-legend .swatch.hatch { background: repeating-linear-gradient(45deg, var(--rule) 0 1px, transparent 1px 3px); }
   .gap { margin-top: 12px; }
   .why { font-size: 13.5px; line-height: 1.5; color: var(--ink); margin: 12px 0 6px; padding-left: 10px; border-left: 2px solid var(--accent); }

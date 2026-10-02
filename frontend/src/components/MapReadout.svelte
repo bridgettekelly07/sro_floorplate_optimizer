@@ -34,7 +34,7 @@
 {/if}
 
 <style>
-  .readout { position: absolute; left: 14px; top: 118px; z-index: 2; width: min(372px, calc(100% - 90px));
+  .readout { position: absolute; left: 14px; top: 12px; z-index: 2; width: min(372px, calc(100% - 90px));
     background: color-mix(in srgb, var(--surface) 90%, transparent); border: 1px solid var(--rule); border-left: 3px solid var(--ink);
     padding: 10px 12px 12px; }
   .readout .label { margin-bottom: 6px; }

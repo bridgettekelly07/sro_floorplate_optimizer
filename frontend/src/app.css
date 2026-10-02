@@ -29,10 +29,17 @@
   --map-arterial: #8c8c88;
   --map-dot: #d98068;
   --map-dot-sel: #c46a55;
-  --map-market: #d98068;
-  --map-nonmarket: #7fae6a;
-  --map-market-lit: #e9a090;
-  --map-nonmarket-lit: #9cc487;
+  --map-market: #5a6f9a;        /* private: a muted indigo */
+  --map-nonmarket: #c3c8e6;     /* public: a pale periwinkle */
+  --map-market-lit: #7a8db5;
+  --map-nonmarket-lit: #d6daef;
+  /* the typical floor: kept rooms on paper, converted units in the park green, a unit under the minimum in salmon */
+  --plan-keep: #fbf9f5;
+  --plan-unit: #dfe3c3;
+  --plan-unit-line: #7d8f66;
+  --plan-short: #f3d6cb;
+  --plan-short-line: #e18f7c;
+  --plan-circ: #dde2e0;
   --map-unsurveyed: #b9c1b8;
   --scen-0: #f0dd8f;
   --scen-1: #e9a090;
@@ -114,10 +121,16 @@
     --map-arterial: #4c5450;
     --map-dot: #7fc59d;
     --map-dot-sel: #e08d78;
-    --map-market: #d98b72;
-    --map-nonmarket: #6fae8b;
-    --map-market-lit: #ee9c80;
-    --map-nonmarket-lit: #8ad7a8;
+    --map-market: #8597c2;
+    --map-nonmarket: #c9cde8;
+    --map-market-lit: #9eaed3;
+    --map-nonmarket-lit: #dde0f2;
+    --plan-keep: #1d2320;
+    --plan-unit: #3a4f3f;
+    --plan-unit-line: #9cc487;
+    --plan-short: #5a3b36;
+    --plan-short-line: #e8705a;
+    --plan-circ: #2a3331;
     --map-unsurveyed: #6d736c;
     --scen-0: #58c08a;
     --scen-1: #e8705a;
@@ -197,10 +210,16 @@
   --map-arterial: #4c5450;
   --map-dot: #7fc59d;
   --map-dot-sel: #e08d78;
-  --map-market: #d98b72;
-  --map-nonmarket: #6fae8b;
-  --map-market-lit: #ee9c80;
-  --map-nonmarket-lit: #8ad7a8;
+  --map-market: #8597c2;
+  --map-nonmarket: #c9cde8;
+  --map-market-lit: #9eaed3;
+  --map-nonmarket-lit: #dde0f2;
+  --plan-keep: #1d2320;
+  --plan-unit: #3a4f3f;
+  --plan-unit-line: #9cc487;
+  --plan-short: #5a3b36;
+  --plan-short-line: #e8705a;
+  --plan-circ: #2a3331;
   --map-unsurveyed: #6d736c;
   --scen-0: #58c08a;
   --scen-1: #e8705a;

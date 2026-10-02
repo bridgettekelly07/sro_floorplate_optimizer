@@ -20,8 +20,6 @@
   const scen = $derived(ui.scenColour && district ? district.scen : null);
   const colourOf = (b, i) => mapColour(b, i, scen);
   const colourHex = (b, i) => mapColourHex(b, i, scen);
-  const summary = $derived(data && data.surveyed.length
-    ? data.surveyed.length + " buildings · " + data.surveyed.reduce((t, b) => t + (b.rooms || 0), 0).toLocaleString("en-CA") + " rooms" : "");
 
   // the district opens in 3D once everything it needs has loaded
   $effect(() => { if (ready && !defaulted) { defaulted = true; ui.mode3d = true; } });
@@ -40,11 +38,6 @@
 </script>
 
 <div class="map-stage" id="map-stage">
-  <header class="masthead map-title">
-    <div class="label">Vancouver SRA By-law No. 8733 &middot; SRA Conversion Guidelines &middot; DTES Plan s.9</div>
-    <h1>SRA Conversion Policy</h1>
-    <div class="label summary">{summary}</div>
-  </header>
   <MapLegend />
   <MapReadout {district} />
   {#if ready}

@@ -1,14 +1,12 @@
 <script>
   // The building's record: Appendix B, the heritage register and whatever
   // else is known about it, with its source.
-  import { SURVEY, typicalRent } from "../lib/survey.js";
   import { floorsOf } from "../lib/typicalFloor.js";
-  import { fmt, money } from "../lib/format.js";
+  import { fmt } from "../lib/format.js";
   import { recordOf } from "../lib/data.js";
   import { isPrivate } from "../lib/colours.js";
   let { b, i, data, colour, onclose } = $props();
 
-  const pct = $derived(b.rooms ? Math.round(b.surveys / b.rooms * 100) : 0);
   const heritage = $derived(data.mass && data.mass[i] && data.mass[i].heritage);
   const rd = $derived(recordOf(data.records, b));
 </script>
@@ -23,10 +21,8 @@
   </div>
   <div class="stats">
     <span><em>Rooms</em>{b.rooms}</span>
-    {#if b.surveyed}<span><em>Surveys</em>{b.surveys} ({pct}%)</span>{/if}
     {#if b.parcelSf}<span><em>Lot</em>{fmt(b.parcelSf)} SF</span>{/if}
     {#if b.hgtM}<span><em>Height</em>{b.hgtM} m · ≈{floorsOf(b)} storeys</span>{/if}
-    {#if b.surveyed}<span><em>Typical rent</em>{money(typicalRent(b))}</span>{/if}
   </div>
   {#if heritage}
     <div class="why">Vancouver Heritage Register{heritage.group ? ", evaluation group " + heritage.group : ""}{heritage.name && heritage.name.toUpperCase() !== b.name.toUpperCase() ? ", listed as “" + heritage.name + "”" : ""}{heritage.flags.length ? " · " + heritage.flags.join(", ") : ""}.</div>

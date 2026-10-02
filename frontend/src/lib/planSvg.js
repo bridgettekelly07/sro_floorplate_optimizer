@@ -13,11 +13,37 @@ export function planSvg(g, { minUnit, proposed }) {
   const X = (u) => (u + pad).toFixed(2), Y = (v) => (v + pad).toFixed(2);
   h += '<path d="' + p.ring.map((q, k) => (k ? "L" : "M") + X(q[0]) + " " + Y(q[1])).join("") + 'Z" fill="var(--surface)" stroke="var(--ink)" stroke-width="0.14"/>';
   const cv = p.dbl ? p.depth : p.W - p.corridor;
-  h += '<rect x="' + X(p.stair) + '" y="' + Y(cv) + '" width="' + (p.L - p.stair).toFixed(2) + '" height="' + p.corridor.toFixed(2) + '" fill="var(--sunk)" stroke="none"/>';
-  if (p.stair) {
-    h += '<rect x="' + X(0) + '" y="' + Y(0) + '" width="' + p.stair.toFixed(2) + '" height="' + p.W.toFixed(2) + '" fill="var(--sunk)" stroke="var(--ink-3)" stroke-width="0.06"/>';
-    for (let s = 0.4; s < p.W; s += 0.28) h += '<line x1="' + X(0.4) + '" y1="' + Y(s) + '" x2="' + X(p.stair - 0.4) + '" y2="' + Y(s) + '" stroke="var(--ink-3)" stroke-width="0.04"/>';
-  }
+  h += '<rect x="' + X(0) + '" y="' + Y(cv) + '" width="' + p.L.toFixed(2) + '" height="' + p.corridor.toFixed(2) + '" fill="var(--plan-circ)" stroke="none"/>';
+  // the cores: a dog-leg stair, two flights side by side with a landing at the outer wall; a washroom with its stalls
+  (p.cores || []).forEach((c) => {
+    h += '<rect x="' + X(c.u) + '" y="' + Y(c.v) + '" width="' + c.w.toFixed(2) + '" height="' + c.d.toFixed(2) + '" fill="var(--plan-circ)" stroke="var(--ink-2)" stroke-width="0.08"/>';
+    if (c.kind === "stair") {
+      // the flights take the stair's own width; anything more is the entrance lobby beside them
+      const landing = 1.0, sw = Math.min(c.w, 2.6), flight = sw / 2, out = c.side === 0 ? c.v : c.v + c.d, inn = c.side === 0 ? c.v + c.d : c.v, dir = c.side === 0 ? 1 : -1;
+      if (c.w > sw + 0.3) h += '<line x1="' + X(c.u + sw) + '" y1="' + Y(c.v) + '" x2="' + X(c.u + sw) + '" y2="' + Y(c.v + c.d) + '" stroke="var(--ink-3)" stroke-width="0.05"/>';
+      const l0 = out + dir * landing;   // the landing's inner edge
+      h += '<line x1="' + X(c.u + flight) + '" y1="' + Y(l0) + '" x2="' + X(c.u + flight) + '" y2="' + Y(inn) + '" stroke="var(--ink-3)" stroke-width="0.05"/>';
+      h += '<line x1="' + X(c.u + 0.15) + '" y1="' + Y(l0) + '" x2="' + X(c.u + sw - 0.15) + '" y2="' + Y(l0) + '" stroke="var(--ink-3)" stroke-width="0.04"/>';
+      for (let t = 0.28; l0 + dir * t < (c.side === 0 ? inn : l0 + (inn - l0)) - 0.05 && t < Math.abs(inn - l0); t += 0.28) {
+        const yy = l0 + dir * t;
+        h += '<line x1="' + X(c.u + 0.15) + '" y1="' + Y(yy) + '" x2="' + X(c.u + flight - 0.08) + '" y2="' + Y(yy) + '" stroke="var(--ink-3)" stroke-width="0.04"/>';
+        h += '<line x1="' + X(c.u + flight + 0.08) + '" y1="' + Y(yy) + '" x2="' + X(c.u + sw - 0.15) + '" y2="' + Y(yy) + '" stroke="var(--ink-3)" stroke-width="0.04"/>';
+      }
+      // the up arrow along the first flight, from the corridor to the landing
+      const ax = c.u + flight / 2, a0 = inn - dir * 0.2, a1 = l0 + dir * 0.2;
+      h += '<line x1="' + X(ax) + '" y1="' + Y(a0) + '" x2="' + X(ax) + '" y2="' + Y(a1) + '" stroke="var(--ink)" stroke-width="0.06"/>';
+      h += '<path d="M' + X(ax - 0.18) + ' ' + Y(a1 + dir * 0.3) + ' L' + X(ax) + ' ' + Y(a1) + ' L' + X(ax + 0.18) + ' ' + Y(a1 + dir * 0.3) + '" fill="none" stroke="var(--ink)" stroke-width="0.06"/>';
+    } else {
+      // stalls along the outer wall and a basin run at the corridor wall
+      const out = c.side === 0 ? c.v : c.v + c.d, dir = c.side === 0 ? 1 : -1, stalls = Math.max(1, Math.floor((c.w - 0.2) / 0.95));
+      for (let k = 0; k < stalls; k++) {
+        const x0 = c.u + 0.1 + k * ((c.w - 0.2) / stalls), sw = (c.w - 0.2) / stalls - 0.08;
+        h += '<rect x="' + X(x0) + '" y="' + Y(Math.min(out, out + dir * 1.4)) + '" width="' + sw.toFixed(2) + '" height="1.4" fill="none" stroke="var(--ink-3)" stroke-width="0.04"/>';
+        h += '<ellipse cx="' + X(x0 + sw / 2) + '" cy="' + Y(out + dir * 0.55) + '" rx="0.2" ry="0.26" fill="none" stroke="var(--ink-3)" stroke-width="0.04"/>';
+      }
+      h += '<text x="' + X(c.u + c.w / 2) + '" y="' + Y(c.v + c.d / 2 + (c.side === 0 ? 0.6 : -0.3)) + '" font-size="0.45" text-anchor="middle" fill="var(--ink-3)">WC</text>';
+    }
+  });
   if (p.roomsEnd < p.L - 0.3) {
     if (p.L - p.roomsEnd > 3) h += '<text x="' + X((p.roomsEnd + p.L) / 2) + '" y="' + Y(p.W / 2) + '" font-size="0.5" text-anchor="middle" fill="var(--ink-3)">not designated</text>';
     h += '<rect x="' + X(p.roomsEnd) + '" y="' + Y(0) + '" width="' + (p.L - p.roomsEnd).toFixed(2) + '" height="' + p.W.toFixed(2) + '" fill="url(#hatch)" stroke="none"/>';
@@ -28,6 +54,10 @@ export function planSvg(g, { minUnit, proposed }) {
     const a = grp.reduce((t, k) => t + g.fr[k].area, 0);
     grp.forEach((k) => { unitOf[k] = ui; unitArea[k] = a; });
   });
+  // a unit under the minimum is drawn in the salmon of displacement; one that passes in the park green
+  const isShort = (k) => unitOf[k] !== undefined && unitArea[k] < minUnit - EPS;
+  const unitFill = (k) => isShort(k) ? "var(--plan-short)" : "var(--plan-unit)";
+  const unitLine = (k) => isShort(k) ? "var(--plan-short-line)" : "var(--plan-unit-line)";
   const fs = Math.max(0.42, Math.min(0.8, p.width * 0.22));
   // a door in the corridor wall: a gap and a quarter swing into the room
   function door(x, r) {
@@ -45,7 +75,7 @@ export function planSvg(g, { minUnit, proposed }) {
       + '<line x1="' + X(a) + '" y1="' + Y(ow - off * 0.3) + '" x2="' + X(b) + '" y2="' + Y(ow - off * 0.3) + '" stroke="var(--ink)" stroke-width="0.04" pointer-events="none"/>';
   }
   g.rooms.forEach((r) => {
-    const fill = !proposed ? "var(--surface)" : r.keep ? "var(--edge-soft)" : "var(--pass-soft)";
+    const fill = !proposed || r.keep ? "var(--plan-keep)" : unitFill(r.idx);
     h += '<rect class="room" data-room="' + r.idx + '" x="' + X(r.u) + '" y="' + Y(r.v) + '" width="' + r.w.toFixed(2) + '" height="' + r.d.toFixed(2) + '" fill="' + fill + '" stroke="var(--ink-2)" stroke-width="0.08"/>';
     const band = r.d - POD.bath[1];
     let cy = r.v + r.d / 2;
@@ -63,7 +93,7 @@ export function planSvg(g, { minUnit, proposed }) {
     const mates = g.rooms.filter((q) => unitOf[q.idx] === u);
     mates.forEach((q) => {
       if (q.idx === r.idx + 1 && q.side === r.side) {
-        h += '<line x1="' + X(q.u) + '" y1="' + Y(q.v + 0.1) + '" x2="' + X(q.u) + '" y2="' + Y(q.v + q.d - 0.1) + '" stroke="var(--pass-soft)" stroke-width="0.16" pointer-events="none"/>';
+        h += '<line x1="' + X(q.u) + '" y1="' + Y(q.v + 0.1) + '" x2="' + X(q.u) + '" y2="' + Y(q.v + q.d - 0.1) + '" stroke="' + unitFill(r.idx) + '" stroke-width="0.16" pointer-events="none"/>';
       }
     });
     if (done[u]) return;
@@ -85,9 +115,9 @@ export function planSvg(g, { minUnit, proposed }) {
       h += '<rect x="' + X(vx) + '" y="' + Y(vy) + '" width="' + POD.kitchen[1].toFixed(2) + '" height="' + vLen.toFixed(2) + '" stroke="var(--' + (fits ? "ink-3" : "fail") + ')"' + pod + '/>';
     }
     if (!fits) podFlags.push(letter(u));
-    h += '<rect x="' + X(u0) + '" y="' + Y(r.v) + '" width="' + (u1 - u0).toFixed(2) + '" height="' + r.d.toFixed(2) + '" fill="none" stroke="var(--' + (short ? "edge" : "pass") + ')" stroke-width="0.14" pointer-events="none"/>';
+    h += '<rect x="' + X(u0) + '" y="' + Y(r.v) + '" width="' + (u1 - u0).toFixed(2) + '" height="' + r.d.toFixed(2) + '" fill="none" stroke="' + unitLine(r.idx) + '" stroke-width="0.14" pointer-events="none"/>';
     const ucy = r.d - POD.bath[1] >= 1.1 ? (r.side === 0 ? r.v + (r.d - POD.bath[1]) / 2 : r.v + POD.bath[1] + (r.d - POD.bath[1]) / 2) : r.v + r.d / 2;
-    const uw = u1 - u0, ucol = 'var(--' + (short ? "edge" : "pass") + ')', area = Math.round(unitArea[r.idx]) + ' SF';
+    const uw = u1 - u0, ucol = unitLine(r.idx), area = Math.round(unitArea[r.idx]) + ' SF';
     const one = letter(u) + ' · ' + area, ufs = Math.min(fs, (uw - 0.3) / (one.length * 0.52));
     if (ufs >= fs * 0.7) {
       h += '<text x="' + X((u0 + u1) / 2) + '" y="' + Y(ucy + ufs * 0.35) + '" font-size="' + ufs.toFixed(2) + '" font-weight="600" text-anchor="middle" fill="' + ucol + '" pointer-events="none">' + one + '</text>';

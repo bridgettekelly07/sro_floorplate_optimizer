@@ -25,12 +25,12 @@ the district's figures and the bar of where every tenant goes; it updates with e
 
 - Point at the readout under the title.
 
-> "This is the policy as written. 130 of 142 buildings convert. 3,786 units are delivered. And
-> 1,112 tenants lose their room, 18 percent of everyone in the stock. Twelve buildings, holding 540
+> "This is the policy as written. 130 of 142 buildings convert. 3,921 units are delivered. And
+> 1,139 tenants lose their room, 18 percent of everyone in the stock. Twelve buildings, holding 540
 > rooms, cannot convert at all. The compensation owed under the by-law's own schedule is about
-> 2.35 million dollars."
+> 2.4 million dollars."
 
-- Point at the bar: 1,112 displaced, 3,786 re-housed in a new unit, 702 staying in a kept room.
+- Point at the bar: 1,139 displaced, 3,921 re-housed in a new unit, 887 staying in a kept room.
 
 > "Why so many? Most rooms here are 100 to 130 square feet. No room reaches 200 on its own, so a
 > unit is two rooms knocked together, and each pair sends one tenant away."
@@ -55,8 +55,8 @@ the district's figures and the bar of where every tenant goes; it updates with e
 
 - Point at the readout.
 
-> "Across the district: 136 buildings convert, 5,043 units, and 369 tenants displaced instead of
-> 1,112. Six percent instead of eighteen. Fifty square feet is seven hundred and forty people."
+> "Across the district: 136 buildings convert, 5,357 units, and 372 tenants displaced instead of
+> 1,139. Six percent instead of eighteen. Fifty square feet is seven hundred and sixty people."
 
 ## 3:30 · Scenario 3: Bigger units, tighter cap
 
@@ -68,8 +68,8 @@ the district's figures and the bar of where every tenant goes; it updates with e
 
 - The readout again.
 
-> "Only 74 of 142 buildings convert. 68 cannot, holding 3,367 rooms, more than half the stock. The
-> units delivered fall to 1,641. And 690 people are still displaced, from the buildings that do
+> "Only 77 of 142 buildings convert. 65 cannot, holding 3,329 rooms, more than half the stock. The
+> units delivered fall to 1,823. And 764 people are still displaced, from the buildings that do
 > pass. A stricter policy is not a gentler one. It protects by freezing."
 
 ## 4:30 · Landing
@@ -89,13 +89,13 @@ the district's figures and the bar of where every tenant goes; it updates with e
 
 | | City's rules · 200 SF | Smaller units · 150 SF | Bigger, tighter · 250 SF, 30% |
 |---|---|---|---|
-| Buildings that convert | 130 of 142 | 136 of 142 | 74 of 142 |
-| Units delivered | 3,786 | 5,043 | 1,641 |
-| Rooms kept as SRA | 702 | 413 | 537 |
-| Tenants displaced | 1,112 · 18% | 369 · 6% | 690 |
-| Cannot convert | 12 buildings, 540 rooms | 6 | 68 buildings, 3,367 rooms |
-| Need Council | 84 | 23 | 69 |
-| Compensation, s.4.8(i) | $2.35 M | $0.76 M | $1.46 M |
+| Buildings that convert | 130 of 142 | 136 of 142 | 77 of 142 |
+| Units delivered | 3,921 | 5,357 | 1,823 |
+| Rooms kept as SRA | 887 | 443 | 573 |
+| Tenants displaced | 1,139 · 18% | 372 · 6% | 764 |
+| Cannot convert | 12 buildings, 540 rooms | 6 | 65 buildings, 3,329 rooms |
+| Need Council | 85 | 23 | 71 |
+| Compensation, s.4.8(i) | $2.41 M | $0.76 M | $1.61 M |
 | **Ivanhoe Hotel**, 92 rooms | 48 units · 36 displaced | 52 units · 16 displaced | cannot convert |
 
 ## If asked
@@ -107,5 +107,6 @@ the district's figures and the bar of where every tenant goes; it updates with e
   all converted rooms where 200 each cannot be achieved. The tool reads the test on that average.
 - **Where the room sizes come from.** The City's footprint, less a circulation share, divided among
   the rooms Appendix B counts on a floor. The plan is a type, not a survey, and says so.
-- **Public and private.** The policy is applied to every SRO in Appendix B. Of the 1,112 displaced
-  at the City's rules, 532 are in the 76 private SROs and 580 in public stock.
+- **Public and private.** The policy is applied to every SRO in Appendix B. Of the 1,139 displaced
+  at the City's rules, 544 are in the 76 private SROs, 520 in public stock and 75 in buildings the
+  survey could not enter.

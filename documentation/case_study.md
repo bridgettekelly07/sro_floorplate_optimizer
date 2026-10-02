@@ -119,15 +119,16 @@ The policy is applied to every SRO in Appendix B, public and private alike.
 
 | All of Appendix B, 142 buildings with rooms | 200 SF (the City's) | 150 SF | 250 SF and a 30% cut |
 |---|---|---|---|
-| Buildings that convert | 130 of 142 | 136 of 142 | 74 of 142 |
-| Units delivered | 3,786 | 5,043 | 1,641 |
-| Rooms kept as SRA | 702 | 413 | 537 |
-| Tenants displaced | 1,112 · 18% | 369 · 6% | 690 |
-| Buildings that cannot pass | 12, holding 540 rooms | 6 | 68, holding 3,367 rooms |
-| Need Council, over 3 rooms lost | 84 | 23 | 69 |
-| Compensation owed, s.4.8(i) | $2.35 M | $0.76 M | $1.46 M |
+| Buildings that convert | 130 of 142 | 136 of 142 | 77 of 142 |
+| Units delivered | 3,921 | 5,357 | 1,823 |
+| Rooms kept as SRA | 887 | 443 | 573 |
+| Tenants displaced | 1,139 · 18% | 372 · 6% | 764 |
+| Buildings that cannot pass | 12, holding 540 rooms | 6 | 65, holding 3,329 rooms |
+| Need Council, over 3 rooms lost | 85 | 23 | 71 |
+| Compensation owed, s.4.8(i) | $2.41 M | $0.76 M | $1.61 M |
 
-Of the 1,112 at the City's thresholds, 532 are in the 76 private SROs and 580 in public stock.
+Of the 1,139 at the City's thresholds, 544 are in the 76 private SROs, 520 in public stock and 75 in
+buildings the survey could not enter.
 
 > The bar in the readout sorts every tenant the policy reaches: displaced, re-housed in a new unit,
 > staying in a kept room, or in a building that cannot convert. Section 02 in the sidebar holds the
