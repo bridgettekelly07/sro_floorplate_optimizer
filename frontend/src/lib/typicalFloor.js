@@ -9,7 +9,18 @@ import { SURVEY } from "./survey.js";
 
 export const MIN_AREA = 60, MAX_AREA = 420;   // a room's area, clamped when read from a footprint
 export const FLOOR_M = 3.4;      // assumed floor-to-floor, for storeys read from a height
-export const NOMINAL_H = 4;      // metres drawn for a footprint the 2009 survey did not measure
+export const NOMINAL_H = 4;      // metres drawn for an SRO part the 2009 survey did not measure
+// A footprint the 2009 survey did not measure is drawn at a guessed one to
+// six storeys, varied from footprint to footprint so the unmeasured blocks
+// read as a city rather than a flat field; the same footprint always gets the
+// same guess. `seed` is any integer that names the footprint.
+export const GUESS_STOREYS = [1, 6];
+export function guessedHeight(seed) {
+  let t = (seed * 2654435761 + 12345) >>> 0;
+  t = (t ^ (t >>> 13)) >>> 0; t = Math.imul(t, 0x5bd1e995) >>> 0; t = (t ^ (t >>> 15)) >>> 0;
+  const n = GUESS_STOREYS[0] + (t % (GUESS_STOREYS[1] - GUESS_STOREYS[0] + 1));
+  return n * FLOOR_M;
+}
 export const PLAN = { corridor: 1.5, stair: 3.0, minDepth: 2.75, maxDepth: 4.6, minWidth: 2.4, groundRetail: true };
 // the unit's program, SRA Guidelines p.5-6: a complete bathroom and a kitchen
 // run with a 24" fridge. The source dimensions only the fridge; these are

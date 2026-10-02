@@ -67,3 +67,18 @@ describe("the façade", () => {
     assert.equal(s.length, 2 * 4 * 6);   // two lines, four walls
   });
 });
+
+import { guessedHeight, GUESS_STOREYS } from "../src/lib/typicalFloor.js";
+describe("the guessed height of an unmeasured footprint", () => {
+  test("is a whole number of storeys within the range, the same for the same footprint", () => {
+    const seen = new Set();
+    for (let i = 0; i < 500; i++) {
+      const h = guessedHeight(i), n = Math.round(h / FLOOR_M);
+      assert.ok(Math.abs(h - n * FLOOR_M) < 1e-9);
+      assert.ok(n >= GUESS_STOREYS[0] && n <= GUESS_STOREYS[1]);
+      assert.equal(guessedHeight(i), h);
+      seen.add(n);
+    }
+    assert.equal(seen.size, GUESS_STOREYS[1] - GUESS_STOREYS[0] + 1, "every storey count turns up");
+  });
+});

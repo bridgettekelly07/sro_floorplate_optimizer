@@ -65,9 +65,9 @@
   /* edges of the 3D buildings: colour and screen width, context then SRO,
      and how much graphite grain breaks the line (0 solid, 1 full) */
   --m3-edge: #2b2b2b;
-  --m3-edge-w: 1;
+  --m3-edge-w: 0.75;
   --m3-edge-sro: #2b2b2b;
-  --m3-edge-sro-w: 1.2;
+  --m3-edge-sro-w: 0.9;
   --m3-edge-grain: 0.2;
   --m3-contour: #cfd5cb;
   --m3-contour-park: #ffffff;
@@ -148,9 +148,9 @@
     --m3-park-stipple: #3a4a3e;
     --m3-exposure: 0.6;
     --m3-edge: #cfcfcf;
-    --m3-edge-w: 1;
+    --m3-edge-w: 0.75;
     --m3-edge-sro: #f2f2f0;
-    --m3-edge-sro-w: 1.2;
+    --m3-edge-sro-w: 0.9;
     --m3-edge-grain: 0.2;
     --m3-contour: #2e3531;
     --m3-contour-park: #c9d0c4;
@@ -227,9 +227,9 @@
   --m3-park-stipple: #3a4a3e;
   --m3-exposure: 0.6;
   --m3-edge: #cfcfcf;
-  --m3-edge-w: 1;
+  --m3-edge-w: 0.75;
   --m3-edge-sro: #f2f2f0;
-  --m3-edge-sro-w: 1.2;
+  --m3-edge-sro-w: 0.9;
   --m3-edge-grain: 0.2;
   --m3-contour: #2e3531;
   --m3-contour-park: #c9d0c4;

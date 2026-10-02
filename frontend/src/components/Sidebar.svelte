@@ -20,10 +20,6 @@
     {/if}
   </button>
   <section class="sb">
-    <div class="sec-head">
-      <span class="sec-num">01</span><h2>Building</h2>
-      <span class="note">The selected building&rsquo;s typical floor, redrawn as the thresholds move</span>
-    </div>
     <BuildingSection {data} {district} />
   </section>
 

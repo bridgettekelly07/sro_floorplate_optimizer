@@ -7,8 +7,11 @@ import { css, hexOf } from "./colours.js";
 import { paintGround, waterWash } from "./groundTexture.js";
 import { shoreDistance, shoreOutline, shoreField } from "./terrain.js";
 import { landmarkOf, triangleEdges, roundCentre } from "./landmarks.js";
+import { BRIDGES, DECK, bridgeChains, arcLengths, deckHeights, ribbon, pillar, along, aboveRuns, densify } from "./bridges.js";
+import { MARINAS, SAILS, boatBoxes, longAxis, sailRow } from "./harbour.js";
+import { stadiumGeometry } from "./stadium.js";
 import { wheelZoom, EASE } from "./zoom.js";
-import { FLOOR_M, NOMINAL_H, floorsOf } from "./typicalFloor.js";
+import { FLOOR_M, NOMINAL_H, floorsOf, guessedHeight, GUESS_STOREYS } from "./typicalFloor.js";
 import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2.js";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry.js";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial.js";
@@ -170,11 +173,13 @@ export class District3D {
     this.matWin = edgePen(); this.matWin.opacity = 0.7;   // the windows: a finer line than the edges
     this.matCurb = edgePen(); this.matCurb.opacity = 0.8;  // the curb lines along the streets
     this.matSel = new THREE.LineBasicMaterial({ color: 0x000000 });
+    this.matDeck = new THREE.MeshBasicMaterial({ color: 0xfdfcfa, side: THREE.DoubleSide });   // the bridge decks, sails and boats, at the building colour
+    this.matRail = new THREE.LineBasicMaterial({ color: 0xb9b4a8, transparent: true, opacity: 0.55 });   // the railways: a light line
     this.matGrid = new THREE.LineBasicMaterial({ color: 0xdcd8ce });   // the grid over the ground beyond the data
     this.matStorey = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.22 });
     this.gGround = new THREE.Group(); this.gFoot = new THREE.Group(); this.gStreets = new THREE.Group();
-    this.gSro = new THREE.Group(); this.gSel = new THREE.Group(); this.gNames = new THREE.Group(); this.gTrees = new THREE.Group();
-    this.scene.add(this.gGround, this.gFoot, this.gStreets, this.gNames, this.gTrees, this.gSro, this.gSel);
+    this.gSro = new THREE.Group(); this.gSel = new THREE.Group(); this.gNames = new THREE.Group(); this.gTrees = new THREE.Group(); this.gBridges = new THREE.Group(); this.gHarbour = new THREE.Group();
+    this.scene.add(this.gGround, this.gFoot, this.gStreets, this.gNames, this.gTrees, this.gSro, this.gSel, this.gBridges, this.gHarbour);
     this.sroMeshes = [];
     this.bindPointer();
     this.ready = true;
@@ -190,6 +195,8 @@ export class District3D {
     this.hemi.intensity = 2.4 * exposure; this.sun.intensity = 1.1 * exposure; this.fill.intensity = 0.5 * exposure;
     this.void.material.color.set(css("--m3-void") || css("--m3-sky") || "#f4f1ea");   // beyond the data: a plain ground with a grid
     this.matGrid.color.set(css("--m3-grid") || "#dcd8ce");
+    this.matDeck.color.set(css("--m3-bldg") || "#fdfcfa");
+    this.matRail.color.set(css("--m3-curb") || css("--m3-edge") || "#b9b4a8");
     this.gridColor.value.set(css("--m3-grid") || "#dcd8ce");
     this.matLand.color.set(css("--m3-ground") || "#f4f1ea");
     this.matRoad.color.set(css("--m3-road") || "#e3dfd5");
@@ -247,6 +254,17 @@ export class District3D {
     let y = Infinity;
     for (const p of ring) y = Math.min(y, this.yAt(this.proj.x(p[0]), this.proj.y(p[1])));
     return y === Infinity ? 0 : y;
+  }
+  // the highest ground under a ring, in scene units
+  crestOf(ring) {
+    let y = -Infinity;
+    for (const p of ring) y = Math.max(y, this.yAt(this.proj.x(p[0]), this.proj.y(p[1])));
+    return y === -Infinity ? 0 : y;
+  }
+  // a drawn height, metres, that keeps the roof at least a storey above the highest ground under the
+  // footprint: a low roof on a sloping block would otherwise sink into the terrain on the uphill side
+  clearOf(ring, base, h) {
+    return Math.max(h, (this.crestOf(ring) - base) * this.mPerUnit + FLOOR_M);
   }
 
   // One merged geometry from many rings: a triangulated roof and one quad per
@@ -449,7 +467,7 @@ export class District3D {
     const streets = this.data.streets, proj = this.proj;
     if (!streets) return;
     const u = 1 / this.mPerUnit;
-    const picked = streets.segments.filter((sg) => segInside(sg.c, proj.bbox)).map((sg) => ({
+    const picked = streets.segments.filter((sg) => segInside(sg.c, proj.bbox) && !/BRIDGE|VIADUCT/.test(sg.h || "")).map((sg) => ({
       pts: sg.c.map((p) => [proj.x(p[0]), proj.y(p[1])]),
       hw: (ROAD.pave[sg.u] || ROAD.pave[0]) / 2 * u,
     }));
@@ -555,23 +573,32 @@ export class District3D {
       const c = cen(f.p);
       if (parts.some((p) => f.b[2] >= p.b[0] && f.b[0] <= p.b[2] && f.b[3] >= p.b[1] && f.b[1] <= p.b[3] && (within(c, p.r) || within(p.c, f.p)))) skip[i] = true;
     });
-    const colour = new THREE.Color(css("--m3-bldg") || "#d8d2c3"), items = [], faces = [], domes = [];
+    const colour = new THREE.Color(css("--m3-bldg") || "#d8d2c3"), items = [], faces = [], domes = [], sails = [], stadiums = [];
     for (let i = 0; i < foot.length; i++) {
       if (skip[i]) continue;
       const lm = landmarkOf(foot[i].p);
-      const h = lm ? lm.baseH : (foot[i].h || NOMINAL_H), base = this.baseOf(foot[i].p);
+      const base = this.baseOf(foot[i].p), h = lm ? lm.baseH : this.clearOf(foot[i].p, base, foot[i].h || guessedHeight(i));
       items.push({ pts: foot[i].p, h, col: colour, base });
       if (foot[i].h) faces.push(this.facadeItem(foot[i].p, h, base, false, true));   // only a measured height gets a façade
       if (lm && lm.dome) domes.push({ ring: foot[i].p, base, dome: lm.dome });
+      if (lm && lm.sails) sails.push({ ring: foot[i].p, base, h });
+      if (lm && lm.stadium) stadiums.push({ ring: foot[i].p, base, h });
     }
     // the city around the surveyed extent: the 2009 footprints at their LiDAR heights
-    (this.data.context || []).forEach((f) => {
-      items.push({ pts: f.p, h: f.h || NOMINAL_H, col: colour, base: this.baseOf(f.p) });
+    (this.data.context || []).forEach((f, k) => {
+      const base = this.baseOf(f.p), lm = landmarkOf(f.p);
+      const h = lm ? lm.baseH : this.clearOf(f.p, base, f.h || guessedHeight(100000 + k));
+      items.push({ pts: f.p, h, col: colour, base });
+      if (lm && lm.dome) domes.push({ ring: f.p, base, dome: lm.dome });
+      if (lm && lm.sails) sails.push({ ring: f.p, base, h });
+      if (lm && lm.stadium) stadiums.push({ ring: f.p, base, h });
     });
     const geo = this.extrude(items);
     this.gFoot.add(new THREE.Mesh(geo, this.matBldg));
     this.gFoot.add(this.edgeLines(this.matEdge));
     domes.forEach((d) => this.addDome(d, colour));
+    sails.forEach((d) => this.addSails(d));
+    stadiums.forEach((d) => this.addStadium(d));
     // the DTES footprints get floor lines and windows; the 2009 context stays plain
     if (WINDOWS) { const win = this.fatLines(facadeLines(faces, this.mPerUnit), this.matWin); if (win) this.gFoot.add(win); }
     const st = storeyLines(faces, this.mPerUnit);
@@ -603,6 +630,118 @@ export class District3D {
     }
     this.gGround.add(new THREE.LineSegments(this.flatGeo(pos), this.matGrid));
   }
+  // The False Creek bridges: each City-named bridge's centreline segments joined into a deck that
+  // climbs from the approach grade to its clearance and stands on piers over the water, in the
+  // building colour with ink edges. Burrard gets its pair of towers at the main span.
+  buildBridges() {
+    this.clear(this.gBridges);
+    const streets = this.data.streets, proj = this.proj;
+    if (!streets) return;
+    const u = 1 / this.mPerUnit, pos = [], edge = [];
+    const groundM = (x, z) => this.yAt(x, z) * this.mPerUnit;
+    const add = (g) => { pos.push(...g.pos); edge.push(...g.edge); };
+    BRIDGES.forEach((B) => {
+      const segs = streets.segments.filter((sg) => B.match.test(sg.h || ""));
+      if (!segs.length) return;
+      const chains = bridgeChains(segs).map((c) => densify(c.map((p) => [proj.x(p[0]), proj.y(p[1])]), DECK.sample * u));
+      chains.sort((a, b) => arcLengths(b)[b.length - 1] - arcLengths(a)[a.length - 1]);
+      const top = B.clearance + DECK.thickness;
+      const decks = [];
+      chains.forEach((xz, ci) => {
+        const s = arcLengths(xz), ground = xz.map((q) => groundM(q[0], q[1]));
+        // an end that meets the main deck takes its height there; a free end sits on the ground
+        const endH = (q, g) => { for (const d of decks) { const k = d.xz.findIndex((r) => Math.hypot(r[0] - q[0], r[1] - q[1]) < 0.5 * u); if (k >= 0) return d.y[k]; } return g; };
+        const hA = endH(xz[0], ground[0]), hB = endH(xz[xz.length - 1], ground[ground.length - 1]);
+        const y = deckHeights(s, ground, hA, hB, top);
+        const width = ci === 0 ? B.width : DECK.rampWidth;
+        decks.push({ xz, s, y, width, main: ci === 0 });
+        // the slab is drawn only where it stands above the ground; at grade the road takes over
+        aboveRuns(y, ground).forEach(([a, b]) => {
+          add(ribbon(xz.slice(a, b + 1), y.slice(a, b + 1).map((v) => v * u), width * u, DECK.thickness * u));
+        });
+        // piers wherever the deck stands clear of the ground
+        for (let d = DECK.pierEvery / 2; d < s[s.length - 1]; d += DECK.pierEvery) {
+          const a = along(xz, s, d), g = groundM(a.x, a.z);
+          const yTop = Math.min(y[a.i - 1], y[a.i]);
+          if (yTop - g < 4) continue;
+          add(pillar(a.x, a.z, a.d, DECK.pierWide / 2 * u, (width / 2 - 2) * u, (g - 0.5) * u, (yTop - DECK.thickness + 0.1) * u));
+        }
+        if (B.towers && ci === 0) {
+          // the towers flank the middle of the crossing, where the deck is highest
+          const L = s[s.length - 1];
+          [L / 2 - 45, L / 2 + 45].forEach((d) => {
+            const a = along(xz, s, d), g = groundM(a.x, a.z), yTop = Math.max(y[a.i - 1], y[a.i]);
+            add(pillar(a.x, a.z, a.d, DECK.tower.along / 2 * u, (width / 2 + 2) * u, (g - 0.5) * u, (yTop + DECK.tower.above) * u));
+          });
+        }
+      });
+    });
+    if (!pos.length) return;
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+    geo.computeVertexNormals();
+    this.gBridges.add(new THREE.Mesh(geo, this.matDeck));
+    const l = this.fatLines(new Float32Array(edge), this.matEdge);
+    if (l) this.gBridges.add(l);
+  }
+  // BC Place: the roof, oculus and masts on the drum the footprint gives, centred on its round part
+  addStadium({ ring, base, h }) {
+    const proj = this.proj, u = 1 / this.mPerUnit;
+    const lat = ring[0][1], kx = 111320 * Math.cos(lat * Math.PI / 180), ky = 110540;
+    const c = roundCentre(ring, kx, ky);
+    const g = stadiumGeometry(proj.x(c.x), proj.y(c.y), c.r * u, base + h * u, u);
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.Float32BufferAttribute(g.pos, 3));
+    geo.computeVertexNormals();
+    this.gFoot.add(new THREE.Mesh(geo, this.matDeck));
+    const l = this.fatLines(new Float32Array(g.edge), this.matEdge);
+    if (l) this.gFoot.add(l);
+    this.gFoot.add(new THREE.LineSegments(this.flatGeo(g.line), this.matStorey));   // cables and ribs, a finer line
+  }
+  // Canada Place's sails: five leaning tents along the pier's long axis, white with ink edges
+  addSails({ ring, base, h }) {
+    const proj = this.proj, u = 1 / this.mPerUnit;
+    const axis = longAxis(ring.map((p) => [proj.x(p[0]), proj.y(p[1])]));
+    const g = sailRow(axis, SAILS.count, SAILS.height * u, SAILS.width * u, SAILS.from, SAILS.to, base + h * u);
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.Float32BufferAttribute(g.pos, 3));
+    geo.computeVertexNormals();
+    this.gFoot.add(new THREE.Mesh(geo, this.matDeck));
+    const l = this.fatLines(new Float32Array(g.edge), this.matEdge);
+    if (l) this.gFoot.add(l);
+  }
+  // The rail yard and the marinas: rails as faint pairs of lines on the ground, boats as small white
+  // boxes on the water. Boats that would land on the shore mask are left out.
+  buildHarbour() {
+    this.clear(this.gHarbour);
+    const proj = this.proj, u = 1 / this.mPerUnit;
+    // the City's rail centrelines, draped on the ground in a light line
+    const pos = [], lift = 0.05 * u;
+    (this.data.rail || []).forEach((pts) => {
+      for (let i = 1; i < pts.length; i++) {
+        const ax = proj.x(pts[i - 1][0]), az = proj.y(pts[i - 1][1]), bx = proj.x(pts[i][0]), bz = proj.y(pts[i][1]);
+        const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, bz - az) / (15 * u)));
+        let px = ax, pz = az, py = this.yAt(px, pz) + lift;
+        for (let k = 1; k <= n; k++) { const qx = ax + (bx - ax) * k / n, qz = az + (bz - az) * k / n, qy = this.yAt(qx, qz) + lift; pos.push(px, py, pz, qx, qy, qz); px = qx; pz = qz; py = qy; }
+      }
+    });
+    if (pos.length) this.gHarbour.add(new THREE.LineSegments(this.flatGeo(pos), this.matRail));
+    const bpos = [], bedge = [];
+    MARINAS.forEach((m, k) => {
+      const x = proj.x(m.at[0]), z = proj.y(m.at[1]);
+      if (this.yAt(x, z) > 0.2 * u) return;                           // the corner is on land: skip the marina
+      const g = boatBoxes(x, z, -m.heading * Math.PI / 180, m.rows, m.cols, m.pitch, u, 0.02 * u, k + 1);
+      bpos.push(...g.pos); bedge.push(...g.edge);
+    });
+    if (bpos.length) {
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute("position", new THREE.Float32BufferAttribute(bpos, 3));
+      geo.computeVertexNormals();
+      this.gHarbour.add(new THREE.Mesh(geo, this.matDeck));
+      const l = this.fatLines(new Float32Array(bedge), this.matEdge);
+      if (l) this.gHarbour.add(l);
+    }
+  }
   // A geodesic sphere on a landmark's footprint: an icosahedron at the building's colour, its
   // triangles' edges in ink, centred on the round part of the footprint and resting on the ground.
   addDome({ ring, base, dome }, colour) {
@@ -625,11 +764,19 @@ export class District3D {
     this.streetLabels = [];
     const pick = arterialPicks(this.data.streets, proj);
     Object.keys(pick).forEach((name) => {
-      const sg = pick[name].sg, a = sg.c[0], b = sg.c[sg.c.length - 1];
-      const x = (proj.x(a[0]) + proj.x(b[0])) / 2, z = (proj.y(a[1]) + proj.y(b[1])) / 2;
-      this.streetLabels.push({ text: name, x, z, y: this.yAt(x, z),
-                               ax: proj.x(a[0]), az: proj.y(a[1]), bx: proj.x(b[0]), bz: proj.y(b[1]) });
+      // the label lies along the longest straight stretch of the segment, so it follows the road
+      // rather than cutting across a bend; a name too long for its stretch is left off
+      const c = pick[name].sg.c.map((p) => [proj.x(p[0]), proj.y(p[1])]);
+      let best = null;
+      for (let i = 1; i < c.length; i++) {
+        const L = Math.hypot(c[i][0] - c[i - 1][0], c[i][1] - c[i - 1][1]);
+        if (!best || L > best.L) best = { L, a: c[i - 1], b: c[i] };
+      }
+      if (!best) return;
+      const x = (best.a[0] + best.b[0]) / 2, z = (best.a[1] + best.b[1]) / 2;
+      this.streetLabels.push({ text: name, x, z, y: this.yAt(x, z), ax: best.a[0], az: best.a[1], bx: best.b[0], bz: best.b[1], len: best.L });
     });
+    this.streetLabels.sort((p, q) => q.len - p.len);   // the long streets claim their room first
     this.buildNames();
   }
   // The City's public trees: a canopy and a trunk each, instanced, sized by
@@ -692,7 +839,8 @@ export class District3D {
     (this.streetLabels || []).forEach((l) => {
       const tex = this.nameTexture(l.text);
       const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1),
-        new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.9, depthWrite: false, side: THREE.DoubleSide }));
+        new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.9, depthWrite: false, depthTest: false, side: THREE.DoubleSide }));
+      m.renderOrder = 5;   // drawn after the massing, so a name is never hidden behind a building
       m.rotation.order = "YXZ"; m.rotation.x = -Math.PI / 2;
       m.position.set(l.x, l.y + 0.16, l.z);
       const dx = l.bx - l.ax, dz = l.bz - l.az, len = Math.hypot(dx, dz) || 1;
@@ -718,12 +866,12 @@ export class District3D {
       const pxD = Math.hypot(cd.x - q.x, cd.y - q.y), pxN = Math.hypot(cn.x - q.x, cn.y - q.y);
       if (pxD < 1e-6 || pxN < 1e-6 || pxN / pxD < 0.15 || pxD / pxN < 0.15) return;
       let w = u.pw * far / pxD, h = u.ph * far / pxN;
-      const cap = Math.min(Math.max(u.len, 150), 320);
-      if (w > cap) { if (w > cap * 2) return; h *= cap / w; w = cap; }
+      if (w > u.len * 0.9) return;                        // the name would spill past its straight stretch of road
       const sw = u.pw * far;
       for (let i = 0; i < this.namePlaced.length; i++) {
+        // names as discs on screen: two may not sit within each other's reach, whatever their angle
         const o = this.namePlaced[i];
-        if (Math.abs(o[0] - q.x) < (o[2] + sw) / 2 && Math.abs(o[1] - q.y) < 16) return;
+        if (Math.hypot(o[0] - q.x, o[1] - q.y) < (o[2] + sw) / 2 * 0.55 + 10) return;
       }
       this.namePlaced.push([q.x, q.y, sw]);
       m.scale.set(w, h, 1);
@@ -810,7 +958,7 @@ export class District3D {
   build() {
     if (!this.ready || !this.data || !this.data.streets || !this.proj) return;
     this.scale();
-    if (this.needFoot) { this.buildGround(); this.buildGrass(); this.buildCurbs(); this.buildFoot(); this.buildStreets(); this.buildTrees(); this.needFoot = false; }
+    if (this.needFoot) { this.buildGround(); this.buildGrass(); this.buildCurbs(); this.buildFoot(); this.buildBridges(); this.buildHarbour(); this.buildStreets(); this.buildTrees(); this.needFoot = false; }
     this.buildSro();
     this.select();
     this.dirty = true;
@@ -823,7 +971,7 @@ export class District3D {
     if (this.data.foot) this.data.foot.forEach((f) => { if (!f.h) none++; });
     return "Heights are the City’s 2009 LiDAR: " + n + " of the Appendix B buildings measured"
       + (est ? ", " + est + " estimated from room count" : "") + "."
-      + (none ? " " + none.toLocaleString("en-CA") + " footprints with no reading stand at " + NOMINAL_H + " m." : "");
+      + (none ? " " + none.toLocaleString("en-CA") + " footprints with no reading stand at a guessed " + GUESS_STOREYS[0] + " to " + GUESS_STOREYS[1] + " storeys." : "");
   }
 
   // ---- camera ----
@@ -1020,18 +1168,17 @@ export class District3D {
     }
   }
 
-  // Building names when close enough that they can be read, skipping any that
-  // would land on one already placed or on a street name.
+  // Building names: only the building under the pointer and the selected one
+  // carry a name, so the massing reads clean until a building is asked about.
   drawLabels() {
     const parts = [], placed = (this.namePlaced || []).slice(), esc = (v) => String(v).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
     const free = (x, y, w) => {
       for (let i = 0; i < placed.length; i++) if (Math.abs(placed[i][0] - x) < (placed[i][2] + w) / 2 && Math.abs(placed[i][1] - y) < 14) return false;
       placed.push([x, y, w]); return true;
     };
-    const close = this.cam.r < this.proj.W * 0.22;
     this.sroMeshes.forEach((m) => {
       const u = m.userData, sel = u.s === this.sel;
-      if (!close && !sel && u.s !== this.hover) return;
+      if (!sel && u.s !== this.hover) return;
       const q = this.toScreen(u.cx, u.top, u.cz);
       if (!q.on) return;
       const name = this.data.surveyed[u.s].name, w = name.length * 6.2 + 8;

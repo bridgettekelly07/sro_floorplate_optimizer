@@ -10,6 +10,7 @@ into frontend/public/data and all for the CONTEXT extent below:
   dtes-terrain.json    1-metre contours -> a heightfield; shoreline-2002 -> a land mask; the contours to draw
   dtes-trees.json      public-trees: position, height, trunk diameter
   dtes-sidewalks.json  sidewalk-condition-rating: the sidewalk centrelines
+  dtes-rail.json       railways: the rail centrelines
   dtes-context.json    building-footprints-2009 outside the surveyed extent, with LiDAR heights
 
 footprints.json (2015 footprints over the surveyed extent, which the SRO records index into)
@@ -244,6 +245,15 @@ json.dump({
     "licence": "Open Government Licence - Vancouver",
     "origin": [CONTEXT[0], CONTEXT[1]], "scale": 1e-5, "lines": encode_lines(sw_lines)
 }, open(os.path.join(OUT, "dtes-sidewalks.json"), "w"), separators=(",", ":"))
+
+# ---- railways ----------------------------------------------------------------
+rail_lines = [to_deg(simplify_any(to_m(c), 0.5)) for f in fetch("ctx-railways.geojson", "railways", "geojson") ["features"] for c in lines_of(f["geometry"])]
+print("railways", len(rail_lines))
+json.dump({
+    "source": "City of Vancouver Open Data, 'Railways' (railways), the context extent: the rail centrelines, drawn as light lines on the ground. Retrieved " + RETRIEVED + ".",
+    "licence": "Open Government Licence - Vancouver",
+    "origin": [CONTEXT[0], CONTEXT[1]], "scale": 1e-5, "lines": encode_lines(rail_lines)
+}, open(os.path.join(OUT, "dtes-rail.json"), "w"), separators=(",", ":"))
 
 # ---- context footprints: 2009, with heights, outside the surveyed extent -----------
 # the surveyed extent is the 2015 footprints' bounding box

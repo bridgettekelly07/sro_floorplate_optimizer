@@ -28,11 +28,11 @@ export function decodeFootprints(d) {
 // Every file loads on its own; whatever fails leaves its slot null and the
 // rest of the tool still works.
 export async function loadAll() {
-  const [streets, buildings, footprints, massing, records, ground, terrain, trees, sidewalks, context] = await Promise.all([
+  const [streets, buildings, footprints, massing, records, ground, terrain, trees, sidewalks, context, rail] = await Promise.all([
     getJson("dtes-streets.json"), getJson("sro-buildings.json"), getJson("footprints.json"),
     getJson("sro-massing.json"), getJson("sro-records.json"), getJson("dtes-ground.json"),
     getJson("dtes-terrain.json"), getJson("dtes-trees.json"), getJson("dtes-sidewalks.json"),
-    getJson("dtes-context.json")
+    getJson("dtes-context.json"), getJson("dtes-rail.json")
   ]);
   const mass = [];
   if (massing && massing.buildings) massing.buildings.forEach((rec) => { mass[rec.i] = rec; });
@@ -46,7 +46,8 @@ export async function loadAll() {
     terrain: decodeTerrain(terrain),
     trees: decodeTrees(trees),
     sidewalks: decodeLines(sidewalks),
-    context: decodeFootprints(context)
+    context: decodeFootprints(context),
+    rail: decodeLines(rail)
   };
 }
 

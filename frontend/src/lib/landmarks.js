@@ -8,6 +8,18 @@ export const LANDMARKS = [
     baseH: 12,                              // the round two-storey base; the LiDAR reads the top of the dome, 45 m
     dome: { r: 28, lift: 6, detail: 3 },    // the geodesic sphere, drawn a fifth over its 47 m and raised so it sits on the base rather than in it
   },
+  {
+    name: "BC Place",
+    lon: -123.1119, lat: 49.2768,
+    baseH: 30,                              // the drum to the rim of the roof; the LiDAR reads the mast tops, 63 m
+    stadium: true,                          // the domed roof, the oculus and the 36 masts
+  },
+  {
+    name: "Canada Place",
+    lon: -123.1115, lat: 49.2885,
+    baseH: 14,                              // the pier deck and halls; the LiDAR reads the sail tops, 40 m
+    sails: true,                            // the five sails along the pier
+  },
 ];
 
 // is a point inside a ring?

@@ -1,7 +1,7 @@
 // Curb lines: offset to both edges, trimmed where they would cross another street.
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { curbRuns, segDist } from "../src/lib/curbs.js";
+import { curbRuns, segDist, offsetPolyline } from "../src/lib/curbs.js";
 
 const flat = (runs) => runs.flat();
 
@@ -37,6 +37,25 @@ describe("the curb lines", () => {
     const tight = flat(curbRuns([ew, ns], 0.25)).filter((p) => Math.abs(p[1]) === 5).map((p) => Math.abs(p[0] - 50));
     const loose = flat(curbRuns([ew, ns], 0.25, { slack: 0.5 })).filter((p) => Math.abs(p[1]) === 5).map((p) => Math.abs(p[0] - 50));
     assert.ok(Math.min(...loose) < Math.min(...tight));
+  });
+  test("lands a point exactly on the crossing street's edge, so the corner closes", () => {
+    const ew = { pts: [[0, 0], [100, 0]], hw: 5 }, ns = { pts: [[50, -60], [50, 60]], hw: 6 };
+    const runs = curbRuns([ew, ns], 10);   // a coarse step: without the landed point the line would stop at x = 40
+    const ewPts = flat(runs).filter((p) => Math.abs(Math.abs(p[1]) - 5) < 1e-9);
+    const nearest = Math.min(...ewPts.map((p) => Math.abs(p[0] - 50)));
+    assert.ok(Math.abs(nearest - 6) < 1e-4, "ends on the north-south street's edge, at " + nearest);
+    // and the north-south curbs end on the east-west street's edge the same way
+    const nsPts = flat(runs).filter((p) => Math.abs(Math.abs(p[0] - 50) - 6) < 1e-9);
+    assert.ok(Math.abs(Math.min(...nsPts.map((p) => Math.abs(p[1]))) - 5) < 1e-4);
+  });
+  test("mitres a bend so the outer curb turns the corner in one line", () => {
+    const L = [[0, 0], [50, 0], [50, 50]];
+    const outer = offsetPolyline(L, -5), inner = offsetPolyline(L, 5);
+    assert.deepEqual(outer.map((p) => p.map((v) => Math.round(v * 1e6) / 1e6)), [[0, -5], [55, -5], [55, 50]]);
+    assert.deepEqual(inner.map((p) => p.map((v) => Math.round(v * 1e6) / 1e6)), [[0, 5], [45, 5], [45, 50]]);
+    const runs = curbRuns([{ pts: L, hw: 5 }], 5);
+    assert.equal(runs.length, 2);
+    runs.forEach((r) => assert.ok(r.some((p) => Math.abs(Math.abs(p[0] - 50) - 5) < 1e-9 && Math.abs(Math.abs(p[1]) - 5) < 1e-9), "passes through the mitre point"));
   });
   test("measures the distance to a segment", () => {
     assert.equal(segDist(5, 3, 0, 0, 10, 0), 3);

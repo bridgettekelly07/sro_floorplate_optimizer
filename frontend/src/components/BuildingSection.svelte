@@ -71,20 +71,15 @@
 
 {#if b}
   <BuildingCard {b} {i} {data} colour={cardColour(b, i, scen)} onclose={() => selectBuilding(i)} />
-{:else}
-  <p class="src">Click a building to read its record and draw its typical floor below.
-    Drag to pan, shift-drag or right-drag to orbit, scroll to zoom.</p>
 {/if}
 
 <div class="stage-bar">
   <span class="label">{b ? b.name + " · " + b.addr : "No building selected"}</span>
-  <span class="label">{b ? (proposed ? "Under these thresholds" : "As it stands") : ""}</span>
 </div>
 
 <div id="bp-plan" class="plan-stage">
   {#if !b}
-    <div class="empty">Click a building on the map. Its typical floor is drawn here from the City’s footprint, with the square footage of every room,
-      at the scheme that passes the thresholds beside it while displacing the fewest tenants. Move a threshold and the plan redraws.</div>
+    <div class="empty">Click a building on the map</div>
   {:else if !drawn}
     <div class="empty">{b.name} has no footprint or parcel outline in the City data, so no typical floor can be drawn.</div>
   {:else}
