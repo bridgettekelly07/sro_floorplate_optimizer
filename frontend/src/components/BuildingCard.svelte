@@ -5,6 +5,7 @@
   import { floorsOf } from "../lib/typicalFloor.js";
   import { fmt, money } from "../lib/format.js";
   import { recordOf } from "../lib/data.js";
+  import { isPrivate } from "../lib/colours.js";
   let { b, i, data, colour, onclose } = $props();
 
   const pct = $derived(b.rooms ? Math.round(b.surveys / b.rooms * 100) : 0);
@@ -17,7 +18,7 @@
   <div>
     <h4><i></i>{b.name}</h4>
     <div class="addr">{b.addr}</div>
-    <div class="who">{b.surveyed ? (b.tenure === "market" ? "Market" : "Non-market") : "Not surveyed"}
+    <div class="who">{isPrivate(b) ? "Private" : "Public"}{b.surveyed ? "" : " · not surveyed"}
       {#if b.ownerType}· owned <b>{b.ownerType}</b>{/if}</div>
   </div>
   <div class="stats">

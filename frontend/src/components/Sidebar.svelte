@@ -35,17 +35,6 @@
     <PolicySection {data} {district} />
   </section>
 
-  <footer>
-    <p><strong>Scope.</strong> The tool searches for the compliant scheme of adjacent merges that loses
-      the fewest rooms under the thresholds set, building by building and across the district, and
-      draws it. It does not model the permit process, financial-viability findings,
-      rent-setting, or whether a merge is physically buildable. The model is diagrammatic: rooms are
-      single-loaded off one corridor at an assumed 12&prime; depth, and width follows area. Partitions are
-      drawn at 3&prime; so the plan reads from above. Pod program comes from SRA Guidelines p.5&ndash;6,
-      which dimensions only the refrigerator (24&Prime;&times;24&Prime;); the bathroom
-      (5&prime;&times;8&prime;) and kitchen run (8&prime;&times;2&prime;) are conventional minimums stated
-      here as assumptions.</p>
-  </footer>
 </aside>
 
 <style>

@@ -6,6 +6,7 @@
   import MapFlat from "./MapFlat.svelte";
   import Map3D from "./Map3D.svelte";
   import MapLegend from "./MapLegend.svelte";
+  import MapReadout from "./MapReadout.svelte";
   import MapZoom from "./MapZoom.svelte";
 
   let { data, proj, district } = $props();
@@ -19,10 +20,6 @@
   const scen = $derived(ui.scenColour && district ? district.scen : null);
   const colourOf = (b, i) => mapColour(b, i, scen);
   const colourHex = (b, i) => mapColourHex(b, i, scen);
-  const gradientOf = (i) => {
-    const sc = scen && scen[i];
-    return sc && sc.state === "converted" && sc.lost ? Math.min(1, (sc.n ? sc.lost / sc.n : 0) / 0.5) : null;
-  };
   const summary = $derived(data && data.surveyed.length
     ? data.surveyed.length + " buildings · " + data.surveyed.reduce((t, b) => t + (b.rooms || 0), 0).toLocaleString("en-CA") + " rooms" : "");
 
@@ -49,9 +46,10 @@
     <div class="label summary">{summary}</div>
   </header>
   <MapLegend />
+  <MapReadout {district} />
   {#if ready}
     {#if ui.mode3d}
-      <Map3D bind:this={three} {data} {proj} {scen} theme={ui.theme} colourOf={colourHex} {gradientOf} sel={ui.sel} plan={ui.plan3d}
+      <Map3D bind:this={three} {data} {proj} {scen} theme={ui.theme} colourOf={colourHex} sel={ui.sel} plan={ui.plan3d}
         onSelect={selectBuilding} onHover={hover} onFail={failed} onPlanChange={(on) => { ui.plan3d = on; }}
         onBusy={(on) => { busy = Math.max(0, busy + (on ? 1 : -1)); }} />
     {:else}

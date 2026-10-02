@@ -5,9 +5,7 @@
   import { planOf } from "../lib/model.js";
   import { cardColour } from "../lib/colours.js";
   import { pct, count, money } from "../lib/format.js";
-  import Tile from "./Tile.svelte";
   import ScenarioStrip from "./ScenarioStrip.svelte";
-  import StockBar from "./StockBar.svelte";
 
   let { data, district } = $props();
   let whichOpen = $state(false);
@@ -35,14 +33,7 @@
   {/if}
 </div>
 <div class="label">The policy</div>
-<div class="field">
-  <label for="d-scope">Which buildings it reaches</label>
-  <select id="d-scope" bind:value={ui.scope}>
-    <option value="market">Private SROs</option>
-    <option value="all">All of Appendix B</option>
-    <option value="nonmarket">Public SROs</option>
-  </select>
-</div>
+<p class="src">Applied to every SRO in Appendix B, public and private alike: {data ? data.surveyed.length : 143} buildings.</p>
 
 <div class="label out-head">Who is displaced</div>
 {#if out}
@@ -50,36 +41,21 @@
     {#if out.convert}
       <strong>{out.convert} of {out.of} buildings convert</strong> under these thresholds, delivering {count(out.units)} units and keeping {count(out.kept)} rooms as SRA.
       <strong>{count(out.lost)} tenants lose their room</strong>{out.tenants ? ", " + pct(out.lost / out.tenants) + " of everyone in the stock the policy reaches" : ""}.
-      {#if out.cannot}{out.cannot} building{out.cannot > 1 ? "s" : ""} with {count(out.stuckTenants)} rooms cannot pass these thresholds and stay as they are.{:else}Every building in scope can pass.{/if}
+      {#if out.cannot}{out.cannot} building{out.cannot > 1 ? "s" : ""} with {count(out.stuckTenants)} rooms cannot pass these thresholds and stay as they are.{:else}Every building can pass.{/if}
     {:else}<strong>Nothing converts</strong> under these thresholds.{/if}
   </p>
-  <div class="tally three">
-    <Tile n={count(out.lost)} label={"Tenants displaced" + (out.tenants ? " · " + pct(out.lost / out.tenants) : "")} />
-    <Tile n={out.convert + "/" + out.of} label="Buildings convert" />
-    <Tile n={count(out.units)} label="Units delivered" />
-    <Tile n={count(out.kept)} label="Rooms kept as SRA" />
-    <Tile n={count(out.council)} label={"Need Council · over " + small + " rooms lost"} />
-    <Tile n={money(out.comp)} label="Compensation, s.4.8(i)" />
-  </div>
-  <div class="label out-head">Every tenant the policy reaches</div>
-  <StockBar parts={[
-    { n: out.lost, label: "Displaced: their room is lost", colour: "var(--fail)", dark: true },
-    { n: out.units, label: "Re-housed in a new unit", colour: "var(--pass)", dark: true },
-    { n: out.kept, label: "Stay in a room kept as SRA", colour: "var(--edge)", dark: true },
-    { n: out.stuckTenants, label: "Building cannot pass, left as it is", colour: "var(--scen-x)", dark: false },
-    { n: out.noPlanTenants, label: "No footprint to draw", colour: "var(--map-unsurveyed)", dark: true }
-  ]} />
+  <p class="src">The figures and where every tenant goes are on the map.</p>
 
   <details class="assume out-head" bind:open={whichOpen}>
     <summary>Which buildings · {rows.length} convert{out.cannot ? " · " + out.cannot + " cannot" : ""}</summary>
     {#if cands.stuck.length}
-      <p class="note gap"><strong>{cands.stuck.length} building{cands.stuck.length > 1 ? "s" : ""} cannot pass these thresholds</strong>: no scheme of adjacent merges reaches the unit size while leaving enough rooms standing. Shown white on the map: {names(cands.stuck)}.</p>
+      <p class="note gap"><strong>{cands.stuck.length} building{cands.stuck.length > 1 ? "s" : ""} cannot pass these thresholds</strong>: no scheme of adjacent merges reaches the unit size while leaving enough rooms standing. Shown blue on the map: {names(cands.stuck)}.</p>
     {/if}
     {#if cands.already.length}
       <p class="src"><strong>{cands.already.length} building{cands.already.length > 1 ? "s" : ""} with {count(alreadyRooms)} rooms in Appendix B {cands.already.length > 1 ? "are" : "is"} already self-contained</strong> by {cands.already.length > 1 ? "their records" : "its record"}, so the policy has nothing to convert there: {names(cands.already)}. See the record on the building card.</p>
     {/if}
     {#if cands.noPlan.length}
-      <p class="src">{cands.noPlan.length} in-scope building{cands.noPlan.length > 1 ? "s have" : " has"} no footprint to draw a floor from and {cands.noPlan.length > 1 ? "are" : "is"} left out.</p>
+      <p class="src">{cands.noPlan.length} building{cands.noPlan.length > 1 ? "s have" : " has"} no footprint to draw a floor from and {cands.noPlan.length > 1 ? "are" : "is"} left out.</p>
     {/if}
     {#if rows.length}
       <table class="dist"><thead><tr><th>Converted building</th><th class="n">Rooms</th><th class="n">SF each</th><th class="n">Units</th><th class="n">Displaced</th><th class="n">Share</th><th class="n">Route</th></tr></thead><tbody>
@@ -92,18 +68,6 @@
   </details>
 {/if}
 
-<details class="assume">
-  <summary>Assumptions</summary>
-  <p class="src">The policy is applied everywhere it can be, all at once: every building in
-    scope converts at the scheme that passes the thresholds above while losing the fewest rooms,
-    or nothing. A building whose rooms cannot pass
-    under these thresholds does not convert and is counted. Every room is taken as occupied, so
-    rooms lost are tenants displaced; the survey&rsquo;s average tenancy of 4.6 years places each
-    in the 4-month bracket of s.4.8(i), at the survey&rsquo;s average rent for the building&rsquo;s tenure.</p>
-  <p class="src">Room size is read from each footprint: its area less the circulation share,
-    divided by the rooms Appendix B counts on a floor, and capped where a footprint holds far
-    more than its count suggests. A unit takes at most the rooms set above. None of this is in the sources.</p>
-</details>
 
 <style>
   .head { margin: 0 0 10px; }

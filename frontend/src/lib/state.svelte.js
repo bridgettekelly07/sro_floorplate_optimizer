@@ -10,7 +10,7 @@ export const ui = $state({
   liveAssume: { ...SOURCE_ASSUME },
   assume: { ...SOURCE_ASSUME },
   strict: false,          // the size test read strictly, every unit on its own
-  scope: "market",        // which buildings the policy reaches
+  scope: "all",           // the policy reaches every SRO in Appendix B
   sel: null,              // the selected building, by Appendix B index
   planView: "existing",   // the rooms as they stand, until a threshold moves
   scenColour: true,       // the map coloured by the policy rather than by tenure

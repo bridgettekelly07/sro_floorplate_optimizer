@@ -6,7 +6,7 @@
   import { onMount, tick } from "svelte";
   import { District3D } from "../lib/district3d.js";
 
-  let { data, proj, scen, theme, colourOf, gradientOf, sel, plan, onSelect, onHover, onFail, onPlanChange, onBusy } = $props();
+  let { data, proj, scen, theme, colourOf, sel, plan, onSelect, onHover, onFail, onPlanChange, onBusy } = $props();
   let wrap = $state(), labels = $state();
   let d3 = null, started = $state(false), alive = true;
 
@@ -36,7 +36,7 @@
       if (!d3.init()) { onFail("this browser could not start a WebGL context."); return; }
       d3.resize();
       d3.fit();
-      d3.setStyle(colourOf, gradientOf);
+      d3.setStyle(colourOf);
       d3.setSelected(sel);
       d3.setPlan(plan);
       d3.build();
@@ -52,7 +52,7 @@
   $effect(() => {
     void scen;
     if (!started) return;
-    heavy("scene", () => { d3.setStyle(colourOf, gradientOf); d3.build(); });
+    heavy("scene", () => { d3.setStyle(colourOf); d3.build(); });
   });
   $effect(() => { if (started) d3.setSelected(sel); });
   $effect(() => { if (started) d3.setPlan(plan); });

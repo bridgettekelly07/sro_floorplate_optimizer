@@ -31,6 +31,27 @@
   const drawn = $derived(floors.length ? planSvg(planFromState(plan, floors, !proposed), { minUnit: ui.live.minUnit, proposed }) : null);
   const sc = $derived(district && district.scen[i]);
   const meanSf = $derived(floors.length ? floors[0].rooms.reduce((t, r) => t + r.area, 0) / floors[0].rooms.length : 0);
+  // the lesson in one plain sentence: why this many people leave at this minimum
+  const whyLine = $derived.by(() => {
+    if (!ev) return "";
+    const sf = Math.round(meanSf), min = ui.live.minUnit, pol = ui.live;
+    const at = `At about ${sf} SF a room`;
+    if (!(opt && opt.feasible)) {
+      if (sf * 2 < min - 1e-9) return `${at} is too small for two of them to reach ${min} SF, so every unit would need three rooms, and three-room units cannot leave enough rooms standing to pass the other tests. Under these thresholds this building cannot convert; only a smaller minimum changes that.`;
+      return `${at} cannot be merged into units that reach ${min} SF without losing more rooms than the ${Math.round(pol.maxReduction * 100)}% cut allows, or returning fewer than the ${Math.round(pol.minReplace * 100)}% the plan requires. Under these thresholds this building cannot convert.`;
+    }
+    const sizes = ev.units.map((u) => u.idx.length), pairs = sizes.filter((n) => n === 2).length, triples = sizes.filter((n) => n >= 3).length, singles = sizes.filter((n) => n === 1).length;
+    if (!ev.units.length) {
+      if (pol.maxMerge < 2 && sf < min - 1e-9) return `${at} does not reach ${min} SF, and a unit may take only one room, so no unit can be made. Every room is kept and nobody leaves.`;
+      return `Nothing has to convert under these thresholds: keeping every room already passes, so every room is kept and nobody leaves.`;
+    }
+    if (sf >= min - 1e-9) return `${at} already reaches ${min} SF, so rooms convert in place${ev.lost ? ` and only ${ev.lost} ${ev.lost === 1 ? "tenant leaves" : "tenants leave"} to balance the tests` : " and nobody has to leave"}.`;
+    if (!ev.lost) return `${at} falls short of ${min} SF, but the Guidelines accept an average across all converted rooms, so every room converts in place and nobody has to leave.`;
+    const merges = triples > pairs ? "three rooms" : "two rooms";
+    const cost = triples > pairs ? "each three-room unit sends two tenants away" : "each pair sends one tenant away";
+    if (singles > pairs + triples) return `${at} falls short of ${min} SF, but the Guidelines accept an average across all converted rooms, so most rooms convert in place and the ${pairs + triples} merged ${pairs + triples === 1 ? "unit carries" : "units carry"} the average: ${cost}.`;
+    return `${at} does not reach ${min} SF on its own, so a unit is ${merges} knocked together, and ${cost}. That is where the ${ev.displaced} come from.`;
+  });
 
   // selecting a building brings its plan into view
   $effect(() => {
@@ -87,7 +108,8 @@
   <div class="tally"><Tile n={ev.original} label="Rooms" /><Tile n={floors[0].rooms.length} label="Per floor" /><Tile n={Math.round(meanSf) + " SF"} label="Each" /></div>
   <div class="tally gap"><Tile n={ev.units.length} label="Units" /><Tile n={ev.untouched.length} label="Kept as SRA" />
     <Tile n={ev.displaced} label="Tenants displaced" /><Tile n={pct(ev.original ? ev.lost / ev.original : 0)} label="Of the building" /></div>
-  <p class="note gap">
+  <p class="why gap">{whyLine}</p>
+  <p class="note">
     {#if opt && opt.feasible}
       <strong>The scheme that loses the fewest rooms under these thresholds</strong>{ev.size.viaAverage ? ", the size test on the average fallback" : ""}:
       {opt.units} units, {opt.kept} rooms kept as SRA, <strong>{opt.lost} tenants displaced</strong> of {opt.original}. Every scheme of adjacent merges was searched; none loses fewer.
@@ -125,6 +147,7 @@
   .plan-legend .swatch.circ { background: var(--sunk); border: 1px solid var(--rule); }
   .plan-legend .swatch.hatch { background: repeating-linear-gradient(45deg, var(--rule) 0 1px, transparent 1px 3px); }
   .gap { margin-top: 12px; }
+  .why { font-size: 13.5px; line-height: 1.5; color: var(--ink); margin: 12px 0 6px; padding-left: 10px; border-left: 2px solid var(--accent); }
   .tally.gap { margin-top: 10px; }
   button.inline { margin-left: 6px; }
 </style>

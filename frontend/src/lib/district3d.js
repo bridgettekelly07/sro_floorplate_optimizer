@@ -52,14 +52,14 @@ export class District3D {
     this.onSelect = onSelect; this.onHover = onHover;
     this.on = false; this.ready = false; this.dirty = true; this.needFoot = true;
     this.hover = null; this.mPerUnit = 1; this.plan = false; this.framed = false;
-    this.sel = null; this.colourOf = () => "#888888"; this.gradientOf = () => null;
+    this.sel = null; this.colourOf = () => "#888888";
     this.data = null; this.proj = null;
   }
 
   // ---- data and style ----
   setData(data, proj) { this.data = data; this.proj = proj; this.needFoot = true; this.parkShades = null; this.shore = undefined; this.outline = undefined; this.shoreBytes = undefined; }
-  // colourOf(b, i) -> hex; gradientOf(i) -> 0..1 strength of the roof fade, or null
-  setStyle(colourOf, gradientOf) { this.colourOf = colourOf; this.gradientOf = gradientOf; }
+  // colourOf(b, i) -> hex: the policy colour, or the tenure colour, for each SRO's whole massing
+  setStyle(colourOf) { this.colourOf = colourOf; }
   setSelected(i) { this.sel = i; if (this.ready) { this.select(); this.dirty = true; } }
 
   init() {
@@ -764,7 +764,6 @@ export class District3D {
         mesh.position.set(cx, base + y / 2, cz);
       }
       mesh.userData = { s: i, cx, cz, base, top: base + top / this.mPerUnit, est: !b.hgtM };
-      this.gradient(mesh, i);
       this.gSro.add(mesh);
       if (rec || pts) {
         this.gSro.add(this.edgeLines(this.matEdgeSro));
@@ -796,25 +795,6 @@ export class District3D {
         this.gSro.add(new THREE.LineSegments(sg, this.matStorey));
       }
     });
-  }
-
-  // The policy painted on the massing: a converting building fades from the
-  // colour of nobody displaced at the ground toward the displacement colour
-  // at the roof; how red the roof gets is the share of its tenants who lose
-  // their room, full red at half, the largest cut the Guidelines allow.
-  gradient(mesh, i) {
-    const strength = this.gradientOf(i);
-    if (strength == null) return;
-    const geo = mesh.geometry, col = geo.getAttribute("color"), pos = geo.getAttribute("position");
-    if (!col || !pos) return;
-    const y0 = mesh.userData.base || 0, span = Math.max(1e-6, (mesh.userData.top || 1) - y0);
-    const base = new THREE.Color(hexOf(css("--scen-0"))), hot = new THREE.Color(hexOf(css("--scen-1"))), c = new THREE.Color();
-    for (let k = 0; k < pos.count; k++) {
-      const f = Math.max(0, Math.min(1, (pos.getY(k) - y0) / span));
-      c.copy(base).lerp(hot, f * strength);
-      col.setXYZ(k, c.r, c.g, c.b);
-    }
-    col.needsUpdate = true;
   }
 
   select() {

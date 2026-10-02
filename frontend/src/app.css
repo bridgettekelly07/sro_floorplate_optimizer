@@ -36,7 +36,12 @@
   --map-unsurveyed: #b9c1b8;
   --scen-0: #f0dd8f;
   --scen-1: #e9a090;
-  --scen-x: #2b2b2b;
+  /* the policy map's four classes of tenants displaced: none, a few, some, many */
+  --scen-c0: #f0dd8f;
+  --scen-c1: #eec98f;
+  --scen-c2: #ebb08e;
+  --scen-c3: #e18f7c;
+  --scen-x: #8da2b8;        /* cannot convert: a slate blue against the yellow-to-salmon ramp */
   --scen-works: #b9c1b8;
   --map-foot: #e4e7e0;
   --map-foot-line: #b9c1b8;
@@ -116,7 +121,11 @@
     --map-unsurveyed: #6d736c;
     --scen-0: #58c08a;
     --scen-1: #e8705a;
-    --scen-x: #f1efe8;
+    --scen-c0: #58c08a;
+    --scen-c1: #9fb17a;
+    --scen-c2: #d0966c;
+    --scen-c3: #e8705a;
+    --scen-x: #6f88a3;
     --scen-works: #f7d24a;
     --map-foot: #262b28;
     --map-foot-line: #323834;
@@ -195,7 +204,11 @@
   --map-unsurveyed: #6d736c;
   --scen-0: #58c08a;
   --scen-1: #e8705a;
-  --scen-x: #f1efe8;
+  --scen-c0: #58c08a;
+  --scen-c1: #9fb17a;
+  --scen-c2: #d0966c;
+  --scen-c3: #e8705a;
+  --scen-x: #6f88a3;
   --scen-works: #f7d24a;
   --map-foot: #262b28;
   --map-foot-line: #323834;
