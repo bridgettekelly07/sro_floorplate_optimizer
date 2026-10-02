@@ -57,13 +57,9 @@ amendments; every threshold sits with its citation in [`policy.js`](frontend/src
 
 Hotel Canada, 518 Richards St.: 150 rooms, 25 to a floor, each read as 130 SF from the footprint.
 
-![The tool with Hotel Canada selected](documentation/images/overview.jpg)
-
 At the City's 200 SF every unit must take two rooms: the least-loss scheme keeps 18 rooms as SRA, makes
 84 units and loses 48, so 48 tenants are displaced, 32% of the building. At 150 SF most rooms convert in
 place and the loss falls to 18.
-
-![Hotel Canada at 150 SF](documentation/images/plan-hotel-canada-150sf.svg)
 
 ## Limits
 
