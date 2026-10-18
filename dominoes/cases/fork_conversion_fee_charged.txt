@@ -1,0 +1,11 @@
+
+Timeline for conversion_fee=charged, horizon 10 years, axis starts at year 0
+
+  yr   0  +  Replacement housing reserve fund       planning      mechanism    cov_council_2003_2015_2020   fork f4
+  yr   0  0  Replacement housing reserve fund       planning      moderate     cov_council_2025_04_15_r6    fork f4
+
+Forks reached (both sides drawn): {'f4': ['e25', 'e30']}
+
+2 effects. 0 land before the decision. 0 land past the horizon.
+
+wrote timeline.json

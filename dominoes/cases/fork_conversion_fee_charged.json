@@ -1,0 +1,53 @@
+{
+  "option": "conversion_fee=charged",
+  "decision_label": "Per-room charge for removing a room from the bylaw",
+  "option_label": "charged",
+  "horizon": 10,
+  "axis_start": 0,
+  "events": [
+    {
+      "claim_type": "mechanism",
+      "from": "conversion_fee=charged",
+      "to": "replacement_reserve",
+      "direction": "+",
+      "camp": "planning",
+      "evidence": null,
+      "geography": "vancouver",
+      "source": "cov_council_2003_2015_2020",
+      "fork": "f4",
+      "note": "Bylaw directs the charge into a reserve earmarked for replacement housing.",
+      "edge": "e25",
+      "to_label": "Replacement housing reserve fund",
+      "direction_net": "+",
+      "year_min": 0,
+      "year_max": 0,
+      "past_horizon": false,
+      "before_decision": false,
+      "path": [
+        "e25"
+      ]
+    },
+    {
+      "claim_type": "observation",
+      "from": "conversion_fee=charged",
+      "to": "replacement_reserve",
+      "direction": "0",
+      "camp": "planning",
+      "evidence": "moderate",
+      "geography": "vancouver",
+      "source": "cov_council_2025_04_15_r6",
+      "fork": "f4",
+      "note": "The fee has not been charged at its listed rate since 2015. Reserve inflow from fees is near zero in practice; e25 describes the rule, this describes the record.",
+      "edge": "e30",
+      "to_label": "Replacement housing reserve fund",
+      "direction_net": "0",
+      "year_min": 0,
+      "year_max": 0,
+      "past_horizon": false,
+      "before_decision": false,
+      "path": [
+        "e30"
+      ]
+    }
+  ]
+}
