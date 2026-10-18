@@ -14,6 +14,9 @@ Rules (from the tool-logic diagram):
   - negative lags are allowed and land before t
   - a direction 0 edge lands on the axis but does not propagate: the outcome
     it reaches is drawn, and nothing downstream of it is reached through it
+  - sign composes along a chain by multiplication: an effect's net direction
+    is the product of the directions of every edge on its path (- times - is
+    +), kept in direction_net; direction stays the edge's own reading
   - forks are traversed on both sides and never resolved
   - effects whose earliest year is past the horizon are kept and marked, not dropped
 """
@@ -35,6 +38,13 @@ def label(graph, node):
         if o["id"] == node:
             return o["label"]
     return node
+
+SIGN = {"+": 1, "-": -1, "0": 0}
+SIGN_CHAR = {1: "+", -1: "-", 0: "0"}
+
+def compose(sign, direction):
+    """Multiply the sign carried along the path by this edge's direction."""
+    return sign * SIGN[direction]
 
 def stop(msg):
     print("STOP:", msg)
@@ -68,9 +78,9 @@ def traverse(graph, option, horizon):
     """Breadth-first over outcome-to-outcome edges, summing lags along each path."""
     events = []
     seen_paths = set()
-    queue = deque([(option, 0, 0, [])])
+    queue = deque([(option, 0, 0, [], 1)])
     while queue:
-        node, y_min, y_max, path = queue.popleft()
+        node, y_min, y_max, path, sign = queue.popleft()
         for e in outgoing(graph, node):
             if e["id"] in path:
                 continue  # no cycles
@@ -81,6 +91,7 @@ def traverse(graph, option, horizon):
             seen_paths.add(key)
             emin = y_min + e["lag_min"]
             emax = y_max + e["lag_max"]
+            net = compose(sign, e["direction"])
             events.append({
                 "edge": e["id"],
                 "claim_type": e["claim_type"],
@@ -88,6 +99,7 @@ def traverse(graph, option, horizon):
                 "to": e["to"],
                 "to_label": label(graph, e["to"]),
                 "direction": e["direction"],
+                "direction_net": SIGN_CHAR[net],
                 "year_min": emin,
                 "year_max": emax,
                 "camp": e["camp"],
@@ -102,7 +114,7 @@ def traverse(graph, option, horizon):
             if e["direction"] == "0":
                 # a 0 edge lands on the axis but does not pass its effect on
                 continue
-            queue.append((e["to"], emin, emax, new_path))
+            queue.append((e["to"], emin, emax, new_path, net))
     return events
 
 def render_text(events, option, horizon):
@@ -113,9 +125,10 @@ def render_text(events, option, horizon):
         if ev["before_decision"]: flags.append("before decision")
         if ev["past_horizon"]: flags.append("past horizon")
         if ev["fork"]: flags.append(f"fork {ev['fork']}")
+        if ev["direction_net"] != ev["direction"]: flags.append(f"edge reads {ev['direction']}, net {ev['direction_net']}")
         grade = ev["evidence"] or ev["claim_type"]
         yrs = f"yr {ev['year_min']:>3}" if ev["year_min"] == ev["year_max"] else f"yr {ev['year_min']:>3} to {ev['year_max']:<3}"
-        print(f"  {yrs}  {ev['direction']}  {ev['to_label']:<38} {ev['camp']:<13} {grade:<12} {ev['source']:<28} {', '.join(flags)}")
+        print(f"  {yrs}  {ev['direction_net']}  {ev['to_label']:<38} {ev['camp']:<13} {grade:<12} {ev['source']:<28} {', '.join(flags)}")
     forks = {}
     for ev in events:
         if ev["fork"]:
