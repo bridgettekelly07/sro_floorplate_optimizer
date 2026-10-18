@@ -17,6 +17,8 @@ Drawing rules:
     in that row; an effect with lag_min equal to lag_max is a diamond on that
     year rather than a bar
   - the drawing is never narrower than the legend
+  - each bar is followed by its edge id and source key in muted text, so the
+    drawing names its evidence without the hover title
   - edges sharing a fork id are drawn as paired rows, bracketed and labelled
     with the fork id, so both sides sit next to each other
   - colour by camp: economics, planning and architecture are tints of slate;
@@ -50,7 +52,7 @@ CAMP_COLOUR = {
 GRADE_WEIGHT = {"strong": 4.0, "moderate": 2.5, "weak": 1.2}
 
 LEFT = 300      # label column
-RIGHT = 40
+RIGHT = 200     # room for the source label after the last bar
 TOP = 70
 ROW_H = 30
 BAR_H = 14
@@ -194,13 +196,18 @@ def render(tl):
                 shape = (f'<polygon points="{xa},{my - MARK} {xa + MARK},{my} {xa},{my + MARK} '
                          f'{xa - MARK},{my}" {style}/>')
                 sign_x = xa + MARK + 3
+                label_x = sign_x + 12
             else:
                 shape = f'<rect x="{xa}" y="{by + 1}" width="{w}" height="{sub_h - 2}" {style}/>'
                 sign_x = xa + 5
+                label_x = xb + 6
+            src = f'{ev["edge"]}  {ev["source"]}'
             out.append(f'<g><title>{escape(title)}</title>{shape}'
                        f'<text x="{sign_x}" y="{by + sub_h / 2 + 4}" text-anchor="start" '
                        f'font-size="11" font-weight="bold" fill="{INK}">'
-                       f'{escape(str(net_direction(ev)))}</text></g>')
+                       f'{escape(str(net_direction(ev)))}</text>'
+                       f'<text x="{label_x}" y="{by + sub_h / 2 + 4}" text-anchor="start" '
+                       f'font-size="10" fill="{MUTED}">{escape(src)}</text></g>')
 
     # decision rule
     xd = X(0)
