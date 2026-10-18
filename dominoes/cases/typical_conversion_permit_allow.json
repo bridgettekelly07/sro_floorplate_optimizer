@@ -1,5 +1,7 @@
 {
   "option": "conversion_permit=allow",
+  "decision_label": "SRA conversion or demolition permit",
+  "option_label": "allow",
   "horizon": 10,
   "axis_start": -10,
   "events": [

@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1060" height="270" viewBox="0 0 1060 270" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#2B3A42">
+<svg xmlns="http://www.w3.org/2000/svg" width="1220" height="270" viewBox="0 0 1220 270" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#2B3A42">
 <defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#C9A66B" stroke-opacity="0.6" stroke-width="1"/></pattern></defs>
-<rect width="1060" height="270" fill="#E9E2D6"/>
-<text x="300" y="28" font-size="15" font-weight="bold">conversion_permit=allow</text>
-<text x="300" y="46" fill="#5F6E78">horizon 10 years, 3 effects, axis from year -10</text>
+<rect width="1220" height="270" fill="#E9E2D6"/>
+<text x="300" y="28" font-size="15" font-weight="bold">SRA conversion or demolition permit: allow</text>
+<text x="300" y="46" fill="#5F6E78">what the sourced evidence says follows over 10 years: 3 effects, from year -10</text>
 <line x1="300" y1="70" x2="300" y2="160" stroke="#3D5A6C" stroke-opacity="0.15" stroke-width="1"/>
 <text x="300" y="178" text-anchor="middle" fill="#5F6E78">-10</text>
 <line x1="336" y1="70" x2="336" y2="160" stroke="#3D5A6C" stroke-opacity="0.15" stroke-width="1"/>
@@ -30,16 +30,16 @@
 <line x1="1020" y1="70" x2="1020" y2="160" stroke="#3D5A6C" stroke-opacity="0.15" stroke-width="1"/>
 <text x="1020" y="178" text-anchor="middle" fill="#5F6E78">10</text>
 <text x="660.0" y="196" text-anchor="middle" fill="#5F6E78">years from the decision</text>
-<rect x="0" y="70" width="1060" height="30" fill="#3D5A6C" fill-opacity="0.04"/>
+<rect x="0" y="70" width="1220" height="30" fill="#3D5A6C" fill-opacity="0.04"/>
 <text x="288" y="89.0" text-anchor="end">Evictions and forced moves</text>
 <line x1="18" y1="74" x2="18" y2="96" stroke="#E0724E" stroke-width="2"/>
 <text x="24" y="84" fill="#E0724E" font-size="10" font-weight="bold">fork f4</text>
-<g><title>e29 conversion_permit=allow -&gt; tenant_evictions  dir 0  yr -10 to 0  planning  moderate  timing_json_cases</title><rect x="300" y="79.0" width="360" height="12" fill="#6E8594" fill-opacity="0.35" stroke="#6E8594" stroke-width="2.5"/><text x="305" y="89.0" text-anchor="start" font-size="11" font-weight="bold" fill="#2B3A42">0</text></g>
+<g><title>e29 conversion_permit=allow -&gt; tenant_evictions  dir 0  yr -10 to 0  planning  moderate  timing_json_cases</title><rect x="300" y="79.0" width="360" height="12" fill="#6E8594" fill-opacity="0.35" stroke="#6E8594" stroke-width="2.5"/><text x="305" y="89.0" text-anchor="start" font-size="11" font-weight="bold" fill="#2B3A42">0</text><text x="666" y="89.0" text-anchor="start" font-size="10" fill="#5F6E78">e29  timing_json_cases</text></g>
 <text x="288" y="119.0" text-anchor="end">SRO rooms in the DTES</text>
-<g><title>e01 conversion_permit=allow -&gt; sro_room_count  dir -  yr 0 to 1  planning  mechanism  cov_sra_bylaw</title><rect x="660" y="109.0" width="36" height="12" fill="#6E8594" fill-opacity="0.35" stroke="#6E8594" stroke-width="1.2" stroke-dasharray="4 3"/><text x="665" y="119.0" text-anchor="start" font-size="11" font-weight="bold" fill="#2B3A42">-</text></g>
-<rect x="0" y="130" width="1060" height="30" fill="#3D5A6C" fill-opacity="0.04"/>
+<g><title>e01 conversion_permit=allow -&gt; sro_room_count  dir -  yr 0 to 1  planning  mechanism  cov_sra_bylaw</title><rect x="660" y="109.0" width="36" height="12" fill="#6E8594" fill-opacity="0.35" stroke="#6E8594" stroke-width="1.2" stroke-dasharray="4 3"/><text x="665" y="119.0" text-anchor="start" font-size="11" font-weight="bold" fill="#2B3A42">-</text><text x="702" y="119.0" text-anchor="start" font-size="10" fill="#5F6E78">e01  cov_sra_bylaw</text></g>
+<rect x="0" y="130" width="1220" height="30" fill="#3D5A6C" fill-opacity="0.04"/>
 <text x="288" y="149.0" text-anchor="end">Per-room charge in the bylaw</text>
-<g><title>e26 sro_room_count -&gt; bylaw_fee_level  dir +  yr 2 to 6  planning  moderate  cov_council_2003_2015_2020</title><rect x="732" y="139.0" width="144" height="12" fill="#6E8594" fill-opacity="0.35" stroke="#6E8594" stroke-width="2.5"/><text x="737" y="149.0" text-anchor="start" font-size="11" font-weight="bold" fill="#2B3A42">+</text></g>
+<g><title>e26 sro_room_count -&gt; bylaw_fee_level  dir +  yr 2 to 6  planning  moderate  cov_council_2003_2015_2020</title><rect x="732" y="139.0" width="144" height="12" fill="#6E8594" fill-opacity="0.35" stroke="#6E8594" stroke-width="2.5"/><text x="737" y="149.0" text-anchor="start" font-size="11" font-weight="bold" fill="#2B3A42">+</text><text x="882" y="149.0" text-anchor="start" font-size="10" fill="#5F6E78">e26  cov_council_2003_2015_2020</text></g>
 <line x1="660" y1="56" x2="660" y2="160" stroke="#2B3A42" stroke-width="1.5"/>
 <text x="665" y="66" font-size="11" font-weight="bold">decision</text>
 <rect x="300" y="211" width="14" height="10" fill="#3D5A6C" fill-opacity="0.35" stroke="#3D5A6C" stroke-width="2"/>
