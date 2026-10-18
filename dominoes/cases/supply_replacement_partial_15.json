@@ -1,5 +1,7 @@
 {
   "option": "replacement_ratio=partial",
+  "decision_label": "Replacement of lost rooms",
+  "option_label": "partial",
   "horizon": 15,
   "axis_start": 0,
   "events": [
