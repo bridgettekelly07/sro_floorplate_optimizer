@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="1680" viewBox="0 0 680 840" font-family="Helvetica, Arial, DejaVu Sans, sans-serif">
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#3D5A6C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+<rect width="680" height="840" fill="#E9E2D6"/>
+
+<text x="20" y="28" font-size="11" fill="#2B3A42" font-weight="bold">As-is workflow: SRO conversion in Vancouver's Downtown Core</text>
+<text x="20" y="41" font-size="8" fill="#5F6E78">Seven SRA permit cases, Council reports 2013 to 2026. Durations from the files; ? where no case gives one.</text>
+
+<line x1="95" y1="60" x2="95" y2="760" stroke="#2B3A42" stroke-width="0.5"/>
+<g stroke="#2B3A42" stroke-width="0.5">
+<line x1="91" y1="100" x2="99" y2="100"/><line x1="91" y1="190" x2="99" y2="190"/><line x1="91" y1="280" x2="99" y2="280"/><line x1="91" y1="370" x2="99" y2="370"/><line x1="91" y1="460" x2="99" y2="460"/><line x1="91" y1="550" x2="99" y2="550"/><line x1="91" y1="640" x2="99" y2="640"/><line x1="91" y1="730" x2="99" y2="730"/>
+</g>
+<g font-size="8" fill="#2B3A42">
+<text x="10" y="97">10 yr to</text><text x="10" y="107">1 day before</text>
+<text x="10" y="193">wk 0</text>
+<text x="10" y="283">9 to 12 wk</text>
+<text x="10" y="373">? wk</text>
+<text x="10" y="463">3 yr, open</text>
+<text x="10" y="553">? wk</text>
+<text x="10" y="643">? wk</text>
+<text x="10" y="733">0 to 104 wk</text>
+</g>
+
+<g stroke="#C9BFAE" stroke-width="0.5">
+<line x1="318" y1="60" x2="318" y2="780"/><line x1="326" y1="60" x2="326" y2="780"/><line x1="334" y1="60" x2="334" y2="780"/><line x1="342" y1="60" x2="342" y2="780"/>
+</g>
+
+<path d="M260 100 C260 145,330 145,330 190 C330 235,400 235,400 280 C400 325,260 325,260 370 C260 415,400 415,400 460 C400 505,260 505,260 550 C260 595,400 595,400 640 C400 685,330 685,330 730" fill="none" stroke="#3D5A6C" stroke-width="1.2"/>
+
+<path d="M226 100 L204 100 L204 370 L224 370" fill="none" stroke="#3D5A6C" stroke-width="0.6" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
+
+<g fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.6">
+<circle cx="295" cy="145" r="6"/><circle cx="365" cy="235" r="6"/><circle cx="330" cy="325" r="6"/><circle cx="330" cy="415" r="6"/><circle cx="330" cy="505" r="6"/><circle cx="330" cy="595" r="6"/><circle cx="365" cy="685" r="6"/>
+</g>
+
+<circle cx="260" cy="100" r="34" fill="#3D5A6C" stroke="#E0724E" stroke-width="2"/>
+<text x="260" y="104" font-size="10" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Tenants out</text>
+<circle cx="330" cy="190" r="34" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1"/>
+<text x="330" y="194" font-size="10" fill="#2B3A42" text-anchor="middle" font-weight="bold">Apply</text>
+<circle cx="400" cy="280" r="34" fill="#3D5A6C" stroke="#E0724E" stroke-width="2"/>
+<text x="400" y="284" font-size="10" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Council</text>
+<circle cx="260" cy="370" r="34" fill="#3D5A6C" stroke="#E0724E" stroke-width="2"/>
+<text x="260" y="374" font-size="10" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Design</text>
+<circle cx="400" cy="460" r="34" fill="#3D5A6C" stroke="#3D5A6C" stroke-width="1"/>
+<text x="400" y="464" font-size="10" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Fund</text>
+<circle cx="260" cy="550" r="34" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1"/>
+<text x="260" y="554" font-size="10" fill="#2B3A42" text-anchor="middle" font-weight="bold">Build</text>
+<circle cx="400" cy="640" r="34" fill="#3D5A6C" stroke="#E0724E" stroke-width="2"/>
+<text x="400" y="644" font-size="10" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Rent</text>
+<circle cx="330" cy="730" r="34" fill="#E9E2D6" stroke="#E0724E" stroke-width="2"/>
+<text x="330" y="734" font-size="10" fill="#2B3A42" text-anchor="middle" font-weight="bold">Monitor</text>
+
+<g font-size="8" fill="#2B3A42">
+<text x="112" y="103">Owner, fire, closure</text>
+<text x="112" y="148" fill="#5F6E78">relocation plan</text>
+<text x="112" y="193">Owner</text>
+<text x="112" y="238" fill="#5F6E78">application</text>
+<text x="112" y="283">Council, SRA Bylaw</text>
+<text x="112" y="328" fill="#5F6E78">permit, conditions</text>
+<text x="112" y="373">Architect, City</text>
+<text x="112" y="418" fill="#5F6E78">drawings</text>
+<text x="112" y="463">BC Housing</text>
+<text x="112" y="508" fill="#5F6E78">agreement</text>
+<text x="112" y="553">Owner, City</text>
+<text x="112" y="598" fill="#5F6E78">occupancy permit</text>
+<text x="112" y="643">Owner, RTA</text>
+<text x="112" y="688" fill="#5F6E78">rent roll</text>
+<text x="112" y="733">City, CCAP</text>
+</g>
+
+<g fill="none" stroke="#3D5A6C" stroke-width="0.6" stroke-dasharray="4 3">
+<rect x="470" y="70" width="180" height="62" rx="6"/>
+<rect x="470" y="250" width="180" height="62" rx="6"/>
+<rect x="470" y="340" width="180" height="62" rx="6"/>
+<rect x="470" y="430" width="180" height="62" rx="6"/>
+<rect x="470" y="610" width="180" height="62" rx="6"/>
+</g>
+<g font-size="8" fill="#2B3A42">
+<text x="480" y="86" font-weight="bold">Relocation</text>
+<text x="480" y="102">6 of 7 cases: gone before filing</text>
+<text x="480" y="116">LYC 1 day, Aay'in 8 mo, Regent 8 yr</text>
+<text x="480" y="266" font-weight="bold">Council conditions</text>
+<text x="480" y="282">fee $300k/door, last charged 2015</text>
+<text x="480" y="296">Clifton: $1.1M for 74 rooms</text>
+<text x="480" y="356" font-weight="bold">Unit size</text>
+<text x="480" y="372">200 sf average decides designation</text>
+<text x="480" y="386">Regent 161 to 77, Thornton 23 to 12</text>
+<text x="480" y="446" font-weight="bold">Replacement</text>
+<text x="480" y="462">Old Continental: committed 2010</text>
+<text x="480" y="476">interim 2013, permanent open</text>
+<text x="480" y="626" font-weight="bold">Rent rule</text>
+<text x="480" y="642">vacancy control or market</text>
+<text x="480" y="656">resets between tenants</text>
+<text x="470" y="733">biennial survey</text>
+<text x="470" y="196" fill="#5F6E78">minor repair route: staff approval, no Council</text>
+</g>
+
+<g font-size="8" fill="#2B3A42">
+<circle cx="47" cy="800" r="6" fill="#3D5A6C"/><text x="60" y="803">Judgment</text>
+<circle cx="130" cy="800" r="6" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1"/><text x="143" y="803">Handover</text>
+<circle cx="215" cy="800" r="6" fill="none" stroke="#E0724E" stroke-width="2"/><text x="228" y="803">Pain point</text>
+<circle cx="300" cy="800" r="4" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.6"/><text x="313" y="803">Document</text>
+<line x1="380" y1="800" x2="405" y2="800" stroke="#3D5A6C" stroke-width="0.6" stroke-dasharray="4 3"/><text x="412" y="803">Minor repair route</text>
+<text x="520" y="803" fill="#5F6E78">Sources: timing.json, edges.json v0.5</text>
+</g>
+</svg>

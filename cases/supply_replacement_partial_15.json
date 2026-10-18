@@ -1,0 +1,113 @@
+{
+  "option": "replacement_ratio=partial",
+  "horizon": 15,
+  "axis_start": 0,
+  "events": [
+    {
+      "edge": "e11",
+      "claim_type": "mechanism",
+      "from": "replacement_ratio=partial",
+      "to": "new_market_units",
+      "to_label": "New market-rate units nearby",
+      "direction": "+",
+      "year_min": 1,
+      "year_max": 3,
+      "camp": "economics",
+      "evidence": null,
+      "geography": "vancouver",
+      "source": "cov_lap_memo_2014",
+      "fork": null,
+      "past_horizon": false,
+      "before_decision": false,
+      "path": [
+        "e11"
+      ]
+    },
+    {
+      "edge": "e12",
+      "claim_type": "observation",
+      "from": "new_market_units",
+      "to": "vacancy_chain_moves",
+      "to_label": "Moves out of low-income stock",
+      "direction": "+",
+      "year_min": 1,
+      "year_max": 8,
+      "camp": "economics",
+      "evidence": "strong",
+      "geography": "other",
+      "source": "mast_2023",
+      "fork": "f1",
+      "past_horizon": false,
+      "before_decision": false,
+      "path": [
+        "e11",
+        "e12"
+      ]
+    },
+    {
+      "edge": "e14",
+      "claim_type": "theory",
+      "from": "new_market_units",
+      "to": "rent_gap_pressure",
+      "to_label": "Rent-gap reinvestment pressure",
+      "direction": "+",
+      "year_min": 3,
+      "year_max": 13,
+      "camp": "geography",
+      "evidence": null,
+      "geography": "other",
+      "source": "smith_1979",
+      "fork": "f1",
+      "past_horizon": false,
+      "before_decision": false,
+      "path": [
+        "e11",
+        "e14"
+      ]
+    },
+    {
+      "edge": "e13",
+      "claim_type": "observation",
+      "from": "vacancy_chain_moves",
+      "to": "nearby_low_income_rents",
+      "to_label": "Rents in nearby low-income stock",
+      "direction": "-",
+      "year_min": 1,
+      "year_max": 13,
+      "camp": "economics",
+      "evidence": "strong",
+      "geography": "other",
+      "source": "asquith_mast_reed_2023",
+      "fork": null,
+      "past_horizon": false,
+      "before_decision": false,
+      "path": [
+        "e11",
+        "e12",
+        "e13"
+      ]
+    },
+    {
+      "edge": "e15",
+      "claim_type": "observation",
+      "from": "rent_gap_pressure",
+      "to": "displacement",
+      "to_label": "Displacement of low-income residents",
+      "direction": "+",
+      "year_min": 8,
+      "year_max": 28,
+      "camp": "geography",
+      "evidence": "moderate",
+      "geography": "vancouver",
+      "source": "burnett_2014",
+      "fork": null,
+      "past_horizon": false,
+      "before_decision": false,
+      "path": [
+        "e11",
+        "e14",
+        "e15"
+      ]
+    }
+  ]
+}

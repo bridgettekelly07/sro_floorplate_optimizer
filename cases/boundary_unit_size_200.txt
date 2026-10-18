@@ -1,0 +1,13 @@
+
+Timeline for unit_size_sf=200, horizon 10 years, axis starts at year 0
+
+  yr   0  -  Units per converted building           architecture  moderate     cov_council_2026_07_14_r7    
+  yr   0 to 1    -  Evictions and forced moves             health        moderate     fleming_2019                 
+  yr   0 to 2    +  Tenant exposure to violence            health        strong       kennedy_2017                 
+  yr   0 to 2    +  Disruption of medical treatment        health        strong       bccsu_eviction_hiv           
+  yr   0 to 5    +  Tenant mortality risk                  health        theory       honer_2017                   
+  yr   0  -  Building stays under the SRA By-law    planning      mechanism    cov_council_2026_07_14_r7    
+
+6 effects. 0 land before the decision. 0 land past the horizon.
+
+wrote timeline.json
