@@ -41,8 +41,8 @@
 <text x="665" y="119.0" text-anchor="start" font-size="11" font-weight="bold" fill="#2B3A42">-</text></g>
 <rect x="0" y="130" width="1060" height="30" fill="#3D5A6C" fill-opacity="0.04"/>
 <text x="288" y="149.0" text-anchor="end">Per-room charge in the bylaw</text>
-<g><title>e26 sro_room_count -&gt; bylaw_fee_level  dir -  yr 2 to 6  planning  moderate  cov_council_2003_2015_2020</title><rect x="732" y="139.0" width="144" height="12" fill="#6E8594" fill-opacity="0.35" stroke="#6E8594" stroke-width="2.5"/>
-<text x="737" y="149.0" text-anchor="start" font-size="11" font-weight="bold" fill="#2B3A42">-</text></g>
+<g><title>e26 sro_room_count -&gt; bylaw_fee_level  dir +  yr 2 to 6  planning  moderate  cov_council_2003_2015_2020</title><rect x="732" y="139.0" width="144" height="12" fill="#6E8594" fill-opacity="0.35" stroke="#6E8594" stroke-width="2.5"/>
+<text x="737" y="149.0" text-anchor="start" font-size="11" font-weight="bold" fill="#2B3A42">+</text></g>
 <line x1="660" y1="56" x2="660" y2="160" stroke="#2B3A42" stroke-width="1.5"/>
 <text x="665" y="66" font-size="11" font-weight="bold">decision</text>
 <rect x="300" y="211" width="14" height="10" fill="#3D5A6C" fill-opacity="0.35" stroke="#3D5A6C" stroke-width="2"/>
