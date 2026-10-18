@@ -36,7 +36,7 @@
       "evidence": "moderate",
       "geography": "vancouver",
       "source": "timing_json_cases",
-      "fork": "f4",
+      "fork": null,
       "note": "In six of seven permit files tenants were already gone before the application, by closure order, fire, or owner relocation. The permit does not cause the move; it follows it. Negative lag is deliberate.",
       "edge": "e29",
       "to_label": "Evictions and forced moves",

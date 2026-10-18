@@ -1,11 +1,9 @@
 
 Timeline for conversion_permit=allow, horizon 10 years, axis starts at year -10
 
-  yr -10 to 0    0  Evictions and forced moves             planning      moderate     timing_json_cases            before decision, fork f4
+  yr -10 to 0    0  Evictions and forced moves             planning      moderate     timing_json_cases            before decision
   yr   0 to 1    -  SRO rooms in the DTES                  planning      mechanism    cov_sra_bylaw                
   yr   2 to 6    +  Per-room charge in the bylaw           planning      moderate     cov_council_2003_2015_2020   edge reads -, net +
-
-Forks reached (both sides drawn): {'f4': ['e29']}
 
 3 effects. 1 land before the decision. 0 land past the horizon.
 
