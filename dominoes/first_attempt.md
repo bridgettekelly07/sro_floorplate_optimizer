@@ -35,3 +35,18 @@ Outputs are in `cases/`.
 ## Second pass, Oct 18
 
 The run placed the eviction as a single bar before the decision, so the harm reads as one event rather than a chain of consequences. That matches the evidence: the permit files show tenants already gone, and the health studies cover evictions in general. Two rule changes drove the difference from the first pass: a direction-0 edge now lands on the axis and passes nothing downstream, and sign now multiplies along the chain, which flipped the per-room charge and, in the boundary case, evictions from falling to rising. The supply and missing cases did not change. Still open: whether anything downstream of a 0 edge should be drawn at all, fork f4 showing only one side per run, the past-horizon flag on the earliest year, and the fact that no model has been called yet.
+
+### Evaluation cases as rerun, Oct 18
+
+Of the four open points above, three are now settled and committed: a 0 edge's downstream stays off the axis and the drawing footnotes the edge's own note to say why; fork f4 was re-paired by hand in edges.json so that e25 (the rule) faces e30 (the record) from one start, and e29 is unpaired until a sourced rival exists; and past-horizon is flagged on the midpoint of an effect. A fifth case exercises the re-paired fork. No model has been called.
+
+| case | input | expected | actual | status |
+|---|---|---|---|---|
+| typical | conversion_permit=allow, 10 yr | e01, e29 with negative lag, nothing downstream of e29 | 3 effects, 1 before decision, axis from year -10; e26 reads net + | pass |
+| boundary | unit_size_sf=200, 10 yr | e27, e28, merge chain into health | 6 effects; e07 reads net + after sign composition | pass; f4 no longer expected here |
+| missing | --target tenant_return_rate | stop, ask for source | STOP with the outcome's note, exit code 2 | pass |
+| supply | replacement_ratio=partial, 15 yr | fork f1 both sides, e15 flagged past horizon | e12 and e14 both drawn; e15 years 8 to 28, midpoint 18, flagged | pass |
+| fork | conversion_fee=charged, 10 yr | fork f4 both sides from one start | e25 (+) and e30 (0) both at year 0, e30 footnoted | pass |
+| repeated | conversion_permit=allow, 3 runs | identical | identical md5 | pass, model variance not yet testable |
+
+Outputs are in `cases/`, one commit per rule-driven change.
