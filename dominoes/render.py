@@ -14,7 +14,9 @@ Drawing rules:
   - x axis in years, starting at axis_start, ending at the later of the
     horizon and the last year_max; years past the horizon are hatched
   - one row per outcome; an outcome reached by several edges stacks its bars
-    in that row
+    in that row; an effect with lag_min equal to lag_max is a diamond on that
+    year rather than a bar
+  - the drawing is never narrower than the legend
   - edges sharing a fork id are drawn as paired rows, bracketed and labelled
     with the fork id, so both sides sit next to each other
   - colour by camp: economics, planning and architecture are tints of slate;
@@ -54,6 +56,8 @@ ROW_H = 30
 BAR_H = 14
 YEAR_W = 36
 FONT = "Helvetica, Arial, sans-serif"
+LEGEND_W = 560   # five camps at 100 each, or three grades plus the dashed entry
+MARK = 7         # half-width of the diamond for a zero-length effect
 
 
 def load(path):
@@ -109,7 +113,7 @@ def render(tl):
     x1 = max([horizon] + [e["year_max"] for e in events])
     rows = row_order(events)
 
-    width = LEFT + (x1 - x0) * YEAR_W + RIGHT
+    width = max(LEFT + (x1 - x0) * YEAR_W, LEFT + LEGEND_W) + RIGHT
     height = TOP + len(rows) * ROW_H + 110
 
     def X(year):
@@ -175,7 +179,7 @@ def render(tl):
         for j, ev in enumerate(evs):
             by = cy - (k * sub_h) / 2 + j * sub_h
             xa, xb = X(ev["year_min"]), X(ev["year_max"])
-            w = max(xb - xa, 6)
+            w = xb - xa
             colour = CAMP_COLOUR.get(ev["camp"], SLATE)
             grade = ev.get("evidence")
             weight = GRADE_WEIGHT.get(grade, 1.2)
@@ -183,11 +187,18 @@ def render(tl):
             title = (f'{ev["edge"]} {ev["from"]} -> {ev["to"]}  dir {net_direction(ev)}  '
                      f'yr {ev["year_min"]} to {ev["year_max"]}  {ev["camp"]}  '
                      f'{grade or ev["claim_type"]}  {ev["source"]}')
-            out.append(f'<g><title>{escape(title)}</title>'
-                       f'<rect x="{xa}" y="{by + 1}" width="{w}" height="{sub_h - 2}" '
-                       f'fill="{colour}" fill-opacity="0.35" stroke="{colour}" '
-                       f'stroke-width="{weight}"{dash}/>')
-            out.append(f'<text x="{xa + 5}" y="{by + sub_h / 2 + 4}" text-anchor="start" '
+            style = f'fill="{colour}" fill-opacity="0.35" stroke="{colour}" stroke-width="{weight}"{dash}'
+            if ev["year_min"] == ev["year_max"]:
+                # a zero-length effect: a diamond on the year, sign to its right
+                my = by + sub_h / 2
+                shape = (f'<polygon points="{xa},{my - MARK} {xa + MARK},{my} {xa},{my + MARK} '
+                         f'{xa - MARK},{my}" {style}/>')
+                sign_x = xa + MARK + 3
+            else:
+                shape = f'<rect x="{xa}" y="{by + 1}" width="{w}" height="{sub_h - 2}" {style}/>'
+                sign_x = xa + 5
+            out.append(f'<g><title>{escape(title)}</title>{shape}'
+                       f'<text x="{sign_x}" y="{by + sub_h / 2 + 4}" text-anchor="start" '
                        f'font-size="11" font-weight="bold" fill="{INK}">'
                        f'{escape(str(net_direction(ev)))}</text></g>')
 
