@@ -544,6 +544,7 @@
       "evidence": null,
       "geography": "vancouver",
       "source": "cov_council_2003_2015_2020",
+      "fork": "f4",
       "note": "Bylaw directs the charge into a reserve earmarked for replacement housing."
     },
     {
@@ -600,7 +601,6 @@
       "evidence": "moderate",
       "geography": "vancouver",
       "source": "timing_json_cases",
-      "fork": "f4",
       "note": "In six of seven permit files tenants were already gone before the application, by closure order, fire, or owner relocation. The permit does not cause the move; it follows it. Negative lag is deliberate."
     },
     {
