@@ -1,5 +1,7 @@
 {
   "option": "unit_size_sf=200",
+  "decision_label": "Minimum unit size in square feet",
+  "option_label": "200",
   "horizon": 10,
   "axis_start": 0,
   "events": [
