@@ -8,7 +8,7 @@ sources, and timing_json_cases must resolve to timing.json); an effect lands at 
 persists through t + lag_max, summed along the chain, negative lags land before t; a direction 0
 edge lands on the axis but does not propagate; sign multiplies along a chain (direction_net is
 the product of every direction on the path, direction stays the edge's own reading); forks are
-traversed on both sides and never resolved; effects past the horizon are kept and marked."""
+traversed on both sides and never resolved; an effect whose midpoint is past the horizon is kept and marked."""
 import json, sys
 from collections import deque
 
@@ -59,7 +59,7 @@ def traverse(graph, timing, option, horizon):
             emin, emax, net = y_min + e["lag_min"], y_max + e["lag_max"], sign * SIGN[e["direction"]]
             ev = {k: e.get(k) for k in ("claim_type", "from", "to", "direction", "camp", "evidence", "geography", "source", "fork", "note")}
             ev.update(edge=e["id"], to_label=labels.get(e["to"], e["to"]), direction_net=CHAR[net], year_min=emin, year_max=emax,
-                      past_horizon=emin > horizon, before_decision=emin < 0, path=path + [e["id"]])
+                      past_horizon=(emin + emax) / 2 > horizon, before_decision=emin < 0, path=path + [e["id"]])
             if e["source"] == "timing_json_cases":
                 ev["timing_cases"] = [c["id"] for c in timing["cases"]]
             events.append(ev)
