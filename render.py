@@ -22,6 +22,8 @@ Drawing rules:
   - stroke weight by evidence grade: strong 4, moderate 2.5, weak 1.2;
     mechanism and theory edges carry no grade and are drawn with a 1.2
     dashed outline
+  - palette from CLAUDE.md: background #E9E2D6, slate #3D5A6C, coral #E0724E,
+    tan #C9A66B for the past-horizon hatch, text #2B3A42, muted #5F6E78
   - a vertical rule at year 0 labelled "decision"; effects with
     before_decision fall to its left by construction
   - net direction (direction_net if present, else direction) is printed
@@ -33,7 +35,9 @@ from xml.sax.saxutils import escape
 BG = "#E9E2D6"
 SLATE = "#3D5A6C"
 CORAL = "#E0724E"
-INK = "#2B2A28"
+INK = "#2B3A42"    # text
+MUTED = "#5F6E78"  # axis labels and notes
+TAN = "#C9A66B"    # past-horizon hatch
 CAMP_COLOUR = {
     "economics": SLATE,
     "planning": "#6E8594",      # slate tint
@@ -116,13 +120,13 @@ def render(tl):
                f'viewBox="0 0 {width} {height}" font-family="{FONT}" font-size="12" fill="{INK}">')
     out.append('<defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" '
                'patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" '
-               f'stroke="{SLATE}" stroke-opacity="0.18" stroke-width="1"/></pattern></defs>')
+               f'stroke="{TAN}" stroke-opacity="0.6" stroke-width="1"/></pattern></defs>')
     out.append(f'<rect width="{width}" height="{height}" fill="{BG}"/>')
 
     # title
     out.append(f'<text x="{LEFT}" y="28" font-size="15" font-weight="bold">'
                f'{escape(tl["option"])}</text>')
-    out.append(f'<text x="{LEFT}" y="46" fill="{SLATE}">horizon {horizon} years, '
+    out.append(f'<text x="{LEFT}" y="46" fill="{MUTED}">horizon {horizon} years, '
                f'{len(events)} effects, axis from year {x0}</text>')
 
     plot_top = TOP
@@ -132,7 +136,7 @@ def render(tl):
     if x1 > horizon:
         out.append(f'<rect x="{X(horizon)}" y="{plot_top}" width="{X(x1) - X(horizon)}" '
                    f'height="{plot_bottom - plot_top}" fill="url(#hatch)"/>')
-        out.append(f'<text x="{X(horizon) + 4}" y="{plot_top - 6}" fill="{SLATE}" '
+        out.append(f'<text x="{X(horizon) + 4}" y="{plot_top - 6}" fill="{MUTED}" '
                    f'font-size="10">past horizon</text>')
 
     # year grid and axis labels
@@ -142,9 +146,9 @@ def render(tl):
                    f'stroke="{SLATE}" stroke-opacity="0.15" stroke-width="1"/>')
         if yr % 5 == 0 or yr == x0 or yr == x1:
             out.append(f'<text x="{x}" y="{plot_bottom + 18}" text-anchor="middle" '
-                       f'fill="{SLATE}">{yr}</text>')
+                       f'fill="{MUTED}">{yr}</text>')
     out.append(f'<text x="{(X(x0) + X(x1)) / 2}" y="{plot_bottom + 36}" text-anchor="middle" '
-               f'fill="{SLATE}">years from the decision</text>')
+               f'fill="{MUTED}">years from the decision</text>')
 
     # rows
     prev_fork = None
