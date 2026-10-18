@@ -130,10 +130,13 @@ def render(tl):
     out.append(f'<rect width="{width}" height="{height}" fill="{BG}"/>')
 
     # title
-    out.append(f'<text x="{LEFT}" y="28" font-size="15" font-weight="bold">'
-               f'{escape(tl["option"])}</text>')
-    out.append(f'<text x="{LEFT}" y="46" fill="{MUTED}">horizon {horizon} years, '
-               f'{len(events)} effects, axis from year {x0}</text>')
+    # title from the decision's own label and option as written in edges.json,
+    # copied through timeline.json by run.py; the raw option id is the fallback
+    title = (f'{tl["decision_label"]}: {tl["option_label"]}' if tl.get("decision_label")
+             else tl["option"])
+    out.append(f'<text x="{LEFT}" y="28" font-size="15" font-weight="bold">{escape(title)}</text>')
+    out.append(f'<text x="{LEFT}" y="46" fill="{MUTED}">what the sourced evidence says follows '
+               f'over {horizon} years: {len(events)} effects, from year {x0}</text>')
 
     plot_top = TOP
     plot_bottom = TOP + len(rows) * ROW_H

@@ -36,6 +36,7 @@ def check_option(graph, timing, option):
         stop(f"{option} has no sourced outgoing edge. Add one to edges.json with a source before running.")
     for e in edges:
         check_source(graph, timing, e)
+    return decs[dec_id]["label"]
 
 def check_target(graph, target):
     outcomes = {o["id"]: o for o in graph["outcomes"]}
@@ -81,16 +82,16 @@ def render_text(events, option, horizon):
 
 def main():
     args = sys.argv[1:]
-    if not args:
-        sys.exit(__doc__)
+    if not args: sys.exit(__doc__)
     graph, timing = json.load(open("edges.json")), json.load(open("timing.json"))
     horizon = int(args[-1]) if args[-1].isdigit() else 10
     if args[0] == "--target":
         return check_target(graph, args[1])
-    check_option(graph, timing, args[0])
-    events, option = traverse(graph, timing, args[0], horizon), args[0]
+    option, decision_label = args[0], check_option(graph, timing, args[0])
+    events = traverse(graph, timing, option, horizon)
     with open("timeline.json", "w") as f:
-        json.dump({"option": option, "horizon": horizon, "axis_start": min([ev["year_min"] for ev in events] + [0]), "events": events}, f, indent=2)
+        json.dump({"option": option, "decision_label": decision_label, "option_label": option.partition("=")[2].replace("_", " "),
+                   "horizon": horizon, "axis_start": min([ev["year_min"] for ev in events] + [0]), "events": events}, f, indent=2)
     render_text(events, option, horizon)
     print("\nwrote timeline.json")
 
