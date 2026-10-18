@@ -1,6 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1060" height="286" viewBox="0 0 1060 286" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#2B3A42">
-<defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#C9A66B" stroke-opacity="0.6" stroke-width="1"/></pattern></defs>
-<rect width="1060" height="286" fill="#E9E2D6"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="272" viewBox="0 0 1100 272" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#2B3A42">
+<rect width="1100" height="272" fill="#E9E2D6"/>
 <text x="300" y="28" font-size="15" font-weight="bold">Per-room charge for removing a room from the bylaw: charged</text>
 <text x="300" y="46" fill="#5F6E78">what the sourced evidence says follows over 10 years: 2 effects, from year 0</text>
 <line x1="300" y1="70" x2="300" y2="130" stroke="#3D5A6C" stroke-opacity="0.15" stroke-width="1"/>
@@ -18,13 +17,13 @@
 <line x1="660" y1="70" x2="660" y2="130" stroke="#3D5A6C" stroke-opacity="0.15" stroke-width="1"/>
 <text x="660" y="148" text-anchor="middle" fill="#5F6E78">10</text>
 <text x="480.0" y="166" text-anchor="middle" fill="#5F6E78">years from the decision</text>
-<rect x="0" y="70" width="1060" height="30" fill="#3D5A6C" fill-opacity="0.04"/>
-<text x="288" y="89.0" text-anchor="end">Replacement housing reserve fund</text>
+<rect x="0" y="70" width="1100" height="30" fill="#3D5A6C" fill-opacity="0.04"/>
+<text x="272" y="89.0" text-anchor="end">Replacement housing reserve fund</text>
 <line x1="18" y1="74" x2="18" y2="126" stroke="#E0724E" stroke-width="2"/>
 <text x="24" y="84" fill="#E0724E" font-size="10" font-weight="bold">fork f4</text>
-<g><title>e25 conversion_fee=charged -&gt; replacement_reserve  dir +  yr 0 to 0  planning  mechanism  cov_council_2003_2015_2020</title><polygon points="300,78.0 307,85.0 300,92.0 293,85.0" fill="#6E8594" fill-opacity="0.35" stroke="#6E8594" stroke-width="1.2" stroke-dasharray="4 3"/><text x="310" y="89.0" text-anchor="start" font-size="11" font-weight="bold" fill="#2B3A42">+</text><text x="322" y="89.0" text-anchor="start" font-size="10" fill="#5F6E78">e25  cov_council_2003_2015_2020</text></g>
-<text x="288" y="119.0" text-anchor="end">Replacement housing reserve fund</text>
-<g><title>e30 conversion_fee=charged -&gt; replacement_reserve  dir 0  yr 0 to 0  planning  moderate  cov_council_2025_04_15_r6</title><polygon points="300,108.0 307,115.0 300,122.0 293,115.0" fill="#6E8594" fill-opacity="0.35" stroke="#6E8594" stroke-width="2.5"/><text x="310" y="119.0" text-anchor="start" font-size="11" font-weight="bold" fill="#2B3A42">0</text><text x="322" y="119.0" text-anchor="start" font-size="10" fill="#5F6E78">e30  cov_council_2025_04_15_r6</text></g>
+<g><title>e25 conversion_fee=charged -&gt; replacement_reserve  dir +  yr 0 to 0  planning  mechanism  cov_council_2003_2015_2020</title><polygon points="300,78.0 307,85.0 300,92.0 293,85.0" fill="#6E8594" fill-opacity="0.35" stroke="#6E8594" stroke-width="1.2" stroke-dasharray="4 3"/><text x="290" y="89.0" text-anchor="end" font-size="11" font-weight="bold" fill="#2B3A42">+</text><text x="313" y="89.0" text-anchor="start" font-size="10" fill="#5F6E78">e25  cov_council_2003_2015_2020</text></g>
+<text x="272" y="119.0" text-anchor="end">Replacement housing reserve fund</text>
+<g><title>e30 conversion_fee=charged -&gt; replacement_reserve  dir 0  yr 0 to 0  planning  moderate  cov_council_2025_04_15_r6</title><polygon points="300,108.0 307,115.0 300,122.0 293,115.0" fill="#6E8594" fill-opacity="0.35" stroke="#6E8594" stroke-width="2.5"/><text x="290" y="119.0" text-anchor="end" font-size="11" font-weight="bold" fill="#2B3A42">0</text><text x="313" y="119.0" text-anchor="start" font-size="10" fill="#5F6E78">e30  cov_council_2025_04_15_r6</text></g>
 <line x1="300" y1="56" x2="300" y2="130" stroke="#2B3A42" stroke-width="1.5"/>
 <text x="305" y="66" font-size="11" font-weight="bold">decision</text>
 <rect x="300" y="181" width="14" height="10" fill="#3D5A6C" fill-opacity="0.35" stroke="#3D5A6C" stroke-width="2"/>
@@ -46,6 +45,5 @@
 <line x1="600" y1="206" x2="624" y2="206" stroke="#2B3A42" stroke-width="1.2" stroke-dasharray="4 3"/>
 <text x="630" y="210" font-size="11">mechanism or theory, no grade</text>
 <text x="300" y="236" font-size="10" font-weight="bold" fill="#5F6E78">direction 0: lands on the axis, passes nothing on</text>
-<text x="300" y="250" font-size="10" fill="#5F6E78">e30: The fee has not been charged at its listed rate since 2015. Reserve inflow from fees is near zero in practice; e25 describes the rule, this describes the</text>
-<text x="300" y="264" font-size="10" fill="#5F6E78">record.</text>
+<text x="300" y="250" font-size="10" fill="#5F6E78">e30: The fee has not been charged at its listed rate since 2015. Reserve inflow from fees is near zero in practice; e25 describes the rule, this describes the record.</text>
 </svg>
