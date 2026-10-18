@@ -12,6 +12,8 @@ Rules (from the tool-logic diagram):
   - an option with no sourced outgoing edge stops the run and asks for a source
   - an effect lands at t + lag_min and persists through t + lag_max, summed along the chain
   - negative lags are allowed and land before t
+  - a direction 0 edge lands on the axis but does not propagate: the outcome
+    it reaches is drawn, and nothing downstream of it is reached through it
   - forks are traversed on both sides and never resolved
   - effects whose earliest year is past the horizon are kept and marked, not dropped
 """
@@ -97,6 +99,9 @@ def traverse(graph, option, horizon):
                 "before_decision": emin < 0,
                 "path": new_path,
             })
+            if e["direction"] == "0":
+                # a 0 edge lands on the axis but does not pass its effect on
+                continue
             queue.append((e["to"], emin, emax, new_path))
     return events
 
