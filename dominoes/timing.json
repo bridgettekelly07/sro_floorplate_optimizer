@@ -1,0 +1,272 @@
+{
+  "meta": {
+    "title": "Step durations for the as-is SRO conversion process",
+    "version": "0.2",
+    "unit": "weeks from the SRA permit application unless stated",
+    "rule": "every range cites a case; null means no case found yet. Ranges with one case are that case, not a range.",
+    "cases_needed": "three to five more private-owner permits from the Council agenda archive, and one building end to end from an operator"
+  },
+  "cases": [
+    {
+      "id": "low_young_court_2015",
+      "building": "406 Union Street, 15 SRA rooms, private owner",
+      "source": "cov_council_2015_07_21_a3",
+      "url": "https://council.vancouver.ca/20150721/documents/a3.pdf",
+      "route": "Council, conversion of 3 rooms out of the bylaw, fee waived",
+      "dates": {
+        "purchase": "2015-02-23",
+        "tenants_out": "2015-04-30",
+        "application": "2015-04-29",
+        "council_decision": "2015-07-21",
+        "development_permit": null,
+        "occupancy": null,
+        "first_turnover": null
+      },
+      "facts": {
+        "rooms_before": 15,
+        "rooms_sra_after": 12,
+        "rooms_removed_from_bylaw": 3,
+        "tenants_at_purchase": 5,
+        "tenants_relocated_by_owner": 4,
+        "relocation_offer": "one month free rent plus $400 or a second free month",
+        "fee": "waived in exchange for a 30-year housing agreement on 8 of 12 rooms",
+        "note": "Tenants left the day after the application. The relocation happened before the plan was reviewed."
+      }
+    },
+    {
+      "id": "old_continental_2013",
+      "building": "1390 Granville Street, 109 SRA rooms, City owned",
+      "source": "cov_council_2013_02_27_cfsc6",
+      "url": "https://council.vancouver.ca/20130227/documents/cfsc6.pdf",
+      "route": "Council, demolition, one-to-one replacement committed",
+      "dates": {
+        "replacement_committed_in_policy": "2010",
+        "search_for_interim_housing_began": "2012-02",
+        "council_decision": "2013-02-27",
+        "tenants_move_to_interim": "2013-summer",
+        "decommissioning_begins": "2013-late",
+        "demolition_budgeted": "2014",
+        "permanent_replacement_occupied": null
+      },
+      "facts": {
+        "rooms_before": 109,
+        "room_size_before_sf": 140,
+        "interim_unit_size_sf": 240,
+        "tenants": 85,
+        "tenants_moving_to_city_interim": 52,
+        "share_moving_to_interim": 0.61,
+        "interim_location": "3484 Kingsway, outside the neighbourhood",
+        "note": "Permanent replacement was to come from the Granville Loops redevelopment; the report gives no date. This is the fee-to-replacement lag with the end open."
+      }
+    },
+    {
+      "id": "aayin_208_e_georgia_2023",
+      "building": "208 East Georgia, Aay'in (London Hotel), 72 rooms, private owner Porte, leased to Atira",
+      "source": "cov_council_2023_01_18_pspc7",
+      "url": "https://council.vancouver.ca/20230118/documents/pspc7.pdf",
+      "route": "Council, conversion of 2 rooms to kitchen and laundry, net loss 1, with SRO upgrade grant",
+      "dates": {
+        "tenant_relocation_plan_filed": "2022-03-20",
+        "grant_first_to_council_deferred": "2022-07-19",
+        "renovation_began": "2022-summer",
+        "application": "2022-11-07",
+        "occupancy_expected": "2022-12",
+        "council_decision": "2023-01-18",
+        "back_on_agenda": "2026-01-20"
+      },
+      "facts": {
+        "rooms_before": 72,
+        "rooms_after": 71,
+        "tenants_at_relocation": 37,
+        "tenants_relocated": 37,
+        "relocation_terms": "same rent, within the community, moving costs paid, right of first refusal at same rent",
+        "renovation_cost": 2836800,
+        "city_grant": 720000,
+        "housing_agreement": "71 rooms at shelter rate to 2032",
+        "note": "Tenants out eight months before the SRA application and ten months before Council. Occupancy was expected before the Council decision. The renovated building is a new program (transitional, Indigenous priority), so first refusal and eligibility may conflict; return rate unrecorded."
+      }
+    },
+    {
+      "id": "clifton_1125_granville_2025",
+      "building": "1125 Granville, Clifton Hotel, 74 rooms, private owner",
+      "source": "cov_council_2025_04_15_r6",
+      "url": "https://council.vancouver.ca/20250415/documents/r6.pdf",
+      "route": "Council, conversion of all 74 rooms to a 67-room commercial hotel",
+      "dates": {
+        "closed_unsafe": "2015",
+        "purchased_vacant": "2016",
+        "application": "2025-02",
+        "council_decision": "2025-04-15"
+      },
+      "facts": {
+        "rooms_before": 74,
+        "rooms_after": 0,
+        "tenants": 0,
+        "years_vacant_before_application": 10,
+        "fee_rule": "$300,000 per door as of 2023; last charged 2015",
+        "fee_paid": 1100000,
+        "fee_per_room_effective": 14865,
+        "note": "Staff set the contribution by pro forma because the full fee would make the project unviable. Previous owner relocated some tenants before the building was emptied; no record of where."
+      }
+    },
+    {
+      "id": "keefer_222_2026",
+      "building": "222 Keefer, Keefer Rooms, 47 rooms, BC Housing",
+      "source": "cov_council_2026_07_14_r7",
+      "url": "https://council.vancouver.ca/20260714/documents/r7.pdf",
+      "route": "Council, demolition of 6 rooms for stairs and amenity, rooms stay under 200 sf and remain designated",
+      "dates": {
+        "vacant_since": "2022 fire",
+        "council_decision": "2026-07-14"
+      },
+      "facts": {
+        "rooms_before": 47,
+        "rooms_after": 41,
+        "unit_size_after": "under 200 sf",
+        "sra_designation_after": "retained",
+        "tenants": 0,
+        "years_vacant": 4,
+        "return_terms": "right of first refusal, subject to eligibility"
+      }
+    },
+    {
+      "id": "regent_160_e_hastings_2026",
+      "building": "160 East Hastings, Regent Hotel, 161 rooms, City owned since 2020, leased to BC Housing",
+      "source": "cov_council_2026_07_14_r7",
+      "url": "https://council.vancouver.ca/20260714/documents/r7.pdf",
+      "route": "Council, demolition of all 161 rooms, 77 self-contained units, average over 200 sf, removed from bylaw and secured as social housing",
+      "dates": {
+        "unsafe_to_occupy": "2018",
+        "city_purchase": "2020",
+        "council_decision": "2026-07-14"
+      },
+      "facts": {
+        "rooms_before": 161,
+        "units_after": 77,
+        "ratio_after_to_before": 0.48,
+        "unit_size_after_sf": "227 to 673",
+        "sra_designation_after": "removed",
+        "tenants": 0,
+        "years_vacant": 8,
+        "return_terms": "right of first refusal, subject to eligibility"
+      }
+    },
+    {
+      "id": "thornton_956_main_2026",
+      "building": "956 Main, Thornton Hotel, 23 rooms, BC Housing",
+      "source": "cov_council_2026_07_14_r7",
+      "url": "https://council.vancouver.ca/20260714/documents/r7.pdf",
+      "route": "Council, demolition of 23 rooms, 12 self-contained units, average over 200 sf, removed from bylaw",
+      "dates": {
+        "vacant_since": "2023 fire",
+        "council_decision": "2026-07-14"
+      },
+      "facts": {
+        "rooms_before": 23,
+        "units_after": 12,
+        "ratio_after_to_before": 0.52,
+        "unit_size_after_sf": "196 to 347",
+        "sra_designation_after": "removed",
+        "tenants": 0,
+        "years_vacant": 3
+      }
+    }
+  ],
+  "steps": [
+    {
+      "step": "apply",
+      "from": "owner decides",
+      "to": "application filed",
+      "weeks_min": null,
+      "weeks_max": null,
+      "cases": [],
+      "note": "Low Young Court shows nine weeks from purchase to application, but purchase is not the decision point."
+    },
+    {
+      "step": "council_decides",
+      "from": "application filed",
+      "to": "Council decision",
+      "weeks_min": 9,
+      "weeks_max": 12,
+      "cases": [
+        "low_young_court_2015",
+        "aayin_208_e_georgia_2023",
+        "clifton_1125_granville_2025"
+      ],
+      "note": "Three private cases: 12, 10 and about 9 weeks from application to Council."
+    },
+    {
+      "step": "unit_design",
+      "from": "Council decision",
+      "to": "development permit issued",
+      "weeks_min": null,
+      "weeks_max": null,
+      "cases": [],
+      "note": "Use the City's published development permit processing times until a case gives SRO-specific dates."
+    },
+    {
+      "step": "replace_and_fund",
+      "from": "replacement committed",
+      "to": "replacement rooms occupied",
+      "weeks_min": 156,
+      "weeks_max": null,
+      "cases": [
+        "old_continental_2013"
+      ],
+      "note": "Three years from the 2010 policy commitment to interim occupancy in 2013; permanent replacement date unknown, so the upper bound is open."
+    },
+    {
+      "step": "build_and_occupy",
+      "from": "development permit",
+      "to": "occupancy permit",
+      "weeks_min": null,
+      "weeks_max": null,
+      "cases": [],
+      "note": "Needs an operator's building file."
+    },
+    {
+      "step": "rent_on_turnover",
+      "from": "occupancy",
+      "to": "first turnover",
+      "weeks_min": null,
+      "weeks_max": null,
+      "cases": [],
+      "note": "Needs a rent roll. The 2015 amendments created rent-roll reporting to the City; ask whether the data can be shared."
+    },
+    {
+      "step": "monitor",
+      "from": "occupancy",
+      "to": "next survey",
+      "weeks_min": 0,
+      "weeks_max": 104,
+      "cases": [
+        "cov_lihs_biennial"
+      ],
+      "note": "Survey is biennial, so a building can wait up to two years to be counted."
+    },
+    {
+      "step": "tenant_relocation",
+      "from": "application",
+      "to": "tenants out",
+      "weeks_min": -520,
+      "weeks_max": 20,
+      "cases": [
+        "low_young_court_2015",
+        "aayin_208_e_georgia_2023",
+        "clifton_1125_granville_2025",
+        "keefer_222_2026",
+        "regent_160_e_hastings_2026",
+        "thornton_956_main_2026",
+        "old_continental_2013"
+      ],
+      "note": "Negative means tenants left before the application. Six of seven cases: tenants were gone before the SRA application, by one day (LYC), eight months (Aay'in), or three to ten years of vacancy after fire or closure order (Keefer, Thornton, Regent, Clifton). Only the City's own Old Continental relocated after the decision."
+    }
+  ],
+  "findings": {
+    "tenants_out_before_council": "6 of 7 cases",
+    "council_review_weeks": "9 to 12",
+    "merge_ratio_over_200sf": "Regent 0.48, Thornton 0.52; Keefer kept rooms under 200 sf at 0.87",
+    "fee": "$300,000 per door since 2023, last actually charged 2015; Clifton paid $1.1M, about $14,900 per room",
+    "designation_threshold": "200 sf average decides whether a renovated building stays under the SRA By-law"
+  }
+}

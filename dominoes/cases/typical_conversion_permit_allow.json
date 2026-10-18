@@ -1,0 +1,80 @@
+{
+  "option": "conversion_permit=allow",
+  "horizon": 10,
+  "axis_start": -10,
+  "events": [
+    {
+      "claim_type": "mechanism",
+      "from": "conversion_permit=allow",
+      "to": "sro_room_count",
+      "direction": "-",
+      "camp": "planning",
+      "evidence": null,
+      "geography": "vancouver",
+      "source": "cov_sra_bylaw",
+      "fork": null,
+      "edge": "e01",
+      "to_label": "SRO rooms in the DTES",
+      "direction_net": "-",
+      "year_min": 0,
+      "year_max": 1,
+      "past_horizon": false,
+      "before_decision": false,
+      "path": [
+        "e01"
+      ]
+    },
+    {
+      "claim_type": "observation",
+      "from": "conversion_permit=allow",
+      "to": "tenant_evictions",
+      "direction": "0",
+      "camp": "planning",
+      "evidence": "moderate",
+      "geography": "vancouver",
+      "source": "timing_json_cases",
+      "fork": "f4",
+      "edge": "e29",
+      "to_label": "Evictions and forced moves",
+      "direction_net": "0",
+      "year_min": -10,
+      "year_max": 0,
+      "past_horizon": false,
+      "before_decision": true,
+      "path": [
+        "e29"
+      ],
+      "timing_cases": [
+        "low_young_court_2015",
+        "old_continental_2013",
+        "aayin_208_e_georgia_2023",
+        "clifton_1125_granville_2025",
+        "keefer_222_2026",
+        "regent_160_e_hastings_2026",
+        "thornton_956_main_2026"
+      ]
+    },
+    {
+      "claim_type": "observation",
+      "from": "sro_room_count",
+      "to": "bylaw_fee_level",
+      "direction": "-",
+      "camp": "planning",
+      "evidence": "moderate",
+      "geography": "vancouver",
+      "source": "cov_council_2003_2015_2020",
+      "fork": null,
+      "edge": "e26",
+      "to_label": "Per-room charge in the bylaw",
+      "direction_net": "+",
+      "year_min": 2,
+      "year_max": 6,
+      "past_horizon": false,
+      "before_decision": false,
+      "path": [
+        "e01",
+        "e26"
+      ]
+    }
+  ]
+}

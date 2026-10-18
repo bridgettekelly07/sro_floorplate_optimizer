@@ -1,0 +1,14 @@
+
+Timeline for replacement_ratio=partial, horizon 15 years, axis starts at year 0
+
+  yr   1 to 3    +  New market-rate units nearby           economics     mechanism    cov_lap_memo_2014            
+  yr   1 to 8    +  Moves out of low-income stock          economics     strong       mast_2023                    fork f1
+  yr   1 to 13   -  Rents in nearby low-income stock       economics     strong       asquith_mast_reed_2023       
+  yr   3 to 13   +  Rent-gap reinvestment pressure         geography     theory       smith_1979                   fork f1
+  yr   8 to 28   +  Displacement of low-income residents   geography     moderate     burnett_2014                 
+
+Forks reached (both sides drawn): {'f1': ['e12', 'e14']}
+
+5 effects. 0 land before the decision. 0 land past the horizon.
+
+wrote timeline.json

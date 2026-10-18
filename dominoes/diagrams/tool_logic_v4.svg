@@ -1,0 +1,291 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="2660" viewBox="0 0 1000 1330" font-family="Helvetica, Arial, DejaVu Sans, sans-serif" xmlns:c2pa="http://c2pa.org/manifest"><metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTpjY2MwOTY4MS05YTQzLTQ1NDMtODlkOC03NWNmNGEzOTJhOWUAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaFV4ge5PjCvbkJYx4kqoJhwAAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDozMzQxNTE4ZS02ZWVjLTQ0NjctOWY5MS1hYWMwMDU1NzM0MThscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNousuqKkkILw2DAutrRVDtjwAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggjpTF33CdfWO6R4TRiEJCn6P19d+ld+n5b3Kq+8NcKhOkZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaM+AyEpW7kStumqKIrKpL6kAAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRNAAAAAAAAAAAAAAAAAGRoYXNoWCDjyvXu2tOB295NH+EVwEIQhdlc4hOJ+UShOiR2n3RASGRuYW1lbmp1bWJmIG1hbmlmZXN0amV4Y2x1c2lvbnOBomVzdGFydBjSZmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOmNjYzA5NjgxLTlhNDMtNDU0My04OWQ4LTc1Y2Y0YTM5MmE5ZS9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOjg1NjUxN2YzLTBjY2QtNGE4OS05ZmZlLWEzODk4ZTBjZGIxYnJjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCCOlMXfcJ19Y7pHhNGIQkKfo/X136V36flvcqr7w1wqE6JjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggUm06/kMN5jV35iqi2TDVccpW/ak0ETWB7MnNCgZGpLiiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggXjJ/Nva8OlpR+BQN8EQtRrxGayGYuLwCpGrjuX6O9gJ0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQE/k8WAnYw3w+08fReI+nwH0kP7tM7BLRAIuVNWZAiII4TlkMD/AIB2k20WQHeiQ37vIwZjVoBEo2SoFMLQ5l0s=</c2pa:manifest></metadata>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#3D5A6C" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<rect width="1000" height="1330" fill="#E9E2D6"/>
+<text x="30" y="40" font-size="8" fill="#2B3A42" text-anchor="start">Tool logic: SRO domino scenario tool</text>
+<text x="30" y="50" font-size="8" fill="#2B3A42" text-anchor="start">ARCH 540, Assignment 2, mid review draft</text>
+<text x="30" y="60" font-size="8" fill="#2B3A42" text-anchor="start">Downtown Eastside, Vancouver</text>
+<text x="30" y="70" font-size="8" fill="#2B3A42" text-anchor="start">Spine: as_is_workflow_v3; data: edges.json v0.5, timing.json v0.2</text>
+<rect x="910" y="30" width="60" height="14" rx="7.0" fill="#3D5A6C"/>
+<text x="940.0" y="40.0" font-size="9" fill="#F2EFE9" text-anchor="middle" font-weight="bold"></text>
+<text x="900" y="40" font-size="6.5" fill="#2B3A42" text-anchor="end">judgment stays with a person</text>
+<rect x="910" y="50" width="60" height="14" rx="7.0" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1"/>
+<text x="940.0" y="60.0" font-size="9" fill="#2B3A42" text-anchor="middle" font-weight="bold"></text>
+<text x="900" y="60" font-size="6.5" fill="#2B3A42" text-anchor="end">script or tool, deterministic</text>
+<rect x="910" y="70" width="60" height="14" rx="7.0" fill="#C9A66B"/>
+<text x="940.0" y="80.0" font-size="9" fill="#2B3A42" text-anchor="middle" font-weight="bold"></text>
+<text x="900" y="80" font-size="6.5" fill="#2B3A42" text-anchor="end">model, writes one sentence per edge</text>
+<rect x="910" y="90" width="60" height="14" rx="4" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.8"/>
+<text x="940.0" y="100.0" font-size="9" fill="#2B3A42" text-anchor="middle" font-weight="bold"></text>
+<text x="900" y="100" font-size="6.5" fill="#2B3A42" text-anchor="end">code check, gates the run</text>
+<rect x="910" y="110" width="60" height="14" rx="7.0" fill="#E0724E"/>
+<text x="940.0" y="120.0" font-size="9" fill="#F2EFE9" text-anchor="middle" font-weight="bold"></text>
+<text x="900" y="120" font-size="6.5" fill="#2B3A42" text-anchor="end">entry and exit points</text>
+<path d="M910 142 L970 142" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<text x="900" y="145" font-size="6.5" fill="#2B3A42" text-anchor="end">data moves one way</text>
+<path d="M910 162 L970 162" fill="none" stroke="#3D5A6C" stroke-width="0.9" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
+<text x="900" y="165" font-size="6.5" fill="#2B3A42" text-anchor="end">loop, rerun or redraft</text>
+<circle cx="940" cy="182" r="4.5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7"/>
+<text x="900" y="185" font-size="6.5" fill="#2B3A42" text-anchor="end">file passed between steps</text>
+<rect x="912" y="196" width="56" height="12" rx="3" fill="none" stroke="#E0724E" stroke-width="0.9" stroke-dasharray="3 3"/>
+<text x="900" y="205" font-size="6.5" fill="#2B3A42" text-anchor="end">first attempt, Oct 23</text>
+<text x="970" y="228" font-size="6" fill="#2B3A42" text-anchor="end">Stop nodes return control to the person with a question,</text>
+<text x="970" y="236" font-size="6" fill="#2B3A42" text-anchor="end">never with an answer the tool made up.</text>
+<rect x="450" y="150" width="100" height="30" rx="15.0" fill="#E0724E"/>
+<text x="500.0" y="168.0" font-size="11" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Run</text>
+<path d="M500 180 L500 206" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<rect x="390.0" y="208" width="220" height="34" rx="17.0" fill="#3D5A6C"/>
+<text x="500.0" y="222.0" font-size="9" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Choose decision option</text>
+<text x="500.0" y="233.0" font-size="6.5" fill="#F2EFE9" text-anchor="middle">and a horizon in years</text>
+<path d="M390.0 225 L300 225" fill="none" stroke="#3D5A6C" stroke-width="0.9"/>
+<rect x="60" y="190" width="110" height="18" rx="4" fill="#3D5A6C"/>
+<text x="115.0" y="202.0" font-size="7" fill="#F2EFE9" text-anchor="middle" font-weight="bold">conversion_permit</text>
+<text x="115" y="219" font-size="6" fill="#5F6E78" text-anchor="middle">deny · allow · minor repair</text>
+<rect x="180" y="190" width="110" height="18" rx="4" fill="#3D5A6C"/>
+<text x="235.0" y="202.0" font-size="7" fill="#F2EFE9" text-anchor="middle" font-weight="bold">replacement_ratio</text>
+<text x="235" y="219" font-size="6" fill="#5F6E78" text-anchor="middle">1:1 · partial · none</text>
+<rect x="60" y="232" width="110" height="18" rx="4" fill="#3D5A6C"/>
+<text x="115.0" y="244.0" font-size="7" fill="#F2EFE9" text-anchor="middle" font-weight="bold">unit_size_sf</text>
+<text x="115" y="261" font-size="6" fill="#5F6E78" text-anchor="middle">100 · 200 · 250 · 320</text>
+<rect x="180" y="232" width="110" height="18" rx="4" fill="#3D5A6C"/>
+<text x="235.0" y="244.0" font-size="7" fill="#F2EFE9" text-anchor="middle" font-weight="bold">tenure</text>
+<text x="235" y="261" font-size="6" fill="#5F6E78" text-anchor="middle">private · non-profit</text>
+<rect x="60" y="274" width="110" height="18" rx="4" fill="#3D5A6C"/>
+<text x="115.0" y="286.0" font-size="7" fill="#F2EFE9" text-anchor="middle" font-weight="bold">rent_at_turnover</text>
+<text x="115" y="303" font-size="6" fill="#5F6E78" text-anchor="middle">vacancy control · market</text>
+<rect x="180" y="274" width="110" height="18" rx="4" fill="#3D5A6C"/>
+<text x="235.0" y="286.0" font-size="7" fill="#F2EFE9" text-anchor="middle" font-weight="bold">income_mix</text>
+<text x="235" y="303" font-size="6" fill="#5F6E78" text-anchor="middle">60/40 · 100 social</text>
+<rect x="180" y="316" width="110" height="18" rx="4" fill="#3D5A6C"/>
+<text x="235.0" y="328.0" font-size="7" fill="#F2EFE9" text-anchor="middle" font-weight="bold">conversion_fee</text>
+<text x="235" y="345" font-size="6" fill="#5F6E78" text-anchor="middle">waived · charged · in kind</text>
+<path d="M300 225 L300 190 L300 380" fill="none" stroke="#3D5A6C" stroke-width="0.9"/>
+<path d="M300 199 L292 199" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<path d="M300 241 L292 241" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<path d="M300 283 L292 283" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<path d="M300 325 L292 325" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<text x="60" y="364.0" font-size="6.3" fill="#5F6E78" text-anchor="start">7 decisions, each a variable with options.</text>
+<text x="60" y="372.3" font-size="6.3" fill="#5F6E78" text-anchor="start">Editing means choosing another option; the</text>
+<text x="60" y="380.6" font-size="6.3" fill="#5F6E78" text-anchor="start">two scenarios differ only in what is active.</text>
+<rect x="640" y="212" width="90" height="26" rx="4" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7"/>
+<text x="685.0" y="222.0" font-size="7.5" fill="#2B3A42" text-anchor="middle" font-weight="bold">Horizon</text>
+<text x="685.0" y="233.0" font-size="5.0" fill="#2B3A42" text-anchor="middle">5 · 10 · 15 · 30 yr</text>
+<path d="M610.0 225 L640 225" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<path d="M500 242 L500 268" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<rect x="390.0" y="270" width="220" height="34" rx="17.0" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1"/>
+<text x="500.0" y="284.0" font-size="9" fill="#2B3A42" text-anchor="middle" font-weight="bold">Load the claim graph</text>
+<text x="500.0" y="295.0" font-size="6.5" fill="#2B3A42" text-anchor="middle">edges.json + timing.json</text>
+<circle cx="640" cy="280" r="4.5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7"/>
+<text x="649" y="282.5" font-size="7" fill="#2B3A42">edges.json</text>
+<text x="649" y="291" font-size="6" fill="#5F6E78">7 decisions · 21 outcomes · 30 edges</text>
+<circle cx="640" cy="302" r="4.5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7"/>
+<text x="649" y="304.5" font-size="7" fill="#2B3A42">timing.json</text>
+<text x="649" y="313" font-size="6" fill="#5F6E78">7 permit cases, 2013 to 2026</text>
+<path d="M610.0 287 L632 287" fill="none" stroke="#3D5A6C" stroke-width="0.9"/>
+<text x="640" y="319" font-size="6" fill="#5F6E78" text-anchor="start">edge = {from, to, direction, lag, camp, claim_type, evidence, geography, source, fork}</text>
+<text x="640" y="327" font-size="6" fill="#5F6E78" text-anchor="start">7 mechanism · 4 theory · 19 observation · 4 forks kept unresolved</text>
+<path d="M500 304 L500 330" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<rect x="390.0" y="332" width="220" height="34" rx="4" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.8"/>
+<text x="500.0" y="346.0" font-size="9" fill="#2B3A42" text-anchor="middle" font-weight="bold">Option has a sourced edge?</text>
+<text x="500.0" y="357.0" font-size="6.5" fill="#2B3A42" text-anchor="middle">code, not model</text>
+<path d="M610.0 349 L680 349 L680 387 L700 387" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<rect x="702" y="372" width="120" height="30" rx="15.0" fill="#E0724E"/>
+<text x="762.0" y="384.0" font-size="8.5" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Stop and ask</text>
+<text x="762.0" y="395.0" font-size="6.0" fill="#F2EFE9" text-anchor="middle">for a source, no run</text>
+<path d="M762 402 L762 422" fill="none" stroke="#3D5A6C" stroke-width="0.9"/>
+<path d="M762 431 L770 431" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<rect x="772" y="422" width="140" height="18" rx="4" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7"/>
+<text x="842.0" y="434.0" font-size="6.5" fill="#2B3A42" text-anchor="middle" font-weight="bold">tenant_return_rate</text>
+<text x="842" y="450" font-size="5.8" fill="#5F6E78" text-anchor="middle">City requires a plan, records no return</text>
+<path d="M762 465 L770 465" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<rect x="772" y="456" width="140" height="18" rx="4" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7"/>
+<text x="842.0" y="468.0" font-size="6.5" fill="#2B3A42" text-anchor="middle" font-weight="bold">replacement_units_built</text>
+<text x="842" y="484" font-size="5.8" fill="#5F6E78" text-anchor="middle">fee to reserve to room: lag unknown</text>
+<path d="M762 499 L770 499" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<rect x="772" y="490" width="140" height="18" rx="4" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7"/>
+<text x="842.0" y="502.0" font-size="6.5" fill="#2B3A42" text-anchor="middle" font-weight="bold">unit_size → tenant outcome</text>
+<text x="842" y="518" font-size="5.8" fill="#5F6E78" text-anchor="middle">no study for SRO tenants</text>
+<path d="M762 422 L762 508" fill="none" stroke="#3D5A6C" stroke-width="0.9"/>
+<text x="772" y="536.0" font-size="6.3" fill="#5F6E78" text-anchor="start">Three honest stops. The tool refuses</text>
+<text x="772" y="544.3" font-size="6.3" fill="#5F6E78" text-anchor="start">to draw a domino nobody has measured.</text>
+<path d="M500 366 L500 392" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<rect x="390.0" y="394" width="220" height="34" rx="17.0" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1"/>
+<text x="500.0" y="408.0" font-size="9" fill="#2B3A42" text-anchor="middle" font-weight="bold">Traverse chains, place by lag</text>
+<text x="500.0" y="419.0" font-size="6.5" fill="#2B3A42" text-anchor="middle">effect lands at t + lag, persists</text>
+<text x="60" y="398.0" font-size="6.3" fill="#2B3A42" text-anchor="start">Time rule</text>
+<text x="60" y="406.3" font-size="6.3" fill="#2B3A42" text-anchor="start">t = the option takes effect.</text>
+<text x="60" y="414.6" font-size="6.3" fill="#2B3A42" text-anchor="start">Effect appears at t + lag_min,</text>
+<text x="60" y="422.9" font-size="6.3" fill="#2B3A42" text-anchor="start">persists through t + lag_max.</text>
+<text x="60" y="431.2" font-size="6.3" fill="#2B3A42" text-anchor="start">Negative lag lands before t:</text>
+<text x="60" y="439.5" font-size="6.3" fill="#2B3A42" text-anchor="start">e29, tenants out before permit.</text>
+<text x="60" y="447.8" font-size="6.3" fill="#2B3A42" text-anchor="start">Direction and lag only, no magnitudes.</text>
+<path d="M390.0 411 L230 411" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<text x="60" y="460.0" font-size="6.3" fill="#2B3A42" text-anchor="start">Forks</text>
+<text x="60" y="468.3" font-size="6.3" fill="#2B3A42" text-anchor="start">Two camps, opposite sign, same</text>
+<text x="60" y="476.6" font-size="6.3" fill="#2B3A42" text-anchor="start">decision. Both are traversed and</text>
+<text x="60" y="484.9" font-size="6.3" fill="#2B3A42" text-anchor="start">drawn as parallel tracks. Nothing</text>
+<text x="60" y="493.2" font-size="6.3" fill="#2B3A42" text-anchor="start">in the script picks a winner.</text>
+<path d="M500 428 L500 454" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<rect x="376.0" y="138" width="248" height="300" rx="10" fill="none" stroke="#E0724E" stroke-width="1" stroke-dasharray="4 3"/>
+<text x="380.0" y="448" font-size="6.5" fill="#E0724E">first attempt: Run to Traverse, one option in, timeline.json out, no model</text>
+<rect x="390.0" y="466" width="220" height="34" rx="17.0" fill="#C9A66B"/>
+<text x="500.0" y="480.0" font-size="9" fill="#2B3A42" text-anchor="middle" font-weight="bold">Draft one sentence per edge</text>
+<text x="500.0" y="491.0" font-size="6.5" fill="#2B3A42" text-anchor="middle">from, to, direction, year, source id</text>
+<circle cx="640" cy="476" r="4.5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7"/>
+<text x="649" y="478.5" font-size="7" fill="#2B3A42">one edge + its finding sentence</text>
+<text x="649" y="487" font-size="6" fill="#5F6E78">the only evidence text the model sees</text>
+<path d="M610.0 483 L632 483" fill="none" stroke="#3D5A6C" stroke-width="0.9"/>
+<text x="640" y="500.0" font-size="6.3" fill="#5F6E78" text-anchor="start">Prompt contract</text>
+<text x="640" y="508.3" font-size="6.3" fill="#5F6E78" text-anchor="start">must contain: both labels, sign, year, source id</text>
+<text x="640" y="516.6" font-size="6.3" fill="#5F6E78" text-anchor="start">must not contain: any number absent from</text>
+<text x="640" y="524.9" font-size="6.3" fill="#5F6E78" text-anchor="start">the edge row or the finding sentence</text>
+<text x="640" y="533.2" font-size="6.3" fill="#5F6E78" text-anchor="start">model never adds, removes or reorders edges</text>
+<path d="M500 500 L500 526" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<rect x="390.0" y="528" width="220" height="34" rx="4" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.8"/>
+<text x="500.0" y="542.0" font-size="9" fill="#2B3A42" text-anchor="middle" font-weight="bold">Every sentence cited and lagged?</text>
+<text x="500.0" y="553.0" font-size="6.5" fill="#2B3A42" text-anchor="middle">string check against the file</text>
+<path d="M610.0 545 L620 545 L620 483 L612 483" fill="none" stroke="#3D5A6C" stroke-width="0.9" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
+<text x="626" y="560" font-size="6.3" fill="#5F6E78">redraft, three tries, then</text>
+<path d="M610.0 553 L600 553 L600 578 L640 578" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<rect x="642" y="566" width="130" height="24" rx="12.0" fill="#E0724E"/>
+<text x="707.0" y="575.0" font-size="7.5" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Flag and continue</text>
+<text x="707.0" y="586.0" font-size="5.0" fill="#F2EFE9" text-anchor="middle">edge drawn, marked unverified</text>
+<text x="780" y="575" font-size="6" fill="#5F6E78" text-anchor="start">run does not halt; the edge</text>
+<text x="780" y="583" font-size="6" fill="#5F6E78" text-anchor="start">is shown with a visible mark</text>
+<path d="M500 562 L500 588" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<rect x="390.0" y="590" width="220" height="34" rx="17.0" fill="#3D5A6C"/>
+<text x="500.0" y="604.0" font-size="9" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Review the forks</text>
+<text x="500.0" y="615.0" font-size="6.5" fill="#F2EFE9" text-anchor="middle">choose what to show, not who wins</text>
+<path d="M390.0 607 L300 607" fill="none" stroke="#3D5A6C" stroke-width="0.9"/>
+<path d="M300 607 L300 630" fill="none" stroke="#3D5A6C" stroke-width="0.9"/>
+<rect x="60" y="632" width="26" height="12" rx="6" fill="#3D5A6C"/><circle cx="79" cy="638" r="4" fill="#F2EFE9"/>
+<text x="73" y="654" font-size="5.8" fill="#5F6E78" text-anchor="middle">economics</text>
+<rect x="122" y="632" width="26" height="12" rx="6" fill="#3D5A6C"/><circle cx="141" cy="638" r="4" fill="#F2EFE9"/>
+<text x="135" y="654" font-size="5.8" fill="#5F6E78" text-anchor="middle">geography</text>
+<rect x="184" y="632" width="26" height="12" rx="6" fill="#3D5A6C"/><circle cx="203" cy="638" r="4" fill="#F2EFE9"/>
+<text x="197" y="654" font-size="5.8" fill="#5F6E78" text-anchor="middle">planning</text>
+<rect x="246" y="632" width="26" height="12" rx="6" fill="#3D5A6C"/><circle cx="265" cy="638" r="4" fill="#F2EFE9"/>
+<text x="259" y="654" font-size="5.8" fill="#5F6E78" text-anchor="middle">health</text>
+<rect x="308" y="632" width="26" height="12" rx="6" fill="#3D5A6C"/><circle cx="327" cy="638" r="4" fill="#F2EFE9"/>
+<text x="321" y="654" font-size="5.8" fill="#5F6E78" text-anchor="middle">architecture</text>
+<path d="M300 630 L60 630" fill="none" stroke="#3D5A6C" stroke-width="0.9"/>
+<text x="60" y="625" font-size="6.3" fill="#2B3A42">camps on / off</text>
+<rect x="60" y="670" width="26" height="12" rx="6" fill="#3D5A6C"/><circle cx="79" cy="676" r="4" fill="#F2EFE9"/>
+<text x="73" y="692" font-size="5.8" fill="#5F6E78" text-anchor="middle">mechanism</text>
+<rect x="140" y="670" width="26" height="12" rx="6" fill="#3D5A6C"/><circle cx="159" cy="676" r="4" fill="#F2EFE9"/>
+<text x="153" y="692" font-size="5.8" fill="#5F6E78" text-anchor="middle">theory</text>
+<rect x="220" y="670" width="26" height="12" rx="6" fill="#3D5A6C"/><circle cx="239" cy="676" r="4" fill="#F2EFE9"/>
+<text x="233" y="692" font-size="5.8" fill="#5F6E78" text-anchor="middle">observation</text>
+<text x="60" y="663" font-size="6.3" fill="#2B3A42">claim types on / off</text>
+<path d="M500 624 L500 650" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<path d="M610.0 607 L640 607" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<rect x="642" y="596" width="100" height="22" rx="11.0" fill="#E0724E"/>
+<text x="692.0" y="604.0" font-size="7.5" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Stop here</text>
+<text x="692.0" y="615.0" font-size="5.0" fill="#F2EFE9" text-anchor="middle">reading only</text>
+<text x="748" y="604" font-size="6" fill="#5F6E78" text-anchor="start">timeline kept,</text>
+<text x="748" y="612" font-size="6" fill="#5F6E78" text-anchor="start">no comparison</text>
+<rect x="390.0" y="652" width="220" height="34" rx="17.0" fill="#3D5A6C"/>
+<text x="500.0" y="666.0" font-size="9" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Edit a decision and rerun</text>
+<text x="500.0" y="677.0" font-size="6.5" fill="#F2EFE9" text-anchor="middle">or continue to render</text>
+<path d="M390.0 669 L360 669 L360 411 L388.0 411" fill="none" stroke="#3D5A6C" stroke-width="0.9" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
+<text x="352" y="540" font-size="6.3" fill="#5F6E78" transform="rotate(-90 352 540)">rerun with the new option, same horizon</text>
+<rect x="640" y="660" width="70" height="18" rx="4" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7"/>
+<text x="675.0" y="672.0" font-size="7" fill="#2B3A42" text-anchor="middle" font-weight="bold">scenario A</text>
+<rect x="720" y="660" width="70" height="18" rx="4" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7"/>
+<text x="755.0" y="672.0" font-size="7" fill="#2B3A42" text-anchor="middle" font-weight="bold">scenario B</text>
+<path d="M610.0 669 L640 669" fill="none" stroke="#3D5A6C" stroke-width="0.9"/>
+<text x="640" y="692.0" font-size="6.3" fill="#5F6E78" text-anchor="start">Two runs, one edited option between them.</text>
+<text x="640" y="700.3" font-size="6.3" fill="#5F6E78" text-anchor="start">More than two is allowed; two is what the</text>
+<text x="640" y="708.6" font-size="6.3" fill="#5F6E78" text-anchor="start">review shows.</text>
+<path d="M500 686 L500 712" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<rect x="390.0" y="714" width="220" height="34" rx="17.0" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1"/>
+<text x="500.0" y="728.0" font-size="9" fill="#2B3A42" text-anchor="middle" font-weight="bold">Render timelines side by side</text>
+<text x="500.0" y="739.0" font-size="6.5" fill="#2B3A42" text-anchor="middle">tool the person operates: years on x, outcomes on y</text>
+<circle cx="640" cy="724" r="4.5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7"/>
+<text x="649" y="726.5" font-size="7" fill="#2B3A42">timeline.json</text>
+<text x="649" y="735" font-size="6" fill="#5F6E78">one per scenario: effect, year, camp, grade, source</text>
+<path d="M610.0 731 L632 731" fill="none" stroke="#3D5A6C" stroke-width="0.9"/>
+<path d="M390.0 731 L300 731" fill="none" stroke="#3D5A6C" stroke-width="0.9"/>
+<path d="M300 731 L300 850" fill="none" stroke="#3D5A6C" stroke-width="0.9"/>
+<path d="M300 747 L292 747" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<rect x="170" y="738" width="120" height="18" rx="4" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7"/>
+<text x="230.0" y="750.0" font-size="6.8" fill="#2B3A42" text-anchor="middle" font-weight="bold">year slider</text>
+<text x="230" y="765" font-size="5.8" fill="#5F6E78" text-anchor="middle">scrub t0 to horizon</text>
+<path d="M300 777 L292 777" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<rect x="170" y="768" width="120" height="18" rx="4" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7"/>
+<text x="230.0" y="780.0" font-size="6.8" fill="#2B3A42" text-anchor="middle" font-weight="bold">parallel fork tracks</text>
+<text x="230" y="795" font-size="5.8" fill="#5F6E78" text-anchor="middle">both camps, never merged</text>
+<path d="M300 807 L292 807" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<rect x="170" y="798" width="120" height="18" rx="4" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7"/>
+<text x="230.0" y="810.0" font-size="6.8" fill="#2B3A42" text-anchor="middle" font-weight="bold">evidence as line weight</text>
+<text x="230" y="825" font-size="5.8" fill="#5F6E78" text-anchor="middle">mechanism thin, observation thick</text>
+<path d="M300 837 L292 837" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<rect x="170" y="828" width="120" height="18" rx="4" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7"/>
+<text x="230.0" y="840.0" font-size="6.8" fill="#2B3A42" text-anchor="middle" font-weight="bold">negative lags</text>
+<text x="230" y="855" font-size="5.8" fill="#5F6E78" text-anchor="middle">drawn left of t0</text>
+<path d="M500 748 L500 774" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<rect x="390.0" y="776" width="220" height="34" rx="17.0" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1"/>
+<text x="500.0" y="790.0" font-size="9" fill="#2B3A42" text-anchor="middle" font-weight="bold">Flag barriers</text>
+<text x="500.0" y="801.0" font-size="6.5" fill="#2B3A42" text-anchor="middle">three pattern rules, no judgment</text>
+<path d="M610.0 793 L640 793" fill="none" stroke="#3D5A6C" stroke-width="0.9"/>
+<path d="M640 793 L640 880" fill="none" stroke="#3D5A6C" stroke-width="0.9"/>
+<path d="M640 809 L648 809" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<rect x="650" y="800" width="150" height="18" rx="4" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7"/>
+<text x="725.0" y="812.0" font-size="6.8" fill="#2B3A42" text-anchor="middle" font-weight="bold">only negative edges</text>
+<text x="725" y="827" font-size="5.8" fill="#5F6E78" text-anchor="middle">every sourced effect on tenants is harm</text>
+<path d="M640 841 L648 841" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<rect x="650" y="832" width="150" height="18" rx="4" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7"/>
+<text x="725.0" y="844.0" font-size="6.8" fill="#2B3A42" text-anchor="middle" font-weight="bold">fork, no local evidence</text>
+<text x="725" y="859" font-size="5.8" fill="#5F6E78" text-anchor="middle">camps disagree, nothing from Vancouver</text>
+<path d="M640 873 L648 873" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<rect x="650" y="864" width="150" height="18" rx="4" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7"/>
+<text x="725.0" y="876.0" font-size="6.8" fill="#2B3A42" text-anchor="middle" font-weight="bold">lands past horizon</text>
+<text x="725" y="891" font-size="5.8" fill="#5F6E78" text-anchor="middle">the benefit arrives after the policy ends</text>
+<circle cx="640" cy="900" r="4.5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7"/>
+<text x="649" y="902.5" font-size="7" fill="#2B3A42">barriers.json</text>
+<text x="649" y="911" font-size="6" fill="#5F6E78">rule hit, decision, edge ids</text>
+<path d="M500 810 L500 836" fill="none" stroke="#3D5A6C" stroke-width="0.9" marker-end="url(#arrow)"/>
+<rect x="430" y="838" width="140" height="30" rx="15.0" fill="#E0724E"/>
+<text x="500.0" y="856.0" font-size="9.5" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Scenario comparison</text>
+<line x1="40" y1="920" x2="960" y2="920" stroke="#C9BFAE" stroke-width="0.6"/>
+<text x="40" y="940.0" font-size="7.5" fill="#2B3A42" text-anchor="start">Evaluation cases, checkable without the model</text>
+<rect x="40" y="952" width="90" height="20" rx="4" fill="#3D5A6C"/>
+<text x="85.0" y="965.0" font-size="7.5" fill="#F2EFE9" text-anchor="middle" font-weight="bold">typical</text>
+<text x="40" y="986.0" font-size="6.2" fill="#5F6E78" text-anchor="start">conversion_permit = allow, 10 yr</text>
+<text x="40" y="994.2" font-size="6.2" fill="#5F6E78" text-anchor="start">expected: e01, e29 (negative lag), e07 chain into health</text>
+<rect x="275" y="952" width="90" height="20" rx="4" fill="#3D5A6C"/>
+<text x="320.0" y="965.0" font-size="7.5" fill="#F2EFE9" text-anchor="middle" font-weight="bold">boundary</text>
+<text x="275" y="986.0" font-size="6.2" fill="#5F6E78" text-anchor="start">unit_size_sf = 200</text>
+<text x="275" y="994.2" font-size="6.2" fill="#5F6E78" text-anchor="start">expected: e27, e28, fork f4 drawn twice</text>
+<rect x="510" y="952" width="90" height="20" rx="4" fill="#3D5A6C"/>
+<text x="555.0" y="965.0" font-size="7.5" fill="#F2EFE9" text-anchor="middle" font-weight="bold">missing</text>
+<text x="510" y="986.0" font-size="6.2" fill="#5F6E78" text-anchor="start">target tenant_return_rate</text>
+<text x="510" y="994.2" font-size="6.2" fill="#5F6E78" text-anchor="start">expected: stop at check 1, ask for source</text>
+<rect x="745" y="952" width="90" height="20" rx="4" fill="#3D5A6C"/>
+<text x="790.0" y="965.0" font-size="7.5" fill="#F2EFE9" text-anchor="middle" font-weight="bold">repeated</text>
+<text x="745" y="986.0" font-size="6.2" fill="#5F6E78" text-anchor="start">model step, 5 runs, same edge</text>
+<text x="745" y="994.2" font-size="6.2" fill="#5F6E78" text-anchor="start">report: how much the sentences vary</text>
+<text x="40" y="1040.0" font-size="7.5" fill="#2B3A42" text-anchor="start">User sessions</text>
+<rect x="40" y="1052" width="120" height="20" rx="4" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7"/>
+<text x="100.0" y="1065.0" font-size="7" fill="#2B3A42" text-anchor="middle" font-weight="bold">session 1, by Nov 12</text>
+<text x="40" y="1086.0" font-size="6.2" fill="#5F6E78" text-anchor="start">non-profit SRO operator</text>
+<text x="40" y="1094.2" font-size="6.2" fill="#5F6E78" text-anchor="start">real building file: fills the ? weeks on the as-is axis</text>
+<rect x="350" y="1052" width="120" height="20" rx="4" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7"/>
+<text x="410.0" y="1065.0" font-size="7" fill="#2B3A42" text-anchor="middle" font-weight="bold">session 2, by Nov 27</text>
+<text x="350" y="1086.0" font-size="6.2" fill="#5F6E78" text-anchor="start">City housing planner</text>
+<text x="350" y="1094.2" font-size="6.2" fill="#5F6E78" text-anchor="start">tests the rerun loop on an option they actually chose</text>
+<rect x="660" y="1052" width="120" height="20" rx="4" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7"/>
+<text x="720.0" y="1065.0" font-size="7" fill="#2B3A42" text-anchor="middle" font-weight="bold">session 3, by Dec 3</text>
+<text x="660" y="1086.0" font-size="6.2" fill="#5F6E78" text-anchor="start">tenant group or advocate</text>
+<text x="660" y="1094.2" font-size="6.2" fill="#5F6E78" text-anchor="start">tests whether the forks read as fair to the party with no document</text>
+<rect x="40" y="1130" width="920" height="48" rx="6" fill="none" stroke="#3D5A6C" stroke-width="0.7" stroke-dasharray="4 3"/>
+<text x="52" y="1148.0" font-size="6.8" fill="#2B3A42" text-anchor="start">Every actor in the process produces a document: the owner an application, Council a permit, the architect drawings, the funder an agreement, the City a survey.</text>
+<text x="52" y="1156.8" font-size="6.8" fill="#2B3A42" text-anchor="start">The tenant produces none and receives none. In six of seven permit files the tenants were gone before the application was filed.</text>
+<text x="52" y="1165.6" font-size="6.8" fill="#2B3A42" text-anchor="start">The tool is the first point in the sequence where the tenant's timeline is drawn.</text>
+<text x="40" y="1210.0" font-size="6.8" fill="#5F6E78" text-anchor="start">Delegated to the tool: loading, traversal, time placement, citation checking, rendering, pattern flags.</text>
+<text x="40" y="1218.8" font-size="6.8" fill="#5F6E78" text-anchor="start">Kept with a person: which option, which horizon, which camps to show, whether to edit, what a flagged barrier means.</text>
+<text x="40" y="1227.6" font-size="6.8" fill="#5F6E78" text-anchor="start">Never delegated: adding an edge, setting a lag, choosing a source. Those happen in edges.json, by hand, with the paper open.</text>
+<text x="40" y="1262.0" font-size="6.8" fill="#5F6E78" text-anchor="start">Known limits at mid review</text>
+<text x="40" y="1270.8" font-size="6.8" fill="#5F6E78" text-anchor="start">Evidence is thin where the debate is loudest: three weak observation edges, all from one thesis. Two of four strong edges are from US cities.</text>
+<text x="40" y="1279.6" font-size="6.8" fill="#5F6E78" text-anchor="start">No magnitudes anywhere; the tool shows direction and timing only. Four as-is durations are still unknown and wait on an operator's file.</text>
+<text x="40" y="1288.4" font-size="6.8" fill="#5F6E78" text-anchor="start">The 200 sf rule is a live designation threshold, not a design standard; its effect on tenants has no source and the tool stops there.</text>
+</svg>
