@@ -30,10 +30,13 @@ Drawing rules:
     tan #C9A66B for the past-horizon hatch, text #2B3A42, muted #5F6E78
   - a vertical rule at year 0 labelled "decision"; effects with
     before_decision fall to its left by construction
+  - the note of every direction 0 effect is printed as a footnote beneath the
+    legend, in the words of edges.json, so the drawing says why nothing hangs
+    off that bar
   - net direction (direction_net if present, else direction) is printed
     inside the left end of each bar
 """
-import json, sys
+import json, sys, textwrap
 from xml.sax.saxutils import escape
 
 BG = "#E9E2D6"
@@ -116,7 +119,13 @@ def render(tl):
     rows = row_order(events)
 
     width = max(LEFT + (x1 - x0) * YEAR_W, LEFT + LEGEND_W) + RIGHT
-    height = TOP + len(rows) * ROW_H + 110
+    # footnotes: the note of every direction 0 effect, in the words of edges.json
+    notes = [(ev["edge"], ev["note"]) for ev in events if ev["direction"] == "0" and ev.get("note")]
+    note_lines = []
+    for eid, note in notes:
+        wrapped = textwrap.wrap(f"{eid}: {note}", width=int((LEGEND_W + RIGHT + 100) / 5.2))
+        note_lines.extend(wrapped)
+    height = TOP + len(rows) * ROW_H + 110 + (18 + 14 * len(note_lines) if note_lines else 0)
 
     def X(year):
         return LEFT + (year - x0) * YEAR_W
@@ -236,6 +245,13 @@ def render(tl):
     out.append(f'<line x1="{lx}" y1="{ly - 4}" x2="{lx + 24}" y2="{ly - 4}" '
                f'stroke="{INK}" stroke-width="1.2" stroke-dasharray="4 3"/>')
     out.append(f'<text x="{lx + 30}" y="{ly}" font-size="11">mechanism or theory, no grade</text>')
+    if note_lines:
+        ly += 26
+        out.append(f'<text x="{LEFT}" y="{ly}" font-size="10" font-weight="bold" fill="{MUTED}">'
+                   f'direction 0: lands on the axis, passes nothing on</text>')
+        for line in note_lines:
+            ly += 14
+            out.append(f'<text x="{LEFT}" y="{ly}" font-size="10" fill="{MUTED}">{escape(line)}</text>')
 
     out.append('</svg>')
     return "\n".join(out)

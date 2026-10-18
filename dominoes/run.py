@@ -57,7 +57,7 @@ def traverse(graph, timing, option, horizon):
                 continue  # not from here, or a cycle
             check_source(graph, timing, e)
             emin, emax, net = y_min + e["lag_min"], y_max + e["lag_max"], sign * SIGN[e["direction"]]
-            ev = {k: e.get(k) for k in ("claim_type", "from", "to", "direction", "camp", "evidence", "geography", "source", "fork")}
+            ev = {k: e.get(k) for k in ("claim_type", "from", "to", "direction", "camp", "evidence", "geography", "source", "fork", "note")}
             ev.update(edge=e["id"], to_label=labels.get(e["to"], e["to"]), direction_net=CHAR[net], year_min=emin, year_max=emax,
                       past_horizon=emin > horizon, before_decision=emin < 0, path=path + [e["id"]])
             if e["source"] == "timing_json_cases":
