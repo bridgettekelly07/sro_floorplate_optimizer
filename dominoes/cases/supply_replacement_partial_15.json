@@ -113,7 +113,7 @@
       "direction_net": "+",
       "year_min": 8,
       "year_max": 28,
-      "past_horizon": false,
+      "past_horizon": true,
       "before_decision": false,
       "path": [
         "e11",
