@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="360" viewBox="0 0 1100 360" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#2B3A42">
+<rect width="1100" height="360" fill="#E9E2D6"/>
+<text x="300" y="28" font-size="15" font-weight="bold">Minimum unit size in square feet: 200</text>
+<text x="300" y="46" fill="#5F6E78">what the sourced evidence says follows over 10 years: 6 effects, from year 0</text>
+<line x1="300" y1="70" x2="300" y2="250" stroke="#3D5A6C" stroke-opacity="0.15" stroke-width="1"/>
+<text x="300" y="268" text-anchor="middle" fill="#5F6E78">0</text>
+<line x1="336" y1="70" x2="336" y2="250" stroke="#3D5A6C" stroke-opacity="0.15" stroke-width="1"/>
+<line x1="372" y1="70" x2="372" y2="250" stroke="#3D5A6C" stroke-opacity="0.15" stroke-width="1"/>
+<line x1="408" y1="70" x2="408" y2="250" stroke="#3D5A6C" stroke-opacity="0.15" stroke-width="1"/>
+<line x1="444" y1="70" x2="444" y2="250" stroke="#3D5A6C" stroke-opacity="0.15" stroke-width="1"/>
+<line x1="480" y1="70" x2="480" y2="250" stroke="#3D5A6C" stroke-opacity="0.15" stroke-width="1"/>
+<text x="480" y="268" text-anchor="middle" fill="#5F6E78">5</text>
+<line x1="516" y1="70" x2="516" y2="250" stroke="#3D5A6C" stroke-opacity="0.15" stroke-width="1"/>
+<line x1="552" y1="70" x2="552" y2="250" stroke="#3D5A6C" stroke-opacity="0.15" stroke-width="1"/>
+<line x1="588" y1="70" x2="588" y2="250" stroke="#3D5A6C" stroke-opacity="0.15" stroke-width="1"/>
+<line x1="624" y1="70" x2="624" y2="250" stroke="#3D5A6C" stroke-opacity="0.15" stroke-width="1"/>
+<line x1="660" y1="70" x2="660" y2="250" stroke="#3D5A6C" stroke-opacity="0.15" stroke-width="1"/>
+<text x="660" y="268" text-anchor="middle" fill="#5F6E78">10</text>
+<text x="480.0" y="286" text-anchor="middle" fill="#5F6E78">years from the decision</text>
+<rect x="0" y="70" width="1100" height="30" fill="#3D5A6C" fill-opacity="0.04"/>
+<text x="272" y="89.0" text-anchor="end">Building stays under the SRA By-law</text>
+<g><title>e27 unit_size_sf=200 -&gt; sra_designation  dir -  yr 0 to 0  planning  mechanism  cov_council_2026_07_14_r7</title><polygon points="300,78.0 307,85.0 300,92.0 293,85.0" fill="#6E8594" fill-opacity="0.35" stroke="#6E8594" stroke-width="1.2" stroke-dasharray="4 3"/><text x="290" y="89.0" text-anchor="end" font-size="11" font-weight="bold" fill="#2B3A42">-</text><text x="313" y="89.0" text-anchor="start" font-size="10" fill="#5F6E78">e27  cov_council_2026_07_14_r7</text></g>
+<text x="272" y="119.0" text-anchor="end">Units per converted building</text>
+<g><title>e28 unit_size_sf=200 -&gt; units_per_building  dir -  yr 0 to 0  architecture  moderate  cov_council_2026_07_14_r7</title><polygon points="300,108.0 307,115.0 300,122.0 293,115.0" fill="#9FB0BA" fill-opacity="0.35" stroke="#9FB0BA" stroke-width="2.5"/><text x="290" y="119.0" text-anchor="end" font-size="11" font-weight="bold" fill="#2B3A42">-</text><text x="313" y="119.0" text-anchor="start" font-size="10" fill="#5F6E78">e28  cov_council_2026_07_14_r7</text></g>
+<rect x="0" y="130" width="1100" height="30" fill="#3D5A6C" fill-opacity="0.04"/>
+<text x="272" y="149.0" text-anchor="end">Evictions and forced moves</text>
+<g><title>e07 units_per_building -&gt; tenant_evictions  dir +  yr 0 to 1  health  moderate  fleming_2019</title><rect x="300" y="139.0" width="36" height="12" fill="#E0724E" fill-opacity="0.35" stroke="#E0724E" stroke-width="2.5"/><text x="290" y="149.0" text-anchor="end" font-size="11" font-weight="bold" fill="#2B3A42">+</text><text x="342" y="149.0" text-anchor="start" font-size="10" fill="#5F6E78">e07  fleming_2019</text></g>
+<text x="272" y="179.0" text-anchor="end">Tenant exposure to violence</text>
+<g><title>e08 tenant_evictions -&gt; violence_exposure  dir +  yr 0 to 2  health  strong  kennedy_2017</title><rect x="300" y="169.0" width="72" height="12" fill="#E0724E" fill-opacity="0.35" stroke="#E0724E" stroke-width="4.0"/><text x="290" y="179.0" text-anchor="end" font-size="11" font-weight="bold" fill="#2B3A42">+</text><text x="378" y="179.0" text-anchor="start" font-size="10" fill="#5F6E78">e08  kennedy_2017</text></g>
+<rect x="0" y="190" width="1100" height="30" fill="#3D5A6C" fill-opacity="0.04"/>
+<text x="272" y="209.0" text-anchor="end">Disruption of medical treatment</text>
+<g><title>e09 tenant_evictions -&gt; treatment_disruption  dir +  yr 0 to 2  health  strong  bccsu_eviction_hiv</title><rect x="300" y="199.0" width="72" height="12" fill="#E0724E" fill-opacity="0.35" stroke="#E0724E" stroke-width="4.0"/><text x="290" y="209.0" text-anchor="end" font-size="11" font-weight="bold" fill="#2B3A42">+</text><text x="378" y="209.0" text-anchor="start" font-size="10" fill="#5F6E78">e09  bccsu_eviction_hiv</text></g>
+<text x="272" y="239.0" text-anchor="end">Tenant mortality risk</text>
+<g><title>e10 treatment_disruption -&gt; mortality_risk  dir +  yr 0 to 5  health  theory  honer_2017</title><rect x="300" y="229.0" width="180" height="12" fill="#E0724E" fill-opacity="0.35" stroke="#E0724E" stroke-width="1.2" stroke-dasharray="4 3"/><text x="290" y="239.0" text-anchor="end" font-size="11" font-weight="bold" fill="#2B3A42">+</text><text x="486" y="239.0" text-anchor="start" font-size="10" fill="#5F6E78">e10  honer_2017</text></g>
+<line x1="300" y1="56" x2="300" y2="250" stroke="#2B3A42" stroke-width="1.5"/>
+<text x="305" y="66" font-size="11" font-weight="bold">decision</text>
+<rect x="300" y="301" width="14" height="10" fill="#3D5A6C" fill-opacity="0.35" stroke="#3D5A6C" stroke-width="2"/>
+<text x="318" y="310" font-size="11">economics</text>
+<rect x="400" y="301" width="14" height="10" fill="#6E8594" fill-opacity="0.35" stroke="#6E8594" stroke-width="2"/>
+<text x="418" y="310" font-size="11">planning</text>
+<rect x="500" y="301" width="14" height="10" fill="#9FB0BA" fill-opacity="0.35" stroke="#9FB0BA" stroke-width="2"/>
+<text x="518" y="310" font-size="11">architecture</text>
+<rect x="600" y="301" width="14" height="10" fill="#E0724E" fill-opacity="0.35" stroke="#E0724E" stroke-width="2"/>
+<text x="618" y="310" font-size="11">health</text>
+<rect x="700" y="301" width="14" height="10" fill="#B8553A" fill-opacity="0.35" stroke="#B8553A" stroke-width="2"/>
+<text x="718" y="310" font-size="11">geography</text>
+<line x1="300" y1="326" x2="324" y2="326" stroke="#2B3A42" stroke-width="4.0"/>
+<text x="330" y="330" font-size="11">strong</text>
+<line x1="400" y1="326" x2="424" y2="326" stroke="#2B3A42" stroke-width="2.5"/>
+<text x="430" y="330" font-size="11">moderate</text>
+<line x1="500" y1="326" x2="524" y2="326" stroke="#2B3A42" stroke-width="1.2"/>
+<text x="530" y="330" font-size="11">weak</text>
+<line x1="600" y1="326" x2="624" y2="326" stroke="#2B3A42" stroke-width="1.2" stroke-dasharray="4 3"/>
+<text x="630" y="330" font-size="11">mechanism or theory, no grade</text>
+</svg>
