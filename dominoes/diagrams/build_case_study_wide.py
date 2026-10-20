@@ -1,7 +1,7 @@
 import math, sys
 overlay = "--overlay" in sys.argv
 W,H=1600,900
-BG="#E9E2D6"; SL="#3D5A6C"; CO="#E0724E"; TX="#2B3A42"; MU="#5F6E78"; RULE="#C9BFAE"; LT="#F2EFE9"; TAN="#C9A66B"; BL="#9DB9F0"
+BG="#E9E2D6"; SL="#3D5A6C"; CO="#E0724E"; TX="#2B3A42"; MU="#5F6E78"; RULE="#C9BFAE"; LT="#F2EFE9"; TAN="#9DB9F0"; BL="#9DB9F0"
 o=[]; add=o.append
 cols=[200+i*168 for i in range(8)]
 T,B=300,450; BAND=375; r=32; R=r+7

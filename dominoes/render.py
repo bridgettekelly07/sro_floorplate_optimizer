@@ -12,7 +12,7 @@ year_min to year_max as run.py wrote it.
 
 Drawing rules:
   - x axis in years, from axis_start to the horizon; a bar that runs past the
-    horizon is clipped there, ends in a tan arrow and says which year it reaches
+    horizon is clipped there, ends in a pale cornflower arrow and says which year it reaches
   - one row per outcome; an outcome reached by several edges stacks its bars
     in that row; an effect with lag_min equal to lag_max is a diamond on that
     year rather than a bar
@@ -27,7 +27,7 @@ Drawing rules:
     mechanism and theory edges carry no grade and are drawn with a 1.2
     dashed outline
   - palette from CLAUDE.md: background #E9E2D6, slate #3D5A6C, coral #E0724E,
-    tan #C9A66B for the overrun arrow, text #2B3A42, muted #5F6E78
+    pale cornflower #9DB9F0 for the overrun arrow, text #2B3A42, muted #5F6E78
   - a vertical rule at year 0 labelled "decision"; effects with
     before_decision fall to its left by construction
   - the note of every direction 0 effect is printed as a footnote beneath the
@@ -44,7 +44,7 @@ SLATE = "#3D5A6C"
 CORAL = "#E0724E"
 INK = "#2B3A42"    # text
 MUTED = "#5F6E78"  # axis labels and notes
-TAN = "#C9A66B"    # overrun arrow for a bar that runs past the horizon
+TAN = "#9DB9F0"    # pale cornflower, overrun arrow for a bar that runs past the horizon
 CAMP_COLOUR = {
     "economics": SLATE,
     "planning": "#6E8594",      # slate tint
@@ -203,7 +203,7 @@ def render(tl):
                 label_x = xb + 6
             src = f'{ev["edge"]}  {ev["source"]}'
             if over:
-                # clipped at the horizon: a tan arrow and the year the bar really reaches
+                # clipped at the horizon: a pale cornflower arrow and the year the bar really reaches
                 shape += (f'<polygon points="{xb},{my - sub_h / 2} {xb + 9},{my} {xb},{my + sub_h / 2}" '
                           f'fill="{TAN}"/>')
                 src = f'to yr {ev["year_max"]}   {src}'
