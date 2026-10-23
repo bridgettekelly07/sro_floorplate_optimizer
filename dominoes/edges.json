@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "SRO conversion claim graph, Downtown Eastside Vancouver",
-    "version": "0.5",
+    "version": "0.6",
     "date": "2026-10-17",
     "unit": "A domino is an edge: a sourced claim that one decision option or outcome moves another outcome, with a direction and a lag in years.",
     "rules": {
@@ -189,6 +189,10 @@
     {
       "id": "sra_designation",
       "label": "Building stays under the SRA By-law"
+    },
+    {
+      "id": "housing_agreement_rooms",
+      "label": "Rooms secured by a housing agreement"
     }
   ],
   "edges": [
@@ -617,6 +621,34 @@
       "source": "cov_council_2025_04_15_r6",
       "fork": "f4",
       "note": "The fee has not been charged at its listed rate since 2015. Reserve inflow from fees is near zero in practice; e25 describes the rule, this describes the record."
+    },
+    {
+      "id": "e31",
+      "claim_type": "mechanism",
+      "from": "conversion_fee=waived",
+      "to": "replacement_reserve",
+      "direction": "0",
+      "lag_min": 0,
+      "lag_max": 0,
+      "camp": "planning",
+      "evidence": null,
+      "geography": "vancouver",
+      "source": "cov_council_2003_2015_2020",
+      "note": "The bylaw directs the charge into the replacement reserve (e25). A building whose fee is waived pays nothing in, so the reserve does not move for that building."
+    },
+    {
+      "id": "e32",
+      "claim_type": "observation",
+      "from": "conversion_fee=waived",
+      "to": "housing_agreement_rooms",
+      "direction": "+",
+      "lag_min": 0,
+      "lag_max": 30,
+      "camp": "planning",
+      "evidence": "weak",
+      "geography": "vancouver",
+      "source": "timing_json_cases",
+      "note": "One case only: Low Young Court (2015), fee waived in exchange for a 30-year housing agreement on 8 of 12 rooms. The bar runs the 30-year term of that agreement. One case is not a pattern; more waivers are needed before this is a claim about the fee."
     }
   ],
   "sources": {
