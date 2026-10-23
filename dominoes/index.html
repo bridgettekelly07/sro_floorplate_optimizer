@@ -5,281 +5,388 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SRO dominoes</title>
 <style>
-  :root { --bg:#E9E2D6; --slate:#3D5A6C; --coral:#E0724E; --tan:#9DB9F0; --ink:#2B3A42; --muted:#5F6E78; --panel:#F1ECE2; --line:#cfc6b6; }
+  :root { --bg:#E9E2D6; --slate:#3D5A6C; --coral:#E0724E; --ink:#2B3A42; --muted:#5F6E78; }
   * { box-sizing: border-box; }
   body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 Helvetica, Arial, sans-serif; }
-  header { padding:20px 24px 8px; max-width:1400px; margin:0 auto; }
-  h1 { margin:0; font-size:22px; }
-  header p { margin:4px 0 0; color:var(--muted); max-width:70ch; }
-  main { display:grid; grid-template-columns:300px 1fr; gap:20px; padding:12px 24px 40px; max-width:1400px; margin:0 auto; }
-  @media (max-width:860px) { main { grid-template-columns:1fr; } }
-  aside, .card { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:14px 16px; }
-  aside h2, .card h2 { font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:0 0 8px; }
-  label { display:block; font-size:13px; color:var(--muted); margin:10px 0 4px; }
-  select { width:100%; font:inherit; padding:6px; background:#fff; border:1px solid var(--line); border-radius:4px; color:var(--ink); }
-  .opts { display:flex; flex-wrap:wrap; gap:6px; }
-  .opts button { font:inherit; padding:6px 10px; border:1px solid var(--slate); background:transparent; color:var(--slate); border-radius:999px; cursor:pointer; }
-  .opts button[aria-pressed="true"] { background:var(--slate); color:#fff; }
-  .opts button.empty { border-style:dashed; border-color:var(--muted); color:var(--muted); }
-  .opts button.empty[aria-pressed="true"] { background:var(--muted); color:#fff; }
-  input[type=range] { width:100%; accent-color:var(--slate); }
-  .note { font-size:13px; color:var(--muted); }
-  .stack { display:flex; flex-direction:column; gap:16px; min-width:0; }
-  #chart svg { width:100%; min-width:900px; height:auto; display:block; }
-  #chart { overflow-x:auto; }
-  .stop { border-left:4px solid var(--coral); background:#fff; padding:12px 14px; border-radius:4px; }
-  .stop b { color:var(--coral); }
-  #detail h3 { margin:0 0 4px; font-size:15px; }
-  #detail dl { display:grid; grid-template-columns:110px 1fr; gap:2px 10px; margin:8px 0 0; font-size:13px; }
-  #detail dt { color:var(--muted); }
-  #detail dd { margin:0; }
-  .hint { color:var(--muted); font-size:13px; }
-  svg g.ev { cursor:pointer; }
-  svg g.ev:hover rect, svg g.ev:hover polygon { fill-opacity:.6; }
-  svg g.ev.sel rect, svg g.ev.sel polygon:first-child { stroke-width:5; }
-  details summary { cursor:pointer; color:var(--slate); }
-  ul.edges { margin:6px 0 0; padding-left:18px; font-size:13px; }
+  #track { max-width:1600px; margin:0 auto; }
+  #track svg { width:100%; height:auto; display:block; }
+  #track g.callout[data-levers]:not([data-levers=""]) { cursor:pointer; }
+  #track g.callout[data-levers]:not([data-levers=""]):hover rect { stroke:var(--coral); }
+  #track g.callout.on rect { stroke:var(--coral); stroke-width:1.6; stroke-dasharray:none; }
+  #track g.det { cursor:pointer; }
+  #track g.det:hover circle.dot { stroke:var(--coral); stroke-width:2; }
+  #track g.det.sel circle.dot { fill:var(--coral); stroke:var(--coral); }
+  #track g.stage circle { transition:stroke .15s; }
+  #track.has-run g.stage:not(.lit) { opacity:.4; }
+  #track g.stage.lit circle { stroke:var(--coral); stroke-width:4; }
+  #track text.axis.gap { font-style:italic; }
+  #track text.axis.on { fill:var(--coral); font-weight:bold; }
+  #track path.bypass { transition:stroke-width .15s; }
+  #track.bypass-on path.bypass { stroke-width:2.4; }
+  #track.bypass-on g.stage[data-stage="Council"] { opacity:.3; }
+  #track.bypass-on text.axis[data-stage="Council"] { text-decoration:line-through; }
+  #track polygon.dia { transition:transform .15s; transform-box:fill-box; transform-origin:center; }
+  #track.has-run polygon.dia:not(.on) { opacity:.3; }
+  #track polygon.dia.on { transform:scale(1.5); stroke-width:2; }
+  #track polygon.dia.effect.on { fill:var(--coral); fill-opacity:.35; }
+  #track .count { font-size:11px; font-weight:bold; fill:var(--coral); }
+  #effects { max-width:1600px; margin:0 auto; }
+  #effects svg { width:100%; height:auto; display:block; }
 </style>
 </head>
 <body>
-<header>
-  <h1>SRO dominoes</h1>
-  <p>Pick a decision in Vancouver's SRO conversion process. The page traces what the published evidence says follows, year by year, with a source on every link and both sides of every disagreement. No magnitudes are asserted. No model is called.</p>
-</header>
-<main>
-  <aside>
-    <h2>Decision</h2>
-    <label for="dec">What is being decided</label>
-    <select id="dec"></select>
-    <label>Option</label>
-    <div class="opts" id="opts"></div>
-    <p class="note" id="decnote"></p>
-    <label for="hor">Horizon: <span id="horv"></span> years</label>
-    <input type="range" id="hor" min="5" max="30" step="1" value="10">
-    <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
-    <h2>What reaches an outcome?</h2>
-    <select id="tgt"></select>
-    <div id="tgtout" class="note" style="margin-top:8px"></div>
-  </aside>
-  <div class="stack">
-    <div class="card" id="chart"></div>
-    <div id="stopbox"></div>
-    <div class="card" id="detail"><h2>Evidence</h2><p class="hint">Select a bar to see its claim, source and note.</p></div>
-    <div class="card"><h2>How to read it</h2>
-      <p class="note">Each row is an outcome. A bar runs from the earliest to the latest year the effect lands, counted from the decision (the vertical rule). The sign in the label column is the net direction along the chain: signs multiply, so a decrease of a decrease reads as an increase. Heavier outlines mean stronger evidence; dashed outlines mean a mechanism or theory with no grade. Rows joined by a coral bracket are a fork: two sourced claims that contradict each other, both drawn, neither chosen. A bar that runs past the horizon is clipped and ends in a pale cornflower arrow.</p>
-    </div>
-  </div>
-</main>
+<div id="track">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 830" font-family="Helvetica, Arial, DejaVu Sans, sans-serif">
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#3D5A6C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker><marker id="arrowc" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#E0724E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<rect width="1600" height="830" fill="#E9E2D6"/>
+<g font-size="8.75" fill="#2B3A42"><text x="60" y="30" font-size="10.00" font-weight="bold">Each decision is a box of dots</text><circle cx="66" cy="46" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/><text x="78" y="49">a setting with a sourced effect</text><circle cx="66" cy="62" r="5" fill="#E0724E" stroke="#E0724E"/><text x="78" y="65">the setting you chose; click it again to clear a lone dot</text><text x="60" y="82" fill="#5F6E78">Left off, no sourced effect: permit route: deny; replacement:</text><text x="60" y="91" fill="#5F6E78">one to one; unit size: 100; tenure: private; rent rule:</text><text x="60" y="100" fill="#5F6E78">vacancy control; income mix: 100 social; conversion fee:</text><text x="60" y="109" fill="#5F6E78">replace in kind.</text></g>
+<g class="callout" data-levers="conversion_permit" data-col="2">
+<rect x="499.246609350344" y="14" width="162" height="68" rx="6" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7" stroke-dasharray="5 4"/>
+<text x="509.246609350344" y="27" font-size="11.25" fill="#2B3A42" font-weight="bold">Permit route</text>
+<text class="timing timed" x="509.246609350344" y="38" font-size="8.12" fill="#2B3A42">minor repair skips Council, 9</text>
+<text class="timing timed" x="509.246609350344" y="47" font-size="8.12" fill="#2B3A42">to 12 wks</text>
+<g class="det has" data-lever="conversion_permit" data-opt="allow"><title>allow: sourced effects</title><circle cx="521.2" cy="61" r="9" fill="transparent"/>
+<circle class="dot" cx="521.2" cy="61" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/></g>
+<text x="513.2" y="76" font-size="7.88" fill="#2B3A42" text-anchor="start">allow</text>
+<g class="det has" data-lever="conversion_permit" data-opt="minor_repair_staff"><title>minor repair: sourced effects; in force now: since 2015 most renovation cases take this route</title><circle cx="639.2" cy="61" r="9" fill="transparent"/>
+<circle class="dot" cx="639.2" cy="61" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/></g>
+<text x="647.2" y="76" font-size="7.88" fill="#2B3A42" text-anchor="end">minor repair</text>
+</g>
+<g class="callout" data-levers="conversion_fee" data-col="2">
+<rect x="499.246609350344" y="85" width="162" height="68" rx="6" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7" stroke-dasharray="5 4"/>
+<text x="509.246609350344" y="98" font-size="11.25" fill="#2B3A42" font-weight="bold">Conversion fee</text>
+<text class="timing" x="509.246609350344" y="109" font-size="8.12" fill="#5F6E78">no timing data</text>
+<g class="det has" data-lever="conversion_fee" data-opt="waived"><title>waived: sourced effects; in force now: last actually charged in 2015; since then waived or set by pro forma</title><circle cx="521.2" cy="132" r="9" fill="transparent"/>
+<circle class="dot" cx="521.2" cy="132" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/></g>
+<text x="513.2" y="147" font-size="7.88" fill="#2B3A42" text-anchor="start">waived</text>
+<g class="det has" data-lever="conversion_fee" data-opt="charged"><title>charged: sourced effects</title><circle cx="639.2" cy="132" r="9" fill="transparent"/>
+<circle class="dot" cx="639.2" cy="132" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/></g>
+<text x="647.2" y="147" font-size="7.88" fill="#2B3A42" text-anchor="end">charged</text>
+</g>
+<line x1="580.246609350344" y1="156" x2="610.246609350344" y2="408" stroke="#C9BFAE" stroke-width="0.6" stroke-dasharray="5 4"/>
+<g class="callout" data-levers="unit_size_sf" data-col="3">
+<rect x="669.246609350344" y="14" width="162" height="68" rx="6" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7" stroke-dasharray="5 4"/>
+<text x="679.246609350344" y="27" font-size="11.25" fill="#2B3A42" font-weight="bold">Unit size</text>
+<text class="timing" x="679.246609350344" y="38" font-size="8.12" fill="#5F6E78">sets the route, no duration</text>
+<text class="timing" x="679.246609350344" y="47" font-size="8.12" fill="#5F6E78">data</text>
+<g class="det has" data-lever="unit_size_sf" data-opt="200"><title>200 sf: sourced effects; in force now: the live threshold in current permit reports</title><circle cx="691.2" cy="61" r="9" fill="transparent"/>
+<circle class="dot" cx="691.2" cy="61" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/></g>
+<text x="683.2" y="76" font-size="7.88" fill="#2B3A42" text-anchor="start">200</text>
+<g class="det has" data-lever="unit_size_sf" data-opt="250"><title>250 sf: sourced effects</title><circle cx="750.2" cy="61" r="9" fill="transparent"/>
+<circle class="dot" cx="750.2" cy="61" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/></g>
+<text x="750.2" y="76" font-size="7.88" fill="#2B3A42" text-anchor="middle">250</text>
+<g class="det has" data-lever="unit_size_sf" data-opt="320"><title>320 sf: sourced effects</title><circle cx="809.2" cy="61" r="9" fill="transparent"/>
+<circle class="dot" cx="809.2" cy="61" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/></g>
+<text x="817.2" y="76" font-size="7.88" fill="#2B3A42" text-anchor="end">320</text>
+</g>
+<line x1="750.246609350344" y1="85" x2="750.246609350344" y2="258" stroke="#C9BFAE" stroke-width="0.6" stroke-dasharray="5 4"/>
+<g class="callout" data-levers="replacement_ratio" data-col="4">
+<rect x="839.246609350344" y="14" width="162" height="68" rx="6" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7" stroke-dasharray="5 4"/>
+<text x="849.246609350344" y="27" font-size="11.25" fill="#2B3A42" font-weight="bold">Replacement</text>
+<text class="timing timed" x="849.246609350344" y="38" font-size="8.12" fill="#2B3A42">acts on 3 yrs and open, 1 case</text>
+<g class="det has" data-lever="replacement_ratio" data-opt="none"><title>none: sourced effects</title><circle cx="861.2" cy="61" r="9" fill="transparent"/>
+<circle class="dot" cx="861.2" cy="61" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/></g>
+<text x="853.2" y="76" font-size="7.88" fill="#2B3A42" text-anchor="start">none</text>
+<g class="det has" data-lever="replacement_ratio" data-opt="partial"><title>partial: sourced effects</title><circle cx="979.2" cy="61" r="9" fill="transparent"/>
+<circle class="dot" cx="979.2" cy="61" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/></g>
+<text x="987.2" y="76" font-size="7.88" fill="#2B3A42" text-anchor="end">partial</text>
+</g>
+<g class="callout" data-levers="tenure" data-col="4">
+<rect x="839.246609350344" y="85" width="162" height="68" rx="6" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7" stroke-dasharray="5 4"/>
+<text x="849.246609350344" y="98" font-size="11.25" fill="#2B3A42" font-weight="bold">Tenure</text>
+<text class="timing" x="849.246609350344" y="109" font-size="8.12" fill="#5F6E78">no timing data</text>
+<g class="det has" data-lever="tenure" data-opt="nonprofit"><title>nonprofit: sourced effects</title><circle cx="920.2" cy="132" r="9" fill="transparent"/>
+<circle class="dot" cx="920.2" cy="132" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/></g>
+<text x="920.2" y="147" font-size="7.88" fill="#2B3A42" text-anchor="middle">nonprofit</text>
+</g>
+<g class="callout" data-levers="income_mix" data-col="4">
+<rect x="839.246609350344" y="156" width="162" height="68" rx="6" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7" stroke-dasharray="5 4"/>
+<text x="849.246609350344" y="169" font-size="11.25" fill="#2B3A42" font-weight="bold">Income mix</text>
+<text class="timing" x="849.246609350344" y="180" font-size="8.12" fill="#5F6E78">no timing data</text>
+<g class="det has" data-lever="income_mix" data-opt="60_40"><title>60/40: sourced effects</title><circle cx="920.2" cy="203" r="9" fill="transparent"/>
+<circle class="dot" cx="920.2" cy="203" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/></g>
+<text x="920.2" y="218" font-size="7.88" fill="#2B3A42" text-anchor="middle">60/40</text>
+</g>
+<line x1="920.246609350344" y1="227" x2="890.246609350344" y2="258" stroke="#C9BFAE" stroke-width="0.6" stroke-dasharray="5 4"/>
+<g class="callout" data-levers="rent_at_turnover" data-col="6">
+<rect x="1179.1661036611858" y="14" width="162" height="68" rx="6" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7" stroke-dasharray="5 4"/>
+<text x="1189.1661036611858" y="27" font-size="11.25" fill="#2B3A42" font-weight="bold">Rent rule</text>
+<text class="timing" x="1189.1661036611858" y="38" font-size="8.12" fill="#5F6E78">no timing data, needs a rent</text>
+<text class="timing" x="1189.1661036611858" y="47" font-size="8.12" fill="#5F6E78">roll</text>
+<g class="det has" data-lever="rent_at_turnover" data-opt="market"><title>market: sourced effects</title><circle cx="1260.2" cy="61" r="9" fill="transparent"/>
+<circle class="dot" cx="1260.2" cy="61" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/></g>
+<text x="1260.2" y="76" font-size="7.88" fill="#2B3A42" text-anchor="middle">market</text>
+</g>
+<line x1="1260.1661036611858" y1="85" x2="1260.1661036611858" y2="258" stroke="#C9BFAE" stroke-width="0.6" stroke-dasharray="5 4"/>
+<line x1="-10" y1="375" x2="1610" y2="375" stroke="#3D5A6C" stroke-width="0.9" stroke-dasharray="5 4"/>
+<text x="44" y="351" font-size="10.00" fill="#5F6E78" letter-spacing="1.2">OUTSIDE THE CITY</text>
+<text x="44" y="363" font-size="8.75" fill="#5F6E78">owner, architect, funder, Province</text>
+<text x="44" y="393" font-size="10.00" fill="#5F6E78" letter-spacing="1.2">CITY OF VANCOUVER</text>
+<text x="44" y="405" font-size="8.75" fill="#5F6E78">intake, Council, permits, inspection, survey</text>
+<path d="M-10 261 L190 261 A39 39 0 0 1 216.3 271.2 L444.0 478.8 A39 39 0 0 0 470.2 489.0 L610.2 489.0 A39 39 0 0 0 646.7 463.8 L713.8 286.2 A39 39 0 0 1 750.2 261.0 L890.2 261.0 A39 39 0 0 1 920.0 274.7 L1090.5 475.3 A39 39 0 0 0 1156.7 463.8 L1223.7 286.2 A39 39 0 0 1 1296.7 286.2 L1363.7 463.8 A39 39 0 0 0 1400.2 489.0 L1610 489.0" fill="none" stroke="#3D5A6C" stroke-width="1.2"/>
+<path class="bypass" d="M470.246609350344 489 L470.246609350344 539 L750.246609350344 539 L750.246609350344 342" fill="none" stroke="#E0724E" stroke-width="0.9" stroke-dasharray="5 4" marker-end="url(#arrowc)"/>
+<text x="610.246609350344" y="549" font-size="8.75" fill="#E0724E" text-anchor="middle">minor repair, staff approval, no Council</text>
+<circle cx="330.1" cy="375.0" r="5.5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.6"/>
+<text x="340.1" y="390.0" font-size="8.75" fill="#5F6E78" text-anchor="start">relocation plan</text>
+<circle cx="540.2" cy="489.0" r="5.5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.6"/>
+<text x="540.2" y="503.0" font-size="8.75" fill="#5F6E78" text-anchor="middle">application</text>
+<circle cx="680.2" cy="375.0" r="5.5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.6"/>
+<text x="670.2" y="366.0" font-size="8.75" fill="#5F6E78" text-anchor="end">permit, conditions</text>
+<circle cx="820.2" cy="261.0" r="5.5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.6"/>
+<text x="820.2" y="252.0" font-size="8.75" fill="#5F6E78" text-anchor="middle">drawings</text>
+<circle cx="1005.2" cy="375.0" r="5.5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.6"/>
+<text x="1015.2" y="390.0" font-size="8.75" fill="#5F6E78" text-anchor="start">agreement</text>
+<circle cx="1190.2" cy="375.0" r="5.5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.6"/>
+<text x="1180.2" y="366.0" font-size="8.75" fill="#5F6E78" text-anchor="end">occupancy permit</text>
+<circle cx="1330.2" cy="375.0" r="5.5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.6"/>
+<text x="1340.2" y="390.0" font-size="8.75" fill="#5F6E78" text-anchor="start">rent roll</text>
+<g class="stage" data-stage="Tenants out">
+<circle cx="190" cy="300" r="32" fill="#3D5A6C" stroke="#9DB9F0" stroke-width="2.6"/>
+<text x="190" y="303.5" font-size="9.75" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Tenants out</text>
+</g>
+<g class="stage" data-stage="Apply">
+<circle cx="470.246609350344" cy="450" r="32" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1"/>
+<text x="470.246609350344" y="453.5" font-size="9.75" fill="#2B3A42" text-anchor="middle" font-weight="bold">Apply</text>
+</g>
+<g class="stage" data-stage="Council">
+<circle cx="610.246609350344" cy="450" r="32" fill="#3D5A6C" stroke="#9DB9F0" stroke-width="2.6"/>
+<text x="610.246609350344" y="453.5" font-size="9.75" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Council</text>
+</g>
+<g class="stage" data-stage="Design">
+<circle cx="750.246609350344" cy="300" r="32" fill="#3D5A6C" stroke="#9DB9F0" stroke-width="2.6"/>
+<text x="750.246609350344" y="303.5" font-size="9.75" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Design</text>
+</g>
+<g class="stage" data-stage="Fund">
+<circle cx="890.246609350344" cy="300" r="32" fill="#3D5A6C" stroke="#3D5A6C" stroke-width="1"/>
+<text x="890.246609350344" y="303.5" font-size="9.75" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Fund</text>
+</g>
+<g class="stage" data-stage="Build">
+<circle cx="1120.1661036611858" cy="450" r="32" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1"/>
+<text x="1120.1661036611858" y="453.5" font-size="9.75" fill="#2B3A42" text-anchor="middle" font-weight="bold">Build</text>
+</g>
+<g class="stage" data-stage="Rent">
+<circle cx="1260.1661036611858" cy="300" r="32" fill="#3D5A6C" stroke="#9DB9F0" stroke-width="2.6"/>
+<text x="1260.1661036611858" y="303.5" font-size="9.75" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Rent</text>
+</g>
+<g class="stage" data-stage="Monitor">
+<circle cx="1400.1661036611858" cy="450" r="32" fill="#E9E2D6" stroke="#9DB9F0" stroke-width="2.6"/>
+<text x="1400.1661036611858" y="453.5" font-size="9.75" fill="#2B3A42" text-anchor="middle" font-weight="bold">Monitor</text>
+</g>
+<line x1="190" y1="633" x2="190" y2="647" stroke="#2B3A42" stroke-width="1.6"/>
+<line x1="470.246609350344" y1="633" x2="470.246609350344" y2="647" stroke="#2B3A42" stroke-width="1.6"/>
+<line x1="610.246609350344" y1="633" x2="610.246609350344" y2="647" stroke="#2B3A42" stroke-width="1.6"/>
+<line x1="750.246609350344" y1="633" x2="750.246609350344" y2="647" stroke="#2B3A42" stroke-width="1.6"/>
+<line x1="890.246609350344" y1="633" x2="890.246609350344" y2="647" stroke="#2B3A42" stroke-width="1.6"/>
+<line x1="1120.1661036611858" y1="633" x2="1120.1661036611858" y2="647" stroke="#2B3A42" stroke-width="1.6"/>
+<line x1="1260.1661036611858" y1="633" x2="1260.1661036611858" y2="647" stroke="#2B3A42" stroke-width="1.6"/>
+<line x1="1400.1661036611858" y1="633" x2="1400.1661036611858" y2="647" stroke="#2B3A42" stroke-width="1.6"/>
+<text x="190" y="658" font-size="10.00" fill="#2B3A42" text-anchor="middle" font-weight="bold">Owner, fire, closure</text>
+<text x="470.246609350344" y="658" font-size="10.00" fill="#2B3A42" text-anchor="middle" font-weight="bold">Owner</text>
+<text x="610.246609350344" y="658" font-size="10.00" fill="#2B3A42" text-anchor="middle" font-weight="bold">Council, SRA Bylaw</text>
+<text x="750.246609350344" y="658" font-size="10.00" fill="#2B3A42" text-anchor="middle" font-weight="bold">Architect, City</text>
+<text x="890.246609350344" y="658" font-size="10.00" fill="#2B3A42" text-anchor="middle" font-weight="bold">BC Housing</text>
+<text x="1120.1661036611858" y="658" font-size="10.00" fill="#2B3A42" text-anchor="middle" font-weight="bold">Owner, City</text>
+<text x="1260.1661036611858" y="658" font-size="10.00" fill="#2B3A42" text-anchor="middle" font-weight="bold">Owner, RTA</text>
+<text x="1400.1661036611858" y="658" font-size="10.00" fill="#2B3A42" text-anchor="middle" font-weight="bold">City, CCAP</text>
+<line x1="199" y1="640" x2="461.246609350344" y2="640" stroke="#3D5A6C" stroke-width="2.6"/>
+<text class="axis" data-stage="Tenants out" x="330.123304675172" y="627" font-size="9.38" fill="#2B3A42" text-anchor="middle">1 day to 10 years before</text>
+<line x1="479.246609350344" y1="640" x2="601.246609350344" y2="640" stroke="#3D5A6C" stroke-width="2.6"/>
+<text class="axis" data-stage="Council" x="540.246609350344" y="627" font-size="9.38" fill="#2B3A42" text-anchor="middle">9 to 12 weeks</text>
+<line x1="619.246609350344" y1="640" x2="741.246609350344" y2="640" stroke="#5F6E78" stroke-width="1.2" stroke-dasharray="1 5" stroke-linecap="round"/>
+<text class="axis gap" data-stage="Design" x="680.246609350344" y="627" font-size="9.38" fill="#5F6E78" text-anchor="middle">no case yet</text>
+<line x1="759.246609350344" y1="640" x2="881.246609350344" y2="640" stroke="#5F6E78" stroke-width="1.2" stroke-dasharray="1 5" stroke-linecap="round"/>
+<text class="axis gap" data-stage="" x="820.246609350344" y="627" font-size="9.38" fill="#5F6E78" text-anchor="middle">no case yet</text>
+<line x1="899.246609350344" y1="640" x2="1111.1661036611858" y2="640" stroke="#3D5A6C" stroke-width="2.6"/>
+<path d="M1104.1661036611858 635 L1111.1661036611858 640 L1104.1661036611858 645" fill="none" stroke="#3D5A6C" stroke-width="1.4"/>
+<text class="axis" data-stage="Fund" x="1005.2063565057649" y="627" font-size="9.38" fill="#2B3A42" text-anchor="middle">3 years, open ended</text>
+<line x1="1129.1661036611858" y1="640" x2="1251.1661036611858" y2="640" stroke="#5F6E78" stroke-width="1.2" stroke-dasharray="1 5" stroke-linecap="round"/>
+<text class="axis gap" data-stage="Build" x="1190.1661036611858" y="627" font-size="9.38" fill="#5F6E78" text-anchor="middle">no case yet</text>
+<line x1="1269.1661036611858" y1="640" x2="1391.1661036611858" y2="640" stroke="#5F6E78" stroke-width="1.2" stroke-dasharray="1 5" stroke-linecap="round"/>
+<text class="axis gap" data-stage="Rent" x="1330.1661036611858" y="627" font-size="9.38" fill="#5F6E78" text-anchor="middle">no case yet</text>
+<line x1="1409.1661036611858" y1="640" x2="1490.1661036611858" y2="640" stroke="#3D5A6C" stroke-width="2.6"/><path d="M1483.1661036611858 635 L1490.1661036611858 640 L1483.1661036611858 645" fill="none" stroke="#3D5A6C" stroke-width="1.4"/>
+<text class="axis" data-stage="Monitor" x="1450.1661036611858" y="627" font-size="9.38" fill="#2B3A42" text-anchor="middle">0 to 104 weeks</text>
+<text x="470.246609350344" y="682" font-size="8.75" fill="#5F6E78" text-anchor="middle">week 0, application filed</text>
+<text x="1576" y="610" font-size="8.75" fill="#5F6E78" text-anchor="end">Distance between stages grows with the log of the weeks measured between them. Dotted: no case, drawn at the shortest length.</text>
+<line x1="120" y1="692" x2="1610" y2="692" stroke="#C9BFAE" stroke-width="0.5"/>
+<text x="112" y="695" font-size="10.00" fill="#5F6E78" text-anchor="end">planner steps in</text>
+<circle cx="610.246609350344" cy="692" r="4" fill="#3D5A6C"/>
+<circle cx="1400.1661036611858" cy="692" r="4" fill="#3D5A6C"/>
+<line x1="120" y1="710" x2="1610" y2="710" stroke="#C9BFAE" stroke-width="0.5"/>
+<text x="112" y="713" font-size="10.00" fill="#5F6E78" text-anchor="end">decision set here</text>
+<polygon class="dia read" data-stage="Council" points="610.246609350344,705 615.246609350344,710 610.246609350344,715 605.246609350344,710" fill="#E0724E" stroke="#E0724E" stroke-width="1.1"/>
+<polygon class="dia read" data-stage="Design" points="750.246609350344,705 755.246609350344,710 750.246609350344,715 745.246609350344,710" fill="#E0724E" stroke="#E0724E" stroke-width="1.1"/>
+<polygon class="dia read" data-stage="Fund" points="890.246609350344,705 895.246609350344,710 890.246609350344,715 885.246609350344,710" fill="#E0724E" stroke="#E0724E" stroke-width="1.1"/>
+<polygon class="dia read" data-stage="Rent" points="1260.1661036611858,705 1265.1661036611858,710 1260.1661036611858,715 1255.1661036611858,710" fill="#E0724E" stroke="#E0724E" stroke-width="1.1"/>
+<line x1="120" y1="728" x2="1610" y2="728" stroke="#C9BFAE" stroke-width="0.5"/>
+<text x="112" y="731" font-size="10.00" fill="#5F6E78" text-anchor="end">effects land here</text>
+<polygon class="dia effect" data-stage="Tenants out" points="190,723 195,728 190,733 185,728" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.1"/>
+<polygon class="dia effect" data-stage="Council" points="610.246609350344,723 615.246609350344,728 610.246609350344,733 605.246609350344,728" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.1"/>
+<polygon class="dia effect" data-stage="Design" points="750.246609350344,723 755.246609350344,728 750.246609350344,733 745.246609350344,728" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.1"/>
+<polygon class="dia effect" data-stage="Fund" points="890.246609350344,723 895.246609350344,728 890.246609350344,733 885.246609350344,728" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.1"/>
+<polygon class="dia effect" data-stage="Rent" points="1260.1661036611858,723 1265.1661036611858,728 1260.1661036611858,733 1255.1661036611858,728" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.1"/>
+<text x="120" y="748" font-size="9.38" fill="#5F6E78">The tool sits outside the eight steps. No rule reaches Apply, Build or Monitor. Planner placement is assumed until user session 1.</text>
+<g font-size="11.25" fill="#2B3A42"><circle cx="52" cy="790" r="7" fill="#3D5A6C"/><text x="66" y="793">Judgment</text><circle cx="160" cy="790" r="7" fill="#E9E2D6" stroke="#3D5A6C"/><text x="174" y="793">Handover</text><circle cx="270" cy="790" r="7" fill="none" stroke="#9DB9F0" stroke-width="2.6"/><text x="284" y="793">Pain point</text><circle cx="380" cy="790" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.6"/><text x="394" y="793">Document</text><line x1="490" y1="790" x2="520" y2="790" stroke="#E0724E" stroke-width="0.9" stroke-dasharray="5 4"/><text x="528" y="793">Minor repair route</text><polygon points="660,785 665,790 660,795 655,790" fill="#E0724E" stroke="#E0724E"/><text x="674" y="793">Decision set here</text><polygon points="820,785 825,790 820,795 815,790" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.1"/><text x="834" y="793">Effects land here</text><circle cx="995" cy="790" r="4" fill="#3D5A6C"/><text x="1007" y="793">Planner / advocate steps in</text></g>
+</svg>
+</div>
+<div id="effects"></div>
 <script>
-const GRAPH = {"meta": {"title": "SRO conversion claim graph, Downtown Eastside Vancouver", "version": "0.5", "date": "2026-10-17", "unit": "A domino is an edge: a sourced claim that one decision option or outcome moves another outcome, with a direction and a lag in years.", "rules": {"direction": "+ raises the outcome, - lowers it, 0 holds it steady", "lag": "years after the decision takes effect; effect lands at t + lag_min and persists through lag_max", "evidence": "applies to observation edges only. strong = peer-reviewed quantitative; moderate = peer-reviewed qualitative, or an official longitudinal data series; weak = thesis, advocacy survey, or a one-off government statement. Null on mechanism and theory edges.", "geography": "vancouver = DTES or Vancouver evidence; other = evidence from elsewhere, transferability not shown", "fork": "edges sharing a fork id contradict each other and must both be shown", "stop": "a decision option with zero outgoing edges halts the run and asks for a source", "claim_type": "mechanism = follows from how the policy or arithmetic is defined, no evidence grade; observation = an empirical study measured it; theory = a peer-reviewed argument not measured in this case"}, "camps": ["economics", "geography", "planning", "health", "architecture"]}, "decisions": [{"id": "conversion_permit", "label": "SRA conversion or demolition permit", "who": "City of Vancouver, under the SRA Bylaw", "options": ["deny", "allow", "minor_repair_staff"], "note": "minor_repair_staff: since 2015, repairs that relocate a tenant but keep the room in the bylaw are approved by the Chief Housing Officer without Council. Most renovation cases take this route."}, {"id": "replacement_ratio", "label": "Replacement of lost rooms", "who": "City condition on the permit", "options": ["one_to_one", "partial", "none"]}, {"id": "unit_size_sf", "label": "Minimum unit size in square feet", "who": "City design guidelines", "options": ["100", "200", "250", "320"], "note": "200 sf is the live threshold in current permit reports: a renovated building whose average unit is under 200 sf stays designated under the SRA By-law; over 200 sf it is removed and secured as social housing instead. Mechanism edges now exist for 200. No observation edge on tenant outcomes by unit size; that stop remains."}, {"id": "tenure", "label": "Ownership of the replacement units", "who": "Owner, BC Housing, non-profit", "options": ["private", "nonprofit"]}, {"id": "rent_at_turnover", "label": "Rent rule when a room turns over", "who": "Province enabling, City bylaw", "options": ["vacancy_control", "market"]}, {"id": "income_mix", "label": "Social to market mix in new buildings", "who": "City, 2014 DTES Plan", "options": ["60_40", "100_social"]}, {"id": "conversion_fee", "label": "Per-room charge for removing a room from the bylaw", "who": "Council, as a permit condition", "options": ["waived", "charged", "replace_in_kind"], "note": "Charge history: $5,000 (2003), $15,000, $125,000 (2015), $230,000 (2020), $300,000 (2023). Last actually charged in 2015; since then waived for housing agreements or set by pro forma (Clifton 2025, $1.1M for 74 rooms)."}], "outcomes": [{"id": "sro_room_count", "label": "SRO rooms in the DTES"}, {"id": "units_per_building", "label": "Units per converted building"}, {"id": "floor_area_per_tenant", "label": "Floor area per tenant"}, {"id": "space_wellbeing", "label": "Tenant wellbeing tied to space"}, {"id": "new_market_units", "label": "New market-rate units nearby"}, {"id": "vacancy_chain_moves", "label": "Moves out of low-income stock"}, {"id": "nearby_low_income_rents", "label": "Rents in nearby low-income stock"}, {"id": "sro_rent", "label": "Average SRO rent"}, {"id": "tenant_evictions", "label": "Evictions and forced moves"}, {"id": "violence_exposure", "label": "Tenant exposure to violence"}, {"id": "treatment_disruption", "label": "Disruption of medical treatment"}, {"id": "mortality_risk", "label": "Tenant mortality risk", "baseline": "SRO tenants already carry a standardized mortality ratio of 4.83 (2013 cohort) to 8.43 (2017 cohort), with near-universal substance dependence and high rates of psychosis, HIV and hepatitis C. Any forced move acts on this baseline.", "baseline_sources": ["vila_rodriguez_2013", "honer_2017"]}, {"id": "rent_gap_pressure", "label": "Rent-gap reinvestment pressure"}, {"id": "gentrification_pace", "label": "Pace of gentrification"}, {"id": "displacement", "label": "Displacement of low-income residents"}, {"id": "social_polarization", "label": "Polarization within the neighbourhood"}, {"id": "community_ties", "label": "Low-income community ties"}, {"id": "replacement_reserve", "label": "Replacement housing reserve fund"}, {"id": "replacement_units_built", "label": "Replacement rooms occupied", "note": "No sourced edge into this outcome yet. The lag from fee to occupied replacement room is unknown. Source needed: Council reports on reserve fund spending. Until then the tool stops here."}, {"id": "tenant_return_rate", "label": "Tenants who return after works", "note": "No sourced edge into this outcome. The City requires a relocation plan but does not publish return rates. Second honest stop beside unit_size_sf=200."}, {"id": "bylaw_fee_level", "label": "Per-room charge in the bylaw"}, {"id": "sra_designation", "label": "Building stays under the SRA By-law"}], "edges": [{"id": "e01", "claim_type": "mechanism", "from": "conversion_permit=allow", "to": "sro_room_count", "direction": "-", "lag_min": 0, "lag_max": 1, "camp": "planning", "evidence": null, "geography": "vancouver", "source": "cov_sra_bylaw", "note": "Policy mechanism, not a study. The bylaw exists because conversions remove rooms."}, {"id": "e02", "claim_type": "observation", "from": "replacement_ratio=none", "to": "tenant_evictions", "direction": "+", "lag_min": 0, "lag_max": 1, "camp": "health", "evidence": "moderate", "geography": "vancouver", "source": "fleming_2019"}, {"id": "e03", "claim_type": "mechanism", "from": "unit_size_sf=250", "to": "units_per_building", "direction": "-", "lag_min": 0, "lag_max": 0, "camp": "architecture", "evidence": null, "geography": "vancouver", "source": "cov_d016_2014", "note": "Inference: typical SRA room is about 100 sf, so a 250 sf unit merges rooms. Guideline says it aims to minimize unit loss."}, {"id": "e04", "claim_type": "mechanism", "from": "unit_size_sf=320", "to": "units_per_building", "direction": "-", "lag_min": 0, "lag_max": 0, "camp": "architecture", "evidence": null, "geography": "vancouver", "source": "cov_sra_bylaw", "note": "320 sf is the SRA threshold; above it a unit leaves the bylaw's definition."}, {"id": "e05", "claim_type": "mechanism", "from": "unit_size_sf=320", "to": "floor_area_per_tenant", "direction": "+", "lag_min": 0, "lag_max": 0, "camp": "architecture", "evidence": null, "geography": "vancouver", "source": "cov_sra_bylaw", "note": "Arithmetic from the option, not a finding."}, {"id": "e06", "claim_type": "observation", "from": "floor_area_per_tenant", "to": "space_wellbeing", "direction": "+", "lag_min": 0, "lag_max": 2, "camp": "architecture", "evidence": "strong", "geography": "other", "source": "foye_2017", "note": "General population, UK panel data. Effect partly relative to peers, not absolute."}, {"id": "e07", "claim_type": "observation", "from": "units_per_building", "to": "tenant_evictions", "direction": "-", "lag_min": 0, "lag_max": 1, "camp": "health", "evidence": "moderate", "geography": "vancouver", "source": "fleming_2019", "note": "Fewer units means fewer tenants can return after renovation. Direction is negative because the edge reads: units down, evictions up."}, {"id": "e08", "claim_type": "observation", "from": "tenant_evictions", "to": "violence_exposure", "direction": "+", "lag_min": 0, "lag_max": 1, "camp": "health", "evidence": "strong", "geography": "vancouver", "source": "kennedy_2017"}, {"id": "e09", "claim_type": "observation", "from": "tenant_evictions", "to": "treatment_disruption", "direction": "+", "lag_min": 0, "lag_max": 1, "camp": "health", "evidence": "strong", "geography": "vancouver", "source": "bccsu_eviction_hiv"}, {"id": "e10", "claim_type": "theory", "from": "treatment_disruption", "to": "mortality_risk", "direction": "+", "lag_min": 0, "lag_max": 3, "camp": "health", "evidence": null, "geography": "vancouver", "source": "honer_2017", "note": "Honer finds illness-specific care has little effect on multimorbidity; disruption of that care on a high-SMR baseline is the inferred link."}, {"id": "e11", "claim_type": "mechanism", "from": "replacement_ratio=partial", "to": "new_market_units", "direction": "+", "lag_min": 1, "lag_max": 3, "camp": "economics", "evidence": null, "geography": "vancouver", "source": "cov_lap_memo_2014", "note": "Partial replacement frees floor area for market rental under the 60/40 rule. Needs an observation edge showing conversions actually produced market units; source hunt pending."}, {"id": "e12", "claim_type": "observation", "from": "new_market_units", "to": "vacancy_chain_moves", "direction": "+", "lag_min": 0, "lag_max": 5, "camp": "economics", "evidence": "strong", "geography": "other", "source": "mast_2023", "fork": "f1", "note": "100 new units lead 45 to 70 people out of below-median tracts within five years. US cities; chains below the SRO tier not observed."}, {"id": "e13", "claim_type": "observation", "from": "vacancy_chain_moves", "to": "nearby_low_income_rents", "direction": "-", "lag_min": 0, "lag_max": 5, "camp": "economics", "evidence": "strong", "geography": "other", "source": "asquith_mast_reed_2023", "note": "5 to 7 percent relative rent decline near large new buildings in low-income areas."}, {"id": "e14", "claim_type": "theory", "from": "new_market_units", "to": "rent_gap_pressure", "direction": "+", "lag_min": 2, "lag_max": 10, "camp": "geography", "evidence": null, "geography": "other", "source": "smith_1979", "fork": "f1", "note": "Rival to e12. Investment signals closing of the rent gap and draws further capital."}, {"id": "e15", "claim_type": "observation", "from": "rent_gap_pressure", "to": "displacement", "direction": "+", "lag_min": 5, "lag_max": 15, "camp": "geography", "evidence": "moderate", "geography": "vancouver", "source": "burnett_2014", "note": "Burnett shows the DTES rent gap closing through commercial and consumption change first."}, {"id": "e16", "claim_type": "observation", "from": "tenure=nonprofit", "to": "gentrification_pace", "direction": "-", "lag_min": 0, "lag_max": 10, "camp": "geography", "evidence": "moderate", "geography": "vancouver", "source": "ley_dobson_2008", "fork": "f2", "note": "Concentrated non-market stock is one of Ley and Dobson's impediments."}, {"id": "e17", "claim_type": "theory", "from": "income_mix=60_40", "to": "gentrification_pace", "direction": "+", "lag_min": 2, "lag_max": 10, "camp": "planning", "evidence": null, "geography": "other", "source": "lees_2008", "fork": "f2", "note": "Social mix as state-led gentrification. Theory, UK and US cases."}, {"id": "e18", "claim_type": "observation", "from": "income_mix=60_40", "to": "social_polarization", "direction": "+", "lag_min": 1, "lag_max": 3, "camp": "planning", "evidence": "weak", "geography": "vancouver", "source": "edelman_2019", "note": "MSW thesis, qualitative, three years after the LAP."}, {"id": "e19", "claim_type": "observation", "from": "income_mix=60_40", "to": "displacement", "direction": "+", "lag_min": 1, "lag_max": 3, "camp": "planning", "evidence": "weak", "geography": "vancouver", "source": "edelman_2019"}, {"id": "e20", "claim_type": "observation", "from": "income_mix=60_40", "to": "community_ties", "direction": "0", "lag_min": 1, "lag_max": 3, "camp": "planning", "evidence": "weak", "geography": "vancouver", "source": "edelman_2019", "fork": "f3", "note": "Ties persisted despite mix. Rival to e21."}, {"id": "e21", "claim_type": "theory", "from": "income_mix=60_40", "to": "community_ties", "direction": "+", "lag_min": 3, "lag_max": 10, "camp": "planning", "evidence": null, "geography": "other", "source": "rose_2004", "fork": "f3", "note": "Montreal. Mix can build cross-class ties under some conditions."}, {"id": "e22", "claim_type": "observation", "from": "rent_at_turnover=market", "to": "sro_rent", "direction": "+", "lag_min": 0, "lag_max": 2, "camp": "planning", "evidence": "moderate", "geography": "vancouver", "source": "cov_lihs_2023", "note": "Official biennial series, not peer reviewed. The 21 percent rise is between tenancies, which is the mechanism vacancy control targets. Peer-reviewed analysis of the series not found; keep looking.", "corroboration": "ccap_hotel_report"}, {"id": "e23", "claim_type": "observation", "from": "sro_rent", "to": "displacement", "direction": "+", "lag_min": 0, "lag_max": 2, "camp": "planning", "evidence": "moderate", "geography": "vancouver", "source": "cov_lihs_2023", "note": "Official biennial series, not peer reviewed. The 21 percent rise is between tenancies, which is the mechanism vacancy control targets. Peer-reviewed analysis of the series not found; keep looking.", "corroboration": "ccap_hotel_report"}, {"id": "e24", "claim_type": "observation", "from": "conversion_permit=minor_repair_staff", "to": "tenant_evictions", "direction": "+", "lag_min": 0, "lag_max": 1, "camp": "health", "evidence": "moderate", "geography": "vancouver", "source": "fleming_2019", "note": "Relocation during repair is the eviction pathway Fleming describes. Confirm the paper covers staff-route relocations specifically."}, {"id": "e25", "claim_type": "mechanism", "from": "conversion_fee=charged", "to": "replacement_reserve", "direction": "+", "lag_min": 0, "lag_max": 0, "camp": "planning", "evidence": null, "geography": "vancouver", "source": "cov_council_2003_2015_2020", "fork": "f4", "note": "Bylaw directs the charge into a reserve earmarked for replacement housing."}, {"id": "e26", "claim_type": "observation", "from": "sro_room_count", "to": "bylaw_fee_level", "direction": "-", "lag_min": 2, "lag_max": 5, "camp": "planning", "evidence": "moderate", "geography": "vancouver", "source": "cov_council_2003_2015_2020", "note": "Policy-learning edge: each fee increase followed survey evidence of room loss. Direction negative because rooms down, fee up. Official record, not a study."}, {"id": "e27", "claim_type": "mechanism", "from": "unit_size_sf=200", "to": "sra_designation", "direction": "-", "lag_min": 0, "lag_max": 0, "camp": "planning", "evidence": null, "geography": "vancouver", "source": "cov_council_2026_07_14_r7", "note": "Average over 200 sf removes the building from the bylaw; under 200 sf keeps it. Regent and Thornton removed, Keefer retained."}, {"id": "e28", "claim_type": "observation", "from": "unit_size_sf=200", "to": "units_per_building", "direction": "-", "lag_min": 0, "lag_max": 0, "camp": "architecture", "evidence": "moderate", "geography": "vancouver", "source": "cov_council_2026_07_14_r7", "note": "Self-contained units averaging over 200 sf cut unit count to about half: 161 to 77, 23 to 12. Official permit records, two buildings."}, {"id": "e29", "claim_type": "observation", "from": "conversion_permit=allow", "to": "tenant_evictions", "direction": "0", "lag_min": -10, "lag_max": 0, "camp": "planning", "evidence": "moderate", "geography": "vancouver", "source": "timing_json_cases", "note": "In six of seven permit files tenants were already gone before the application, by closure order, fire, or owner relocation. The permit does not cause the move; it follows it. Negative lag is deliberate."}, {"id": "e30", "claim_type": "observation", "from": "conversion_fee=charged", "to": "replacement_reserve", "direction": "0", "lag_min": 0, "lag_max": 0, "camp": "planning", "evidence": "moderate", "geography": "vancouver", "source": "cov_council_2025_04_15_r6", "fork": "f4", "note": "The fee has not been charged at its listed rate since 2015. Reserve inflow from fees is near zero in practice; e25 describes the rule, this describes the record."}], "sources": {"mast_2023": "Mast, E. (2023). JUE Insight: The effect of new market-rate housing construction on the low-income housing market. Journal of Urban Economics, 133, 103383.", "asquith_mast_reed_2023": "Asquith, B., Mast, E., Reed, D. (2023). Local effects of large new apartment buildings in low-income areas. Review of Economics and Statistics, 105(2).", "smith_1979": "Smith, N. (1979). Toward a theory of gentrification: a back to the city movement by capital, not people. Journal of the American Planning Association, 45(4).", "ley_dobson_2008": "Ley, D., Dobson, C. (2008). Are there limits to gentrification? The contexts of impeded gentrification in Vancouver. Urban Studies, 45(12), 2471-2498.", "burnett_2014": "Burnett, K. (2014). Commodifying poverty: gentrification and consumption in Vancouver's Downtown Eastside. Urban Geography, 35(2), 157-176.", "lees_2008": "Lees, L. (2008). Gentrification and social mixing: towards an inclusive urban renaissance? Urban Studies, 45(12).", "rose_2004": "Rose, D. (2004). Discourses and experiences of social mix in gentrifying neighbourhoods: a Montreal case study. Canadian Journal of Urban Research, 13(2).", "edelman_2019": "Edelman, V. (2019). There goes the neighbourhood: a case study of social mix in Vancouver's Downtown Eastside. MSW thesis, University of Victoria.", "vila_rodriguez_2013": "Vila-Rodriguez, F. et al. (2013). The Hotel Study: multimorbidity in a community sample living in marginal housing. American Journal of Psychiatry, 170(12).", "honer_2017": "Honer, W.G. et al. (2017). The Hotel Study: clinical and health service effectiveness in a cohort of homeless or marginally housed persons. Canadian Journal of Psychiatry, 62(7).", "kennedy_2017": "Kennedy, M.C. et al. (2017). Residential eviction and exposure to violence among people who inject drugs in Vancouver, Canada. International Journal of Drug Policy, 41.", "bccsu_eviction_hiv": "BC Centre on Substance Use research summary on housing eviction and HIV treatment among people who use drugs, ACCESS cohort 2007 to 2014. Verify the underlying journal article before citing.", "fleming_2019": "Fleming, T., Damon, W., Collins, A.B., Czechaczek, S., Boyd, J., McNeil, R. (2019). Housing in crisis: a qualitative study of the socio-legal contexts of residential evictions in Vancouver's Downtown Eastside. International Journal of Drug Policy, 71. Verify author list.", "foye_2017": "Foye, C. (2017). The relationship between size of living space and subjective well-being. Journal of Happiness Studies, 18(2).", "cov_sra_bylaw": "City of Vancouver. Single Room Accommodation Bylaw and program page. vancouver.ca/people-programs/single-room-accommodation-bylaw.aspx", "cov_d016_2014": "City of Vancouver (2014). Policies and Guidelines for the SRA By-law and SRO Upgrading. Guideline D016.", "cov_lap_memo_2014": "City of Vancouver (2014). Downtown Eastside Local Area Plan, approach to achievement of social housing. Council memo, March 12, 2014.", "bc_meva_2024": "Province of British Columbia (2024). Amendments to the Municipalities Enabling and Validating Act enabling SRA vacancy control; City of Vancouver statement, May 2024.", "cov_lihs_2023": "City of Vancouver (2023). Downtown Core Low-Income Housing Report (biennial survey series since 1994). Private SRO stock fell from 7,830 rooms in 1994 to 3,305 in 2023; average private SRO rent $681 in 2023, up 21 percent from 2019.", "ccap_hotel_report": "Carnegie Community Action Project. Hotel Survey and Housing Report, annual since 2008. Advocacy survey of private SRO rents and room loss; use as corroboration, not primary evidence.", "masuda_2020_candidate": "Masuda, J.R., Franks, A., Kobayashi, A., Wideman, T. (2020). After dispossession: an urban rights praxis of remaining in Vancouver's Downtown Eastside. Environment and Planning D. CANDIDATE: verify citation and read before adding edges. Right to Remain collective; peer-reviewed DTES SRO work that could pair with Edelman on fork f3.", "cov_council_2003_2015_2020": "City of Vancouver Council reports: 2003-09-16 rr2 (bylaw origin, $5,000); 2015-07-07 rr2 ($15,000 to $125,000; relocation during repair requires permit; staff approval for minor repair); 2020-12-08 bylaws ($125,000 to $230,000; moving assistance condition).", "cov_council_2023_01_18_pspc7": "City of Vancouver (2023). SRO Upgrade Grant to Atira and SRA Conversion Permit for 208 East Georgia. Council report, January 18, 2023.", "cov_council_2025_04_15_r6": "City of Vancouver (2025). 1125 Granville Street SRA Conversion Permit. Council report, April 15, 2025. States the $300,000 per door rate as of 2023 and that it was last charged in 2015.", "cov_council_2026_07_14_r7": "City of Vancouver (2026). SRO Upgrade Grant for 310 Alexander and SRA Permits for 222 Keefer, 160 East Hastings and 956 Main. Council report, July 14, 2026. Source of the 200 sf designation threshold and the room-to-unit ratios.", "timing_json_cases": "timing.json in this repository: seven SRA permit cases compiled from Council reports, 2013 to 2026."}};
+const GRAPH = {"meta": {"title": "SRO conversion claim graph, Downtown Eastside Vancouver", "version": "0.6", "date": "2026-10-17", "unit": "A domino is an edge: a sourced claim that one decision option or outcome moves another outcome, with a direction and a lag in years.", "rules": {"direction": "+ raises the outcome, - lowers it, 0 holds it steady", "lag": "years after the decision takes effect; effect lands at t + lag_min and persists through lag_max", "evidence": "applies to observation edges only. strong = peer-reviewed quantitative; moderate = peer-reviewed qualitative, or an official longitudinal data series; weak = thesis, advocacy survey, or a one-off government statement. Null on mechanism and theory edges.", "geography": "vancouver = DTES or Vancouver evidence; other = evidence from elsewhere, transferability not shown", "fork": "edges sharing a fork id contradict each other and must both be shown", "stop": "a decision option with zero outgoing edges halts the run and asks for a source", "claim_type": "mechanism = follows from how the policy or arithmetic is defined, no evidence grade; observation = an empirical study measured it; theory = a peer-reviewed argument not measured in this case"}, "camps": ["economics", "geography", "planning", "health", "architecture"]}, "decisions": [{"id": "conversion_permit", "label": "SRA conversion or demolition permit", "who": "City of Vancouver, under the SRA Bylaw", "options": ["deny", "allow", "minor_repair_staff"], "note": "minor_repair_staff: since 2015, repairs that relocate a tenant but keep the room in the bylaw are approved by the Chief Housing Officer without Council. Most renovation cases take this route."}, {"id": "replacement_ratio", "label": "Replacement of lost rooms", "who": "City condition on the permit", "options": ["one_to_one", "partial", "none"]}, {"id": "unit_size_sf", "label": "Minimum unit size in square feet", "who": "City design guidelines", "options": ["100", "200", "250", "320"], "note": "200 sf is the live threshold in current permit reports: a renovated building whose average unit is under 200 sf stays designated under the SRA By-law; over 200 sf it is removed and secured as social housing instead. Mechanism edges now exist for 200. No observation edge on tenant outcomes by unit size; that stop remains."}, {"id": "tenure", "label": "Ownership of the replacement units", "who": "Owner, BC Housing, non-profit", "options": ["private", "nonprofit"]}, {"id": "rent_at_turnover", "label": "Rent rule when a room turns over", "who": "Province enabling, City bylaw", "options": ["vacancy_control", "market"]}, {"id": "income_mix", "label": "Social to market mix in new buildings", "who": "City, 2014 DTES Plan", "options": ["60_40", "100_social"]}, {"id": "conversion_fee", "label": "Per-room charge for removing a room from the bylaw", "who": "Council, as a permit condition", "options": ["waived", "charged", "replace_in_kind"], "note": "Charge history: $5,000 (2003), $15,000, $125,000 (2015), $230,000 (2020), $300,000 (2023). Last actually charged in 2015; since then waived for housing agreements or set by pro forma (Clifton 2025, $1.1M for 74 rooms)."}], "outcomes": [{"id": "sro_room_count", "label": "SRO rooms in the DTES"}, {"id": "units_per_building", "label": "Units per converted building"}, {"id": "floor_area_per_tenant", "label": "Floor area per tenant"}, {"id": "space_wellbeing", "label": "Tenant wellbeing tied to space"}, {"id": "new_market_units", "label": "New market-rate units nearby"}, {"id": "vacancy_chain_moves", "label": "Moves out of low-income stock"}, {"id": "nearby_low_income_rents", "label": "Rents in nearby low-income stock"}, {"id": "sro_rent", "label": "Average SRO rent"}, {"id": "tenant_evictions", "label": "Evictions and forced moves"}, {"id": "violence_exposure", "label": "Tenant exposure to violence"}, {"id": "treatment_disruption", "label": "Disruption of medical treatment"}, {"id": "mortality_risk", "label": "Tenant mortality risk", "baseline": "SRO tenants already carry a standardized mortality ratio of 4.83 (2013 cohort) to 8.43 (2017 cohort), with near-universal substance dependence and high rates of psychosis, HIV and hepatitis C. Any forced move acts on this baseline.", "baseline_sources": ["vila_rodriguez_2013", "honer_2017"]}, {"id": "rent_gap_pressure", "label": "Rent-gap reinvestment pressure"}, {"id": "gentrification_pace", "label": "Pace of gentrification"}, {"id": "displacement", "label": "Displacement of low-income residents"}, {"id": "social_polarization", "label": "Polarization within the neighbourhood"}, {"id": "community_ties", "label": "Low-income community ties"}, {"id": "replacement_reserve", "label": "Replacement housing reserve fund"}, {"id": "replacement_units_built", "label": "Replacement rooms occupied", "note": "No sourced edge into this outcome yet. The lag from fee to occupied replacement room is unknown. Source needed: Council reports on reserve fund spending. Until then the tool stops here."}, {"id": "tenant_return_rate", "label": "Tenants who return after works", "note": "No sourced edge into this outcome. The City requires a relocation plan but does not publish return rates. Second honest stop beside unit_size_sf=200."}, {"id": "bylaw_fee_level", "label": "Per-room charge in the bylaw"}, {"id": "sra_designation", "label": "Building stays under the SRA By-law"}, {"id": "housing_agreement_rooms", "label": "Rooms secured by a housing agreement"}], "edges": [{"id": "e01", "claim_type": "mechanism", "from": "conversion_permit=allow", "to": "sro_room_count", "direction": "-", "lag_min": 0, "lag_max": 1, "camp": "planning", "evidence": null, "geography": "vancouver", "source": "cov_sra_bylaw", "note": "Policy mechanism, not a study. The bylaw exists because conversions remove rooms."}, {"id": "e02", "claim_type": "observation", "from": "replacement_ratio=none", "to": "tenant_evictions", "direction": "+", "lag_min": 0, "lag_max": 1, "camp": "health", "evidence": "moderate", "geography": "vancouver", "source": "fleming_2019"}, {"id": "e03", "claim_type": "mechanism", "from": "unit_size_sf=250", "to": "units_per_building", "direction": "-", "lag_min": 0, "lag_max": 0, "camp": "architecture", "evidence": null, "geography": "vancouver", "source": "cov_d016_2014", "note": "Inference: typical SRA room is about 100 sf, so a 250 sf unit merges rooms. Guideline says it aims to minimize unit loss."}, {"id": "e04", "claim_type": "mechanism", "from": "unit_size_sf=320", "to": "units_per_building", "direction": "-", "lag_min": 0, "lag_max": 0, "camp": "architecture", "evidence": null, "geography": "vancouver", "source": "cov_sra_bylaw", "note": "320 sf is the SRA threshold; above it a unit leaves the bylaw's definition."}, {"id": "e05", "claim_type": "mechanism", "from": "unit_size_sf=320", "to": "floor_area_per_tenant", "direction": "+", "lag_min": 0, "lag_max": 0, "camp": "architecture", "evidence": null, "geography": "vancouver", "source": "cov_sra_bylaw", "note": "Arithmetic from the option, not a finding."}, {"id": "e06", "claim_type": "observation", "from": "floor_area_per_tenant", "to": "space_wellbeing", "direction": "+", "lag_min": 0, "lag_max": 2, "camp": "architecture", "evidence": "strong", "geography": "other", "source": "foye_2017", "note": "General population, UK panel data. Effect partly relative to peers, not absolute."}, {"id": "e07", "claim_type": "observation", "from": "units_per_building", "to": "tenant_evictions", "direction": "-", "lag_min": 0, "lag_max": 1, "camp": "health", "evidence": "moderate", "geography": "vancouver", "source": "fleming_2019", "note": "Fewer units means fewer tenants can return after renovation. Direction is negative because the edge reads: units down, evictions up."}, {"id": "e08", "claim_type": "observation", "from": "tenant_evictions", "to": "violence_exposure", "direction": "+", "lag_min": 0, "lag_max": 1, "camp": "health", "evidence": "strong", "geography": "vancouver", "source": "kennedy_2017"}, {"id": "e09", "claim_type": "observation", "from": "tenant_evictions", "to": "treatment_disruption", "direction": "+", "lag_min": 0, "lag_max": 1, "camp": "health", "evidence": "strong", "geography": "vancouver", "source": "bccsu_eviction_hiv"}, {"id": "e10", "claim_type": "theory", "from": "treatment_disruption", "to": "mortality_risk", "direction": "+", "lag_min": 0, "lag_max": 3, "camp": "health", "evidence": null, "geography": "vancouver", "source": "honer_2017", "note": "Honer finds illness-specific care has little effect on multimorbidity; disruption of that care on a high-SMR baseline is the inferred link."}, {"id": "e11", "claim_type": "mechanism", "from": "replacement_ratio=partial", "to": "new_market_units", "direction": "+", "lag_min": 1, "lag_max": 3, "camp": "economics", "evidence": null, "geography": "vancouver", "source": "cov_lap_memo_2014", "note": "Partial replacement frees floor area for market rental under the 60/40 rule. Needs an observation edge showing conversions actually produced market units; source hunt pending."}, {"id": "e12", "claim_type": "observation", "from": "new_market_units", "to": "vacancy_chain_moves", "direction": "+", "lag_min": 0, "lag_max": 5, "camp": "economics", "evidence": "strong", "geography": "other", "source": "mast_2023", "fork": "f1", "note": "100 new units lead 45 to 70 people out of below-median tracts within five years. US cities; chains below the SRO tier not observed."}, {"id": "e13", "claim_type": "observation", "from": "vacancy_chain_moves", "to": "nearby_low_income_rents", "direction": "-", "lag_min": 0, "lag_max": 5, "camp": "economics", "evidence": "strong", "geography": "other", "source": "asquith_mast_reed_2023", "note": "5 to 7 percent relative rent decline near large new buildings in low-income areas."}, {"id": "e14", "claim_type": "theory", "from": "new_market_units", "to": "rent_gap_pressure", "direction": "+", "lag_min": 2, "lag_max": 10, "camp": "geography", "evidence": null, "geography": "other", "source": "smith_1979", "fork": "f1", "note": "Rival to e12. Investment signals closing of the rent gap and draws further capital."}, {"id": "e15", "claim_type": "observation", "from": "rent_gap_pressure", "to": "displacement", "direction": "+", "lag_min": 5, "lag_max": 15, "camp": "geography", "evidence": "moderate", "geography": "vancouver", "source": "burnett_2014", "note": "Burnett shows the DTES rent gap closing through commercial and consumption change first."}, {"id": "e16", "claim_type": "observation", "from": "tenure=nonprofit", "to": "gentrification_pace", "direction": "-", "lag_min": 0, "lag_max": 10, "camp": "geography", "evidence": "moderate", "geography": "vancouver", "source": "ley_dobson_2008", "fork": "f2", "note": "Concentrated non-market stock is one of Ley and Dobson's impediments."}, {"id": "e17", "claim_type": "theory", "from": "income_mix=60_40", "to": "gentrification_pace", "direction": "+", "lag_min": 2, "lag_max": 10, "camp": "planning", "evidence": null, "geography": "other", "source": "lees_2008", "fork": "f2", "note": "Social mix as state-led gentrification. Theory, UK and US cases."}, {"id": "e18", "claim_type": "observation", "from": "income_mix=60_40", "to": "social_polarization", "direction": "+", "lag_min": 1, "lag_max": 3, "camp": "planning", "evidence": "weak", "geography": "vancouver", "source": "edelman_2019", "note": "MSW thesis, qualitative, three years after the LAP."}, {"id": "e19", "claim_type": "observation", "from": "income_mix=60_40", "to": "displacement", "direction": "+", "lag_min": 1, "lag_max": 3, "camp": "planning", "evidence": "weak", "geography": "vancouver", "source": "edelman_2019"}, {"id": "e20", "claim_type": "observation", "from": "income_mix=60_40", "to": "community_ties", "direction": "0", "lag_min": 1, "lag_max": 3, "camp": "planning", "evidence": "weak", "geography": "vancouver", "source": "edelman_2019", "fork": "f3", "note": "Ties persisted despite mix. Rival to e21."}, {"id": "e21", "claim_type": "theory", "from": "income_mix=60_40", "to": "community_ties", "direction": "+", "lag_min": 3, "lag_max": 10, "camp": "planning", "evidence": null, "geography": "other", "source": "rose_2004", "fork": "f3", "note": "Montreal. Mix can build cross-class ties under some conditions."}, {"id": "e22", "claim_type": "observation", "from": "rent_at_turnover=market", "to": "sro_rent", "direction": "+", "lag_min": 0, "lag_max": 2, "camp": "planning", "evidence": "moderate", "geography": "vancouver", "source": "cov_lihs_2023", "note": "Official biennial series, not peer reviewed. The 21 percent rise is between tenancies, which is the mechanism vacancy control targets. Peer-reviewed analysis of the series not found; keep looking.", "corroboration": "ccap_hotel_report"}, {"id": "e23", "claim_type": "observation", "from": "sro_rent", "to": "displacement", "direction": "+", "lag_min": 0, "lag_max": 2, "camp": "planning", "evidence": "moderate", "geography": "vancouver", "source": "cov_lihs_2023", "note": "Official biennial series, not peer reviewed. The 21 percent rise is between tenancies, which is the mechanism vacancy control targets. Peer-reviewed analysis of the series not found; keep looking.", "corroboration": "ccap_hotel_report"}, {"id": "e24", "claim_type": "observation", "from": "conversion_permit=minor_repair_staff", "to": "tenant_evictions", "direction": "+", "lag_min": 0, "lag_max": 1, "camp": "health", "evidence": "moderate", "geography": "vancouver", "source": "fleming_2019", "note": "Relocation during repair is the eviction pathway Fleming describes. Confirm the paper covers staff-route relocations specifically."}, {"id": "e25", "claim_type": "mechanism", "from": "conversion_fee=charged", "to": "replacement_reserve", "direction": "+", "lag_min": 0, "lag_max": 0, "camp": "planning", "evidence": null, "geography": "vancouver", "source": "cov_council_2003_2015_2020", "fork": "f4", "note": "Bylaw directs the charge into a reserve earmarked for replacement housing."}, {"id": "e26", "claim_type": "observation", "from": "sro_room_count", "to": "bylaw_fee_level", "direction": "-", "lag_min": 2, "lag_max": 5, "camp": "planning", "evidence": "moderate", "geography": "vancouver", "source": "cov_council_2003_2015_2020", "note": "Policy-learning edge: each fee increase followed survey evidence of room loss. Direction negative because rooms down, fee up. Official record, not a study."}, {"id": "e27", "claim_type": "mechanism", "from": "unit_size_sf=200", "to": "sra_designation", "direction": "-", "lag_min": 0, "lag_max": 0, "camp": "planning", "evidence": null, "geography": "vancouver", "source": "cov_council_2026_07_14_r7", "note": "Average over 200 sf removes the building from the bylaw; under 200 sf keeps it. Regent and Thornton removed, Keefer retained."}, {"id": "e28", "claim_type": "observation", "from": "unit_size_sf=200", "to": "units_per_building", "direction": "-", "lag_min": 0, "lag_max": 0, "camp": "architecture", "evidence": "moderate", "geography": "vancouver", "source": "cov_council_2026_07_14_r7", "note": "Self-contained units averaging over 200 sf cut unit count to about half: 161 to 77, 23 to 12. Official permit records, two buildings."}, {"id": "e29", "claim_type": "observation", "from": "conversion_permit=allow", "to": "tenant_evictions", "direction": "0", "lag_min": -10, "lag_max": 0, "camp": "planning", "evidence": "moderate", "geography": "vancouver", "source": "timing_json_cases", "note": "In six of seven permit files tenants were already gone before the application, by closure order, fire, or owner relocation. The permit does not cause the move; it follows it. Negative lag is deliberate."}, {"id": "e30", "claim_type": "observation", "from": "conversion_fee=charged", "to": "replacement_reserve", "direction": "0", "lag_min": 0, "lag_max": 0, "camp": "planning", "evidence": "moderate", "geography": "vancouver", "source": "cov_council_2025_04_15_r6", "fork": "f4", "note": "The fee has not been charged at its listed rate since 2015. Reserve inflow from fees is near zero in practice; e25 describes the rule, this describes the record."}, {"id": "e31", "claim_type": "mechanism", "from": "conversion_fee=waived", "to": "replacement_reserve", "direction": "0", "lag_min": 0, "lag_max": 0, "camp": "planning", "evidence": null, "geography": "vancouver", "source": "cov_council_2003_2015_2020", "note": "The bylaw directs the charge into the replacement reserve (e25). A building whose fee is waived pays nothing in, so the reserve does not move for that building."}, {"id": "e32", "claim_type": "observation", "from": "conversion_fee=waived", "to": "housing_agreement_rooms", "direction": "+", "lag_min": 0, "lag_max": 30, "camp": "planning", "evidence": "weak", "geography": "vancouver", "source": "timing_json_cases", "note": "One case only: Low Young Court (2015), fee waived in exchange for a 30-year housing agreement on 8 of 12 rooms. The bar runs the 30-year term of that agreement. One case is not a pattern; more waivers are needed before this is a claim about the fee."}], "sources": {"mast_2023": "Mast, E. (2023). JUE Insight: The effect of new market-rate housing construction on the low-income housing market. Journal of Urban Economics, 133, 103383.", "asquith_mast_reed_2023": "Asquith, B., Mast, E., Reed, D. (2023). Local effects of large new apartment buildings in low-income areas. Review of Economics and Statistics, 105(2).", "smith_1979": "Smith, N. (1979). Toward a theory of gentrification: a back to the city movement by capital, not people. Journal of the American Planning Association, 45(4).", "ley_dobson_2008": "Ley, D., Dobson, C. (2008). Are there limits to gentrification? The contexts of impeded gentrification in Vancouver. Urban Studies, 45(12), 2471-2498.", "burnett_2014": "Burnett, K. (2014). Commodifying poverty: gentrification and consumption in Vancouver's Downtown Eastside. Urban Geography, 35(2), 157-176.", "lees_2008": "Lees, L. (2008). Gentrification and social mixing: towards an inclusive urban renaissance? Urban Studies, 45(12).", "rose_2004": "Rose, D. (2004). Discourses and experiences of social mix in gentrifying neighbourhoods: a Montreal case study. Canadian Journal of Urban Research, 13(2).", "edelman_2019": "Edelman, V. (2019). There goes the neighbourhood: a case study of social mix in Vancouver's Downtown Eastside. MSW thesis, University of Victoria.", "vila_rodriguez_2013": "Vila-Rodriguez, F. et al. (2013). The Hotel Study: multimorbidity in a community sample living in marginal housing. American Journal of Psychiatry, 170(12).", "honer_2017": "Honer, W.G. et al. (2017). The Hotel Study: clinical and health service effectiveness in a cohort of homeless or marginally housed persons. Canadian Journal of Psychiatry, 62(7).", "kennedy_2017": "Kennedy, M.C. et al. (2017). Residential eviction and exposure to violence among people who inject drugs in Vancouver, Canada. International Journal of Drug Policy, 41.", "bccsu_eviction_hiv": "BC Centre on Substance Use research summary on housing eviction and HIV treatment among people who use drugs, ACCESS cohort 2007 to 2014. Verify the underlying journal article before citing.", "fleming_2019": "Fleming, T., Damon, W., Collins, A.B., Czechaczek, S., Boyd, J., McNeil, R. (2019). Housing in crisis: a qualitative study of the socio-legal contexts of residential evictions in Vancouver's Downtown Eastside. International Journal of Drug Policy, 71. Verify author list.", "foye_2017": "Foye, C. (2017). The relationship between size of living space and subjective well-being. Journal of Happiness Studies, 18(2).", "cov_sra_bylaw": "City of Vancouver. Single Room Accommodation Bylaw and program page. vancouver.ca/people-programs/single-room-accommodation-bylaw.aspx", "cov_d016_2014": "City of Vancouver (2014). Policies and Guidelines for the SRA By-law and SRO Upgrading. Guideline D016.", "cov_lap_memo_2014": "City of Vancouver (2014). Downtown Eastside Local Area Plan, approach to achievement of social housing. Council memo, March 12, 2014.", "bc_meva_2024": "Province of British Columbia (2024). Amendments to the Municipalities Enabling and Validating Act enabling SRA vacancy control; City of Vancouver statement, May 2024.", "cov_lihs_2023": "City of Vancouver (2023). Downtown Core Low-Income Housing Report (biennial survey series since 1994). Private SRO stock fell from 7,830 rooms in 1994 to 3,305 in 2023; average private SRO rent $681 in 2023, up 21 percent from 2019.", "ccap_hotel_report": "Carnegie Community Action Project. Hotel Survey and Housing Report, annual since 2008. Advocacy survey of private SRO rents and room loss; use as corroboration, not primary evidence.", "masuda_2020_candidate": "Masuda, J.R., Franks, A., Kobayashi, A., Wideman, T. (2020). After dispossession: an urban rights praxis of remaining in Vancouver's Downtown Eastside. Environment and Planning D. CANDIDATE: verify citation and read before adding edges. Right to Remain collective; peer-reviewed DTES SRO work that could pair with Edelman on fork f3.", "cov_council_2003_2015_2020": "City of Vancouver Council reports: 2003-09-16 rr2 (bylaw origin, $5,000); 2015-07-07 rr2 ($15,000 to $125,000; relocation during repair requires permit; staff approval for minor repair); 2020-12-08 bylaws ($125,000 to $230,000; moving assistance condition).", "cov_council_2023_01_18_pspc7": "City of Vancouver (2023). SRO Upgrade Grant to Atira and SRA Conversion Permit for 208 East Georgia. Council report, January 18, 2023.", "cov_council_2025_04_15_r6": "City of Vancouver (2025). 1125 Granville Street SRA Conversion Permit. Council report, April 15, 2025. States the $300,000 per door rate as of 2023 and that it was last charged in 2015.", "cov_council_2026_07_14_r7": "City of Vancouver (2026). SRO Upgrade Grant for 310 Alexander and SRA Permits for 222 Keefer, 160 East Hastings and 956 Main. Council report, July 14, 2026. Source of the 200 sf designation threshold and the room-to-unit ratios.", "timing_json_cases": "timing.json in this repository: seven SRA permit cases compiled from Council reports, 2013 to 2026."}};
 const TIMING = {"meta": {"title": "Step durations for the as-is SRO conversion process", "version": "0.2", "unit": "weeks from the SRA permit application unless stated", "rule": "every range cites a case; null means no case found yet. Ranges with one case are that case, not a range.", "cases_needed": "three to five more private-owner permits from the Council agenda archive, and one building end to end from an operator"}, "cases": [{"id": "low_young_court_2015", "building": "406 Union Street, 15 SRA rooms, private owner", "source": "cov_council_2015_07_21_a3", "url": "https://council.vancouver.ca/20150721/documents/a3.pdf", "route": "Council, conversion of 3 rooms out of the bylaw, fee waived", "dates": {"purchase": "2015-02-23", "tenants_out": "2015-04-30", "application": "2015-04-29", "council_decision": "2015-07-21", "development_permit": null, "occupancy": null, "first_turnover": null}, "facts": {"rooms_before": 15, "rooms_sra_after": 12, "rooms_removed_from_bylaw": 3, "tenants_at_purchase": 5, "tenants_relocated_by_owner": 4, "relocation_offer": "one month free rent plus $400 or a second free month", "fee": "waived in exchange for a 30-year housing agreement on 8 of 12 rooms", "note": "Tenants left the day after the application. The relocation happened before the plan was reviewed."}}, {"id": "old_continental_2013", "building": "1390 Granville Street, 109 SRA rooms, City owned", "source": "cov_council_2013_02_27_cfsc6", "url": "https://council.vancouver.ca/20130227/documents/cfsc6.pdf", "route": "Council, demolition, one-to-one replacement committed", "dates": {"replacement_committed_in_policy": "2010", "search_for_interim_housing_began": "2012-02", "council_decision": "2013-02-27", "tenants_move_to_interim": "2013-summer", "decommissioning_begins": "2013-late", "demolition_budgeted": "2014", "permanent_replacement_occupied": null}, "facts": {"rooms_before": 109, "room_size_before_sf": 140, "interim_unit_size_sf": 240, "tenants": 85, "tenants_moving_to_city_interim": 52, "share_moving_to_interim": 0.61, "interim_location": "3484 Kingsway, outside the neighbourhood", "note": "Permanent replacement was to come from the Granville Loops redevelopment; the report gives no date. This is the fee-to-replacement lag with the end open."}}, {"id": "aayin_208_e_georgia_2023", "building": "208 East Georgia, Aay'in (London Hotel), 72 rooms, private owner Porte, leased to Atira", "source": "cov_council_2023_01_18_pspc7", "url": "https://council.vancouver.ca/20230118/documents/pspc7.pdf", "route": "Council, conversion of 2 rooms to kitchen and laundry, net loss 1, with SRO upgrade grant", "dates": {"tenant_relocation_plan_filed": "2022-03-20", "grant_first_to_council_deferred": "2022-07-19", "renovation_began": "2022-summer", "application": "2022-11-07", "occupancy_expected": "2022-12", "council_decision": "2023-01-18", "back_on_agenda": "2026-01-20"}, "facts": {"rooms_before": 72, "rooms_after": 71, "tenants_at_relocation": 37, "tenants_relocated": 37, "relocation_terms": "same rent, within the community, moving costs paid, right of first refusal at same rent", "renovation_cost": 2836800, "city_grant": 720000, "housing_agreement": "71 rooms at shelter rate to 2032", "note": "Tenants out eight months before the SRA application and ten months before Council. Occupancy was expected before the Council decision. The renovated building is a new program (transitional, Indigenous priority), so first refusal and eligibility may conflict; return rate unrecorded."}}, {"id": "clifton_1125_granville_2025", "building": "1125 Granville, Clifton Hotel, 74 rooms, private owner", "source": "cov_council_2025_04_15_r6", "url": "https://council.vancouver.ca/20250415/documents/r6.pdf", "route": "Council, conversion of all 74 rooms to a 67-room commercial hotel", "dates": {"closed_unsafe": "2015", "purchased_vacant": "2016", "application": "2025-02", "council_decision": "2025-04-15"}, "facts": {"rooms_before": 74, "rooms_after": 0, "tenants": 0, "years_vacant_before_application": 10, "fee_rule": "$300,000 per door as of 2023; last charged 2015", "fee_paid": 1100000, "fee_per_room_effective": 14865, "note": "Staff set the contribution by pro forma because the full fee would make the project unviable. Previous owner relocated some tenants before the building was emptied; no record of where."}}, {"id": "keefer_222_2026", "building": "222 Keefer, Keefer Rooms, 47 rooms, BC Housing", "source": "cov_council_2026_07_14_r7", "url": "https://council.vancouver.ca/20260714/documents/r7.pdf", "route": "Council, demolition of 6 rooms for stairs and amenity, rooms stay under 200 sf and remain designated", "dates": {"vacant_since": "2022 fire", "council_decision": "2026-07-14"}, "facts": {"rooms_before": 47, "rooms_after": 41, "unit_size_after": "under 200 sf", "sra_designation_after": "retained", "tenants": 0, "years_vacant": 4, "return_terms": "right of first refusal, subject to eligibility"}}, {"id": "regent_160_e_hastings_2026", "building": "160 East Hastings, Regent Hotel, 161 rooms, City owned since 2020, leased to BC Housing", "source": "cov_council_2026_07_14_r7", "url": "https://council.vancouver.ca/20260714/documents/r7.pdf", "route": "Council, demolition of all 161 rooms, 77 self-contained units, average over 200 sf, removed from bylaw and secured as social housing", "dates": {"unsafe_to_occupy": "2018", "city_purchase": "2020", "council_decision": "2026-07-14"}, "facts": {"rooms_before": 161, "units_after": 77, "ratio_after_to_before": 0.48, "unit_size_after_sf": "227 to 673", "sra_designation_after": "removed", "tenants": 0, "years_vacant": 8, "return_terms": "right of first refusal, subject to eligibility"}}, {"id": "thornton_956_main_2026", "building": "956 Main, Thornton Hotel, 23 rooms, BC Housing", "source": "cov_council_2026_07_14_r7", "url": "https://council.vancouver.ca/20260714/documents/r7.pdf", "route": "Council, demolition of 23 rooms, 12 self-contained units, average over 200 sf, removed from bylaw", "dates": {"vacant_since": "2023 fire", "council_decision": "2026-07-14"}, "facts": {"rooms_before": 23, "units_after": 12, "ratio_after_to_before": 0.52, "unit_size_after_sf": "196 to 347", "sra_designation_after": "removed", "tenants": 0, "years_vacant": 3}}], "steps": [{"step": "apply", "from": "owner decides", "to": "application filed", "weeks_min": null, "weeks_max": null, "cases": [], "note": "Low Young Court shows nine weeks from purchase to application, but purchase is not the decision point."}, {"step": "council_decides", "from": "application filed", "to": "Council decision", "weeks_min": 9, "weeks_max": 12, "cases": ["low_young_court_2015", "aayin_208_e_georgia_2023", "clifton_1125_granville_2025"], "note": "Three private cases: 12, 10 and about 9 weeks from application to Council."}, {"step": "unit_design", "from": "Council decision", "to": "development permit issued", "weeks_min": null, "weeks_max": null, "cases": [], "note": "Use the City's published development permit processing times until a case gives SRO-specific dates."}, {"step": "replace_and_fund", "from": "replacement committed", "to": "replacement rooms occupied", "weeks_min": 156, "weeks_max": null, "cases": ["old_continental_2013"], "note": "Three years from the 2010 policy commitment to interim occupancy in 2013; permanent replacement date unknown, so the upper bound is open."}, {"step": "build_and_occupy", "from": "development permit", "to": "occupancy permit", "weeks_min": null, "weeks_max": null, "cases": [], "note": "Needs an operator's building file."}, {"step": "rent_on_turnover", "from": "occupancy", "to": "first turnover", "weeks_min": null, "weeks_max": null, "cases": [], "note": "Needs a rent roll. The 2015 amendments created rent-roll reporting to the City; ask whether the data can be shared."}, {"step": "monitor", "from": "occupancy", "to": "next survey", "weeks_min": 0, "weeks_max": 104, "cases": ["cov_lihs_biennial"], "note": "Survey is biennial, so a building can wait up to two years to be counted."}, {"step": "tenant_relocation", "from": "application", "to": "tenants out", "weeks_min": -520, "weeks_max": 20, "cases": ["low_young_court_2015", "aayin_208_e_georgia_2023", "clifton_1125_granville_2025", "keefer_222_2026", "regent_160_e_hastings_2026", "thornton_956_main_2026", "old_continental_2013"], "note": "Negative means tenants left before the application. Six of seven cases: tenants were gone before the SRA application, by one day (LYC), eight months (Aay'in), or three to ten years of vacancy after fire or closure order (Keefer, Thornton, Regent, Clifton). Only the City's own Old Continental relocated after the decision."}], "findings": {"tenants_out_before_council": "6 of 7 cases", "council_review_weeks": "9 to 12", "merge_ratio_over_200sf": "Regent 0.48, Thornton 0.52; Keefer kept rooms under 200 sf at 0.87", "fee": "$300,000 per door since 2023, last actually charged 2015; Clifton paid $1.1M, about $14,900 per room", "designation_threshold": "200 sf average decides whether a renovated building stays under the SRA By-law"}};
-
-const BG="#E9E2D6", SLATE="#3D5A6C", CORAL="#E0724E", INK="#2B3A42", MUTED="#5F6E78", TAN="#9DB9F0";
-const CAMP_COLOUR = {economics:SLATE, planning:"#6E8594", architecture:"#9FB0BA", health:CORAL, geography:"#B8553A"};
-const GRADE_WEIGHT = {strong:4, moderate:2.5, weak:1.2};
-const SIGN = {"+":1,"-":-1,"0":0}, CHAR = {"1":"+","-1":"-","0":"0"};
-const LEFT=300, RIGHT=240, TOP=70, ROW_H=30, BAR_H=14, YEAR_W=36, LEGEND_W=560, MARK=7;
-const FONT="Helvetica, Arial, sans-serif";
-
-const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const TRACKMAP = {"note": "Presentation only. Which stage of the case-study track each outcome in edges.json is drawn against. This is the author's reading of where in the process an outcome shows up, not a sourced claim; it adds no edge and sets no lag. Edit by hand. lever_stage is the stage at which each lever is set; planner_stage is where a planner or advocate steps into the process. Both are the author's reading and are to be tested in user session 1. decision_timing says, per decision, whether timing.json has a duration it acts on; decision_stack and fact_callouts place the callouts on the sheet. gap_step gives, for each pair of neighbouring stages, the timing.json step that fills the gap and its weeks; the page draws that gap on a log scale. range gives, per decision, the order its settings sit in on the lever (a presentation order, not a scale) and the setting in force now where edges.json says so. A lever has detents, not a continuous range: there is no sourced effect between two settings. The permit lever shows allow and minor repair only; deny has no sourced edge and none of the seven cases was refused, so it is left off the sheet (edges.json still lists it). outcome_who says who an effect lands on (T tenants, N neighbourhood, C City and owners, B buildings); it is the author's reading and is not sourced.", "outcome_stage": {"tenant_evictions": "Tenants out", "displacement": "Tenants out", "violence_exposure": "Tenants out", "treatment_disruption": "Tenants out", "mortality_risk": "Tenants out", "social_polarization": "Tenants out", "community_ties": "Tenants out", "sro_room_count": "Council", "bylaw_fee_level": "Council", "sra_designation": "Design", "units_per_building": "Design", "floor_area_per_tenant": "Design", "space_wellbeing": "Design", "replacement_reserve": "Fund", "replacement_units_built": "Fund", "tenant_return_rate": "Fund", "new_market_units": "Fund", "sro_rent": "Rent", "rent_gap_pressure": "Rent", "nearby_low_income_rents": "Rent", "vacancy_chain_moves": "Rent", "gentrification_pace": "Rent", "housing_agreement_rooms": "Fund"}, "lever_stage": {"conversion_permit": "Council", "conversion_fee": "Council", "unit_size_sf": "Design", "replacement_ratio": "Fund", "tenure": "Fund", "income_mix": "Fund", "rent_at_turnover": "Rent"}, "planner_stage": {"Council": "speaks at the hearing", "Monitor": "reads the City survey (CCAP)"}, "decision_timing": {"conversion_permit": {"title": "Permit route", "stage": "Council", "callout": "minor repair skips Council, 9 to 12 wks", "basis": "timing.json council_decides (3 cases); the minor_repair_staff note in edges.json"}, "conversion_fee": {"title": "Conversion fee", "stage": null, "callout": "no timing data", "basis": "timing.json has no fee step"}, "unit_size_sf": {"title": "Unit size", "stage": null, "callout": "sets the route, no duration data", "basis": "unit_size_sf note in edges.json; timing.json unit_design has no case"}, "replacement_ratio": {"title": "Replacement", "stage": "Fund", "callout": "acts on 3 yrs and open, 1 case", "basis": "timing.json replace_and_fund (Old Continental, 156 weeks minimum)"}, "tenure": {"title": "Tenure", "stage": null, "callout": "no timing data", "basis": "none"}, "income_mix": {"title": "Income mix", "stage": null, "callout": "no timing data", "basis": "none"}, "rent_at_turnover": {"title": "Rent rule", "stage": null, "callout": "no timing data, needs a rent roll", "basis": "timing.json rent_on_turnover has no case"}}, "decision_stack": {"2": ["conversion_permit", "conversion_fee"], "3": ["unit_size_sf"], "4": ["replacement_ratio", "tenure", "income_mix"], "6": ["rent_at_turnover"]}, "gap_step": [{"step": "tenant_relocation", "weeks": 520, "label": "1 day to 10 years before", "stage": "Tenants out"}, {"step": "council_decides", "weeks": 10.5, "label": "9 to 12 weeks", "stage": "Council"}, {"step": "unit_design", "weeks": null, "label": "no case yet", "stage": "Design"}, {"step": null, "weeks": null, "label": "no case yet", "stage": null}, {"step": "replace_and_fund", "weeks": 156, "label": "3 years, open ended", "stage": "Fund", "open": true}, {"step": "build_and_occupy", "weeks": null, "label": "no case yet", "stage": "Build"}, {"step": "rent_on_turnover", "weeks": null, "label": "no case yet", "stage": "Rent"}], "gap_trailing": {"step": "monitor", "weeks": 104, "label": "0 to 104 weeks", "stage": "Monitor"}, "scale": {"min_gap": 140, "per_decade": 100, "note": "Distance between two stages grows with the logarithm of the measured weeks between them (timing.json). A step with no case is drawn dotted at the shortest length, which says nothing about its duration."}, "range": {"conversion_permit": {"order": ["allow", "minor_repair_staff"], "now": "minor_repair_staff", "now_basis": "since 2015 most renovation cases take this route"}, "conversion_fee": {"order": ["waived", "replace_in_kind", "charged"], "now": "waived", "now_basis": "last actually charged in 2015; since then waived or set by pro forma"}, "unit_size_sf": {"order": ["100", "200", "250", "320"], "now": "200", "now_basis": "the live threshold in current permit reports"}, "replacement_ratio": {"order": ["none", "partial", "one_to_one"], "now": null, "now_basis": null}, "tenure": {"order": ["private", "nonprofit"], "now": null, "now_basis": null}, "income_mix": {"order": ["100_social", "60_40"], "now": null, "now_basis": null}, "rent_at_turnover": {"order": ["vacancy_control", "market"], "now": null, "now_basis": null}}, "outcome_who": {"tenant_evictions": "T", "violence_exposure": "T", "treatment_disruption": "T", "mortality_risk": "T", "displacement": "T", "vacancy_chain_moves": "T", "space_wellbeing": "T", "tenant_return_rate": "T", "nearby_low_income_rents": "N", "rent_gap_pressure": "N", "gentrification_pace": "N", "social_polarization": "N", "community_ties": "N", "new_market_units": "N", "sro_rent": "N", "sro_room_count": "N", "bylaw_fee_level": "C", "replacement_reserve": "C", "replacement_units_built": "C", "housing_agreement_rooms": "C", "sra_designation": "B", "units_per_building": "B", "floor_area_per_tenant": "B"}};
+const QUOTES = {"note": "Sizes quoted from the notes on edges in edges.json, with the geography and case count each note gives. The tool asserts none of them; it shows them beside the effect they belong to. An edge with no entry here has no size stated by its source. Edit by hand with the paper open.", "quotes": {"e12": {"size": "45 to 70 people out per 100 new units, within 5 years", "where": "US cities"}, "e13": {"size": "5 to 7 percent relative rent decline near large new buildings", "where": "US, low-income areas"}, "e22": {"size": "21 percent rise in rent between tenancies", "where": "City biennial survey, not peer reviewed"}, "e28": {"size": "unit count cut to about half: 161 to 77, 23 to 12", "where": "two buildings, permit records"}, "e32": {"size": "8 of 12 rooms under the agreement", "where": "one case"}, "e29": {"size": "tenants already gone in 6 of 7 permit files", "where": "seven Vancouver cases"}}};
 
 // ---- run: load, check, traverse by lag (port of run.py; nothing here adds an edge, sets a lag or picks a source)
+const SIGN = {"+":1,"-":-1,"0":0};
 class Stop extends Error {}
 function checkSource(e) {
   if (!e.source || !(e.source in GRAPH.sources)) throw new Stop(`Edge ${e.id} has no source listed in edges.json.`);
   if (e.source === "timing_json_cases" && !(TIMING.cases && TIMING.cases.length)) throw new Stop(`Edge ${e.id} cites timing.json but it has no cases.`);
 }
-function checkOption(option) {
-  const [decId, opt] = option.split("=");
-  const dec = GRAPH.decisions.find(d => d.id === decId);
-  const edges = GRAPH.edges.filter(e => e.from === option);
-  if (!edges.length) throw new Stop(`${dec.label}: ${opt.replace(/_/g," ")} has no sourced outgoing edge. A source has to be added to edges.json before this option can be run.`);
-  edges.forEach(checkSource);
-  return dec.label;
-}
-function traverse(option, horizon) {
-  const labels = Object.fromEntries(GRAPH.outcomes.map(o => [o.id, o.label]));
-  const events = [], queue = [[option,0,0,[],1]];
+function traverse(option) {
+  const events = [], queue = [[option, 0, 0, [], 1]];
   while (queue.length) {
     const [node, yMin, yMax, path, sign] = queue.shift();
     for (const e of GRAPH.edges) {
       if (e.from !== node || path.includes(e.id)) continue;
       checkSource(e);
-      const emin = yMin + e.lag_min, emax = yMax + e.lag_max, net = sign * SIGN[e.direction];
-      const ev = {};
-      for (const k of ["claim_type","from","to","direction","camp","evidence","geography","source","fork","note"]) ev[k] = e[k] ?? null;
-      Object.assign(ev, {edge:e.id, to_label:labels[e.to] ?? e.to, direction_net:CHAR[net], year_min:emin, year_max:emax,
-        past_horizon:(emin+emax)/2 > horizon, before_decision:emin < 0, path:[...path, e.id]});
-      events.push(ev);
-      if (net !== 0) queue.push([e.to, emin, emax, ev.path, net]);
+      const net = sign * SIGN[e.direction];
+      const emin = yMin + e.lag_min, emax = yMax + e.lag_max;
+      events.push({ edge: e.id, to: e.to, net, fork: e.fork || null, claim: e.claim_type, source: e.source, camp: e.camp, year_min: emin, year_max: emax });
+      if (net !== 0) queue.push([e.to, emin, emax, [...path, e.id], net]);
     }
   }
   return events;
 }
-function run(option, horizon) {
-  const decision_label = checkOption(option);
-  const events = traverse(option, horizon);
-  return {option, decision_label, option_label:option.split("=")[1].replace(/_/g," "), horizon,
-          axis_start:Math.min(0, ...events.map(e => e.year_min)), events};
+// the stages an option's sourced effects reach; an option with no sourced edge reaches nothing and says so
+function run(option) {
+  if (!GRAPH.edges.some(e => e.from === option)) return [];
+  const lever = option.split("=")[0];
+  return traverse(option).map(ev => ({ ...ev, lever, option: option.split("=")[1] }));
 }
 
-// ---- render: timeline object in, SVG string out (port of render.py; reads only the timeline)
-function rowOrder(events) {
-  const byOutcome = new Map();
-  const sorted = [...events].sort((a,b) => a.path.length-b.path.length || a.year_min-b.year_min || a.year_max-b.year_max || (a.edge<b.edge?-1:a.edge>b.edge?1:0));
-  for (const ev of sorted) { if (!byOutcome.has(ev.to)) byOutcome.set(ev.to, []); byOutcome.get(ev.to).push(ev); }
-  const rows = [], done = new Set();
-  for (const [key, evs] of byOutcome) {
-    const plain = evs.filter(e => !e.fork);
-    if (plain.length) rows.push({id:key, label:plain[0].to_label, fork:null, evs:plain});
-    for (const ev of evs) {
-      if (!ev.fork || done.has(ev.fork)) continue;
-      done.add(ev.fork);
-      const sides = events.filter(e => e.fork === ev.fork).sort((a,b) => a.year_min-b.year_min || (a.edge<b.edge?-1:1));
-      for (const s of sides) rows.push({id:s.to, label:s.to_label, fork:ev.fork, evs:[s]});
-    }
-  }
-  return rows;
+// ---- the effect scale: what follows from the pressed decision, in years after it (the lags in edges.json)
+const BG="#E9E2D6", SLATE="#3D5A6C", CORAL="#E0724E", INK="#2B3A42", MUTED="#5F6E78";
+const STAGE_ORDER = ["Tenants out","Apply","Council","Design","Fund","Build","Rent","Monitor"];
+const esc = t => String(t).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const WORD = { "1":"rises", "-1":"falls", "0":"holds" }, GLYPH = { "1":"\u25B2", "-1":"\u25BC", "0":"\u25CF" };
+function nowLine() {
+  const bits = Object.entries(state.sel).map(([lev, opt]) => {
+    const r = TRACKMAP.range[lev];
+    if (!r.now) return null;
+    const name = TRACKMAP.decision_timing[lev].title.toLowerCase();
+    return opt === r.now ? `${name}: ${optText(lev, opt)} is in force now (${r.now_basis})` : `${name}: in force now ${optText(lev, r.now)}, changed to ${optText(lev, opt)}`;
+  }).filter(Boolean);
+  return bits.length ? bits.join("; ") + ". " : "";
 }
-function wrap(text, width) {
-  const words = text.split(/\s+/), lines = []; let cur = "";
-  for (const w of words) { if ((cur + " " + w).trim().length > width) { lines.push(cur); cur = w; } else cur = (cur + " " + w).trim(); }
-  if (cur) lines.push(cur); return lines;
-}
-function render(tl) {
-  const events = tl.events, horizon = tl.horizon, x0 = tl.axis_start, x1 = horizon;
-  const rows = rowOrder(events);
-  const width = Math.max(LEFT + (x1-x0)*YEAR_W, LEFT + LEGEND_W) + RIGHT;
-  const noteLines = events.filter(e => e.direction === "0" && e.note).flatMap(e => wrap(`${e.edge}: ${e.note}`, Math.floor((LEGEND_W+RIGHT+100)/5.2)));
-  const height = TOP + rows.length*ROW_H + 110 + (noteLines.length ? 18 + 14*noteLines.length : 0);
-  const X = yr => LEFT + (yr - x0) * YEAR_W;
-  const o = [];
-  o.push(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" font-family="${FONT}" font-size="12" fill="${INK}">`);
-  o.push(`<rect width="${width}" height="${height}" fill="${BG}"/>`);
-  o.push(`<text x="${LEFT}" y="28" font-size="15" font-weight="bold">${esc(tl.decision_label)}: ${esc(tl.option_label)}</text>`);
-  o.push(`<text x="${LEFT}" y="46" fill="${MUTED}">what the sourced evidence says follows over ${horizon} years: ${events.length} effects, from year ${x0}</text>`);
-  const pt = TOP, pb = TOP + rows.length*ROW_H;
-  for (let yr = x0; yr <= x1; yr++) {
-    const x = X(yr);
-    o.push(`<line x1="${x}" y1="${pt}" x2="${x}" y2="${pb}" stroke="${SLATE}" stroke-opacity="0.15"/>`);
-    if (yr % 5 === 0 || yr === x0 || yr === x1) o.push(`<text x="${x}" y="${pb+18}" text-anchor="middle" fill="${MUTED}">${yr}</text>`);
-  }
-  o.push(`<text x="${(X(x0)+X(x1))/2}" y="${pb+36}" text-anchor="middle" fill="${MUTED}">years from the decision</text>`);
-  let prevFork = null;
-  rows.forEach((r, i) => {
-    const y = pt + i*ROW_H, cy = y + ROW_H/2;
-    if (i % 2 === 0) o.push(`<rect x="0" y="${y}" width="${width}" height="${ROW_H}" fill="${SLATE}" fill-opacity="0.04"/>`);
-    o.push(`<text x="${LEFT-28}" y="${cy+4}" text-anchor="end">${esc(r.label)}</text>`);
-    if (r.fork && r.fork !== prevFork) {
-      const n = rows.filter(q => q.fork === r.fork).length;
-      o.push(`<line x1="18" y1="${y+4}" x2="18" y2="${y+n*ROW_H-4}" stroke="${CORAL}" stroke-width="2"/>`);
-      o.push(`<text x="24" y="${y+14}" fill="${CORAL}" font-size="10" font-weight="bold">fork ${esc(r.fork)}</text>`);
-    }
-    prevFork = r.fork;
-    const k = r.evs.length, subH = k === 1 ? BAR_H : Math.max(5, (ROW_H-8)/k);
-    r.evs.forEach((ev, j) => {
-      const by = cy - (k*subH)/2 + j*subH, over = ev.year_max > horizon;
-      const xa = Math.min(X(ev.year_min), X(horizon)), xb = Math.min(X(ev.year_max), X(horizon)), w = xb - xa;
-      const colour = CAMP_COLOUR[ev.camp] || SLATE, grade = ev.evidence, weight = GRADE_WEIGHT[grade] || 1.2;
-      const dash = grade ? "" : ' stroke-dasharray="4 3"';
-      const style = `fill="${colour}" fill-opacity="0.35" stroke="${colour}" stroke-width="${weight}"${dash}`;
-      const my = by + subH/2;
-      let shape, lx;
-      if (ev.year_min === ev.year_max && !over) {
-        shape = `<polygon points="${xa},${my-MARK} ${xa+MARK},${my} ${xa},${my+MARK} ${xa-MARK},${my}" ${style}/>`; lx = xa + MARK + 6;
-      } else { shape = `<rect x="${xa}" y="${by+1}" width="${w}" height="${subH-2}" ${style}/>`; lx = xb + 6; }
-      let src = `${ev.edge}  ${ev.source}`;
-      if (over) { shape += `<polygon points="${xb},${my-subH/2} ${xb+9},${my} ${xb},${my+subH/2}" fill="${TAN}"/>`; src = `to yr ${ev.year_max}   ${src}`; lx = xb + 14; }
-      const title = `${ev.edge}: ${ev.from} -> ${ev.to}, direction ${ev.direction_net}, yr ${ev.year_min} to ${ev.year_max}, ${ev.camp}, ${grade || ev.claim_type}, ${ev.source}`;
-      o.push(`<g class="ev" data-edge="${ev.edge}"><title>${esc(title)}</title>${shape}` +
-        `<text x="${LEFT-10}" y="${my+4}" text-anchor="end" font-size="11" font-weight="bold">${esc(ev.direction_net)}</text>` +
-        `<text x="${lx}" y="${my+4}" font-size="10" fill="${MUTED}">${esc(src)}</text></g>`);
+const wrapText = (s, n) => { const out = []; let cur = ""; for (const w of s.split(/\s+/)) { if ((cur + " " + w).trim().length > n) { out.push(cur); cur = w; } else cur = (cur + " " + w).trim(); } if (cur) out.push(cur); return out; };
+function renderEffects() {
+  const box = $("effects"), W = 1600, X0 = 250, X1 = 1500, YMIN = -10, YMAX = 30;
+  const X = y => X0 + (y - YMIN) / (YMAX - YMIN) * (X1 - X0);
+  const labels = Object.fromEntries(GRAPH.outcomes.map(o => [o.id, o.label]));
+  const chosen = Object.entries(state.sel);
+  const head = (t1, t2, h, col) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${h}" font-family="Helvetica, Arial, sans-serif" fill="${INK}"><defs><pattern id="hcor" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="${CORAL}" fill-opacity=".1"/><line x1="0" y1="0" x2="0" y2="6" stroke="${CORAL}" stroke-width="1.4"/></pattern><pattern id="hsl" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="${SLATE}" fill-opacity=".1"/><line x1="0" y1="0" x2="0" y2="6" stroke="${SLATE}" stroke-width="1.4"/></pattern></defs><rect width="${W}" height="${h}" fill="${BG}"/><text x="40" y="44" font-size="16" font-weight="bold">${esc(t1)}</text>${wrapText(t2, 170).map((ln, i) => `<text x="40" y="${68 + i * 18}" font-size="13" fill="${col || MUTED}">${esc(ln)}</text>`).join("")}`;
+  if (!chosen.length) { box.innerHTML = head("Who is affected, and when", "Choose one or more decisions on the sheet above. Each effect appears under the group it lands on, at the years the evidence says it lands.", 100) + "</svg>"; return; }
+  const title = chosen.map(([l, o]) => `${TRACKMAP.decision_timing[l].title.toLowerCase()}: ${optText(l, o)}`).join("  +  ");
+  const LANES = [["T", "TENANTS"], ["N", "NEIGHBOURHOOD"], ["C", "CITY AND OWNERS"], ["B", "BUILDINGS"]], RH = chosen.length > 1 ? 58 : 44, PAD = 10;
+  const lanes = LANES.map(([k, name]) => ({ k, name, evs: events.filter(e => TRACKMAP.outcome_who[e.to] === k).sort((a, b) => a.year_min - b.year_min || (labels[a.to] < labels[b.to] ? -1 : 1)) })).filter(l => l.evs.length);
+  const sub = `${nowLine()}${events.length} sourced effects, by who they land on.${chosen.length > 1 ? " Each decision's chain is drawn on its own; the sources do not say how decisions interact." : ""} A size is shown only where a source states one.`, TOP = 84 + 18 * wrapText(sub, 170).length, h = TOP + lanes.reduce((s, l) => s + l.evs.length * RH + 2 * PAD + 8, 0) + 90;
+  const multi = chosen.length > 1;
+  const o = [head(title, sub, h)];
+  let y = TOP;
+  for (const l of lanes) {
+    const bh = l.evs.length * RH + 2 * PAD;
+    o.push(`<rect x="40" y="${y}" width="${X1 + 60 - 40}" height="${bh}" fill="${SLATE}" fill-opacity="${l.k === "T" || l.k === "C" ? 0.07 : 0.03}"/><text x="52" y="${y + 26}" font-size="11" font-weight="bold" letter-spacing="1.5" fill="${SLATE}">${l.name}</text>`);
+    l.evs.forEach((e, i) => {
+      const cy = y + PAD + i * RH + RH / 2, net = e.net, col = net > 0 ? CORAL : net < 0 ? SLATE : MUTED;
+      const a0 = X(Math.max(YMIN, e.year_min)), b0 = X(Math.min(YMAX, e.year_max)), a = e.year_min === e.year_max ? a0 - 9 : a0, b = e.year_min === e.year_max ? a0 + 9 : Math.max(b0, a0 + 8);
+      const obs = e.claim === "observation", fill = net === 0 ? "none" : obs ? col : `url(#${net > 0 ? "hcor" : "hsl"})`;
+      const clash = events.some(x => x.to === e.to && x.net !== e.net);
+      o.push(`<rect x="${a}" y="${cy - 9}" width="${b - a}" height="18" rx="9" fill="${fill}" fill-opacity="${obs ? 0.85 : 1}" stroke="${col}" stroke-width="1.6"${net === 0 ? ' stroke-dasharray="4 3"' : ""}><title>${esc(`${e.edge}, ${e.source}, ${e.claim}, years ${e.year_min} to ${e.year_max}`)}</title></rect>`);
+      const q = QUOTES.quotes[e.edge], via = multi ? `   via ${TRACKMAP.decision_timing[e.lever].title.toLowerCase()} ${optText(e.lever, e.option)}` : "";
+      const l1 = `${GLYPH[String(net)]} ${labels[e.to]}`, l2 = (q ? `${q.size} (${q.where})` : "size not stated") + via;
+      const l2s = wrapText(l2, 64), w = Math.max(l1.length * 7.4 + 90, Math.max(...l2s.map(s => s.length)) * 6.3) + 24, right = b + 12, onRight = right + w <= X1 + 60, tx = onRight ? right : a - 12, anc = onRight ? "start" : "end";
+      const flag = e.fork || clash ? `<tspan fill="${CORAL}" font-style="italic">  disputed${e.fork ? ` (${e.fork})` : ""}</tspan>` : "";
+      o.push(`<text x="${tx}" y="${cy - (l2s.length > 1 ? 10 : 3)}" text-anchor="${anc}" font-size="13">${esc(l1)}${flag}</text>`);
+      l2s.forEach((ln, k) => o.push(`<text x="${tx}" y="${cy + (l2s.length > 1 ? 4 : 12) + k * 13}" text-anchor="${anc}" font-size="11.5" ${q ? `fill="${INK}"` : `fill="${MUTED}" font-style="italic"`}>${esc(ln)}</text>`));
     });
-  });
-  const xd = X(0);
-  o.push(`<line x1="${xd}" y1="${pt-14}" x2="${xd}" y2="${pb}" stroke="${INK}" stroke-width="1.5"/>`);
-  o.push(`<text x="${xd+5}" y="${pt-4}" font-size="11" font-weight="bold">decision</text>`);
-  let ly = pb + 60, lx = LEFT;
-  for (const [camp, c] of Object.entries(CAMP_COLOUR)) {
-    o.push(`<rect x="${lx}" y="${ly-9}" width="14" height="10" fill="${c}" fill-opacity="0.35" stroke="${c}" stroke-width="2"/><text x="${lx+18}" y="${ly}" font-size="11">${camp}</text>`);
-    lx += 100;
+    y += bh + 8;
   }
-  ly += 20; lx = LEFT;
-  for (const [g, wt] of Object.entries(GRADE_WEIGHT)) {
-    o.push(`<line x1="${lx}" y1="${ly-4}" x2="${lx+24}" y2="${ly-4}" stroke="${INK}" stroke-width="${wt}"/><text x="${lx+30}" y="${ly}" font-size="11">${g}</text>`);
-    lx += 100;
+  const pb = y;
+  for (let yr = YMIN; yr <= YMAX; yr += 5) {
+    o.push(`<line x1="${X(yr)}" y1="${TOP}" x2="${X(yr)}" y2="${pb - 8}" stroke="${SLATE}" stroke-opacity="${yr === 0 ? 0 : 0.14}"/><text x="${X(yr)}" y="${pb + 14}" text-anchor="middle" font-size="11" fill="${MUTED}">${yr}</text>`);
   }
-  o.push(`<line x1="${lx}" y1="${ly-4}" x2="${lx+24}" y2="${ly-4}" stroke="${INK}" stroke-width="1.2" stroke-dasharray="4 3"/><text x="${lx+30}" y="${ly}" font-size="11">mechanism or theory, no grade</text>`);
-  if (noteLines.length) {
-    ly += 26;
-    o.push(`<text x="${LEFT}" y="${ly}" font-size="10" font-weight="bold" fill="${MUTED}">direction 0: lands on the axis, passes nothing on</text>`);
-    for (const l of noteLines) { ly += 14; o.push(`<text x="${LEFT}" y="${ly}" font-size="10" fill="${MUTED}">${esc(l)}</text>`); }
-  }
+  o.push(`<text x="${(X0 + X1) / 2}" y="${pb + 32}" text-anchor="middle" font-size="11" fill="${MUTED}">years after the decision</text>`);
+  const x0 = X(0);
+  o.push(`<line x1="${x0}" y1="${TOP - 10}" x2="${x0}" y2="${pb - 8}" stroke="${INK}" stroke-width="1.5"/><text x="${x0 + 6}" y="${TOP - 14}" font-size="12" font-weight="bold">decision</text>`);
+  const ly = pb + 62;
+  o.push(`<g font-size="11.5"><rect x="${X0}" y="${ly - 10}" width="24" height="12" rx="6" fill="${CORAL}" fill-opacity=".85" stroke="${CORAL}"/><text x="${X0 + 32}" y="${ly}">rises, measured</text><rect x="${X0 + 170}" y="${ly - 10}" width="24" height="12" rx="6" fill="${SLATE}" fill-opacity=".85" stroke="${SLATE}"/><text x="${X0 + 202}" y="${ly}">falls, measured</text><rect x="${X0 + 340}" y="${ly - 10}" width="24" height="12" rx="6" fill="url(#hcor)" stroke="${CORAL}" stroke-width="1.4"/><text x="${X0 + 372}" y="${ly}">hatched: follows from the rule, or argued</text><rect x="${X0 + 650}" y="${ly - 10}" width="24" height="12" rx="6" fill="none" stroke="${MUTED}" stroke-dasharray="4 3"/><text x="${X0 + 682}" y="${ly}">held steady</text><text x="${X0}" y="${ly + 22}" fill="${MUTED}">Length is when it lands. A size is quoted from its source, never computed here.</text></g>`);
   o.push("</svg>");
-  return o.join("\n");
+  box.innerHTML = o.join("");
 }
 
-// ---- page
+// ---- the sheet: pressing a decision steps it through its settings
 const $ = id => document.getElementById(id);
-const state = {dec:GRAPH.decisions[0].id, opt:null, horizon:10, sel:null};
-let timeline = null;
+const SHORT = {conversion_permit:"permit", conversion_fee:"fee", unit_size_sf:"size", replacement_ratio:"replacement", tenure:"tenure", income_mix:"mix", rent_at_turnover:"rent"};
+const optText = (decId, opt) => decId === "unit_size_sf" ? opt + " sf" : decId === "income_mix" ? opt.replace("_", "/") : opt.replace(/_/g, " ");
+const hasEdges = (dec, opt) => GRAPH.edges.some(e => e.from === `${dec}=${opt}`);
+const state = { sel: {} };      // the chosen setting of each decision, any number at once
+let events = [];
 
-function hasEdges(dec, opt) { return GRAPH.edges.some(e => e.from === `${dec}=${opt}`); }
-
-function setup() {
-  $("dec").innerHTML = GRAPH.decisions.map(d => `<option value="${d.id}">${esc(d.label)}</option>`).join("");
-  $("tgt").innerHTML = `<option value="">choose an outcome</option>` + GRAPH.outcomes.map(o => `<option value="${o.id}">${esc(o.label)}</option>`).join("");
-  $("dec").onchange = () => { state.dec = $("dec").value; state.opt = null; state.sel = null; update(); };
-  $("hor").oninput = () => { state.horizon = +$("hor").value; update(); };
-  $("tgt").onchange = target;
-  $("chart").addEventListener("click", ev => { const g = ev.target.closest("g.ev"); if (g) { state.sel = g.dataset.edge; showDetail(); } });
-  update();
+function recompute() { events = Object.entries(state.sel).flatMap(([lev, opt]) => run(`${lev}=${opt}`)); }
+function pick(decId, opt) {
+  const dec = GRAPH.decisions.find(d => d.id === decId);
+  if (opt == null) { if (state.sel[decId]) return; opt = dec.options.find(o => hasEdges(decId, o)) || dec.options[0]; }
+  if (state.sel[decId] === opt) delete state.sel[decId]; else state.sel[decId] = opt;
+  recompute(); update();
 }
+
 function update() {
-  const dec = GRAPH.decisions.find(d => d.id === state.dec);
-  if (!state.opt || !dec.options.includes(state.opt)) state.opt = dec.options.find(o => hasEdges(dec.id, o)) || dec.options[0];
-  $("decnote").textContent = dec.note ? dec.note : "";
-  $("horv").textContent = state.horizon;
-  $("opts").innerHTML = dec.options.map(o => `<button class="${hasEdges(dec.id,o)?"":"empty"}" aria-pressed="${o===state.opt}" data-o="${o}" title="${hasEdges(dec.id,o)?"":"no sourced edge yet"}">${esc(o.replace(/_/g," "))}</button>`).join("");
-  $("opts").querySelectorAll("button").forEach(b => b.onclick = () => { state.opt = b.dataset.o; state.sel = null; update(); });
-  $("stopbox").innerHTML = "";
-  try {
-    timeline = run(`${dec.id}=${state.opt}`, state.horizon);
-    $("chart").innerHTML = render(timeline);
-    $("chart").hidden = false;
-  } catch (err) {
-    if (!(err instanceof Stop)) throw err;
-    timeline = null; $("chart").hidden = true;
-    $("stopbox").innerHTML = `<div class="stop"><b>Stopped.</b> ${esc(err.message)}<br><span class="note">The tool will not draw an option it has no source for. Options with a dashed outline in the left panel have no sourced edge yet.</span></div>`;
+  renderEffects();
+  const tr = $("track"), chosen = Object.keys(state.sel);
+  tr.querySelectorAll("g.callout").forEach(g => g.classList.toggle("on", chosen.includes(g.dataset.levers)));
+  tr.querySelectorAll("g.det").forEach(d => d.classList.toggle("sel", state.sel[d.dataset.lever] === d.dataset.opt));
+  const reached = new Map();   // stage -> distinct effects, an effect reached with the same direction by two decisions counts once
+  for (const ev of events) {
+    const st = TRACKMAP.outcome_stage[ev.to]; if (!st) continue;
+    if (!reached.has(st)) reached.set(st, new Map());
+    reached.get(st).set(ev.to + ":" + ev.net, ev);
   }
-  showDetail();
+  tr.classList.toggle("has-run", chosen.length > 0);
+  tr.querySelectorAll("g.stage").forEach(g => g.classList.toggle("lit", reached.has(g.dataset.stage)));
+  const timed = new Set(chosen.map(l => TRACKMAP.decision_timing[l].stage).filter(Boolean));
+  tr.querySelectorAll("text.axis").forEach(t => t.classList.toggle("on", timed.has(t.dataset.stage)));
+  tr.classList.toggle("bypass-on", state.sel.conversion_permit === "minor_repair_staff");
+  const readAt = new Set(chosen.map(l => TRACKMAP.lever_stage[l]));
+  tr.querySelectorAll("polygon.dia.read").forEach(d => d.classList.toggle("on", readAt.has(d.dataset.stage)));
+  tr.querySelectorAll("polygon.dia.effect").forEach(d => d.classList.toggle("on", reached.has(d.dataset.stage)));
+  // the exact effects, written beside the stage they sit at: direction glyph, plain label, a flag where sources disagree
+  tr.querySelectorAll("g.fx").forEach(t => t.remove());
+  const NS = "http://www.w3.org/2000/svg", labelOf = Object.fromEntries(GRAPH.outcomes.map(o => [o.id, o.label]));
+  tr.querySelectorAll("g.stage.lit").forEach(g => {
+    const c = g.querySelector("circle"), cx = +c.getAttribute("cx"), cy = +c.getAttribute("cy");
+    const evs = [...reached.get(g.dataset.stage).values()].sort((a, b) => a.year_min - b.year_min || (a.edge < b.edge ? -1 : 1));
+    const fx = document.createElementNS(NS, "g"); fx.setAttribute("class", "fx");
+    const n = evs.length, topY = cy - 36;
+    evs.forEach((ev, i) => {
+      const t = document.createElementNS(NS, "text");
+      t.setAttribute("x", cx); t.setAttribute("y", topY - 6 - (n - 1 - i) * 13); t.setAttribute("text-anchor", "middle");
+      t.setAttribute("font-size", "11"); t.setAttribute("fill", "#2B3A42");
+      const sp = (txt, attrs) => { const s = document.createElementNS(NS, "tspan"); s.textContent = txt; Object.entries(attrs || {}).forEach(([k, v]) => s.setAttribute(k, v)); t.appendChild(s); };
+      sp(GLYPH[String(ev.net)] + " ", { fill: "#E0724E", "font-weight": "bold" });
+      sp(labelOf[ev.to]);
+      if (ev.fork || events.some(x => x.to === ev.to && x.net !== ev.net)) sp("  disputed", { fill: "#E0724E", "font-style": "italic" });
+      fx.appendChild(t);
+    });
+    g.appendChild(fx);
+  });
 }
-function showDetail() {
-  const box = $("detail");
-  document.querySelectorAll("g.ev.sel").forEach(g => g.classList.remove("sel"));
-  const ev = timeline && timeline.events.find(e => e.edge === state.sel);
-  if (!ev) { box.innerHTML = `<h2>Evidence</h2><p class="hint">${timeline ? "Select a bar to see its claim, source and note." : "Nothing to show."}</p>`; return; }
-  document.querySelector(`g.ev[data-edge="${ev.edge}"]`)?.classList.add("sel");
-  const forkSides = ev.fork ? timeline.events.filter(e => e.fork === ev.fork && e.edge !== ev.edge) : [];
-  box.innerHTML = `<h2>Evidence</h2><h3>${esc(ev.edge)}: ${esc(ev.from.replace("="," = ").replace(/_/g," "))} to ${esc(ev.to_label)}</h3>
-    <dl><dt>Direction</dt><dd>edge reads ${esc(ev.direction)}, net ${esc(ev.direction_net)} along the chain</dd>
-    <dt>Lands</dt><dd>year ${ev.year_min} to ${ev.year_max}${ev.before_decision ? " (before the decision)" : ""}${ev.past_horizon ? " (past the horizon)" : ""}</dd>
-    <dt>Claim type</dt><dd>${esc(ev.claim_type)}</dd><dt>Evidence</dt><dd>${esc(ev.evidence || "no grade")}</dd>
-    <dt>Camp</dt><dd>${esc(ev.camp)}</dd><dt>Geography</dt><dd>${esc(ev.geography)}</dd>
-    <dt>Source</dt><dd>${esc(GRAPH.sources[ev.source])} <span class="hint">(${esc(ev.source)})</span></dd>
-    ${ev.note ? `<dt>Note</dt><dd>${esc(ev.note)}</dd>` : ""}
-    ${ev.fork ? `<dt>Fork ${esc(ev.fork)}</dt><dd>contradicted by ${forkSides.map(s => esc(s.edge) + " (" + esc(s.source) + ")").join(", ")}. Both are drawn; neither is chosen.</dd>` : ""}
-    <dt>Chain</dt><dd>${ev.path.join(" then ")}</dd></dl>`;
-}
-function target() {
-  const id = $("tgt").value, out = $("tgtout");
-  if (!id) { out.innerHTML = ""; return; }
-  const o = GRAPH.outcomes.find(x => x.id === id), edges = GRAPH.edges.filter(e => e.to === id);
-  out.innerHTML = edges.length
-    ? `Reached through:<ul class="edges">${edges.map(e => `<li>${esc(e.id)}: from ${esc(e.from.replace(/_/g," "))} (${esc(e.source)})</li>`).join("")}</ul>`
-    : `<div class="stop"><b>No sourced edge leads here.</b> ${esc(o.note || "")}</div>`;
-}
-setup();
+
+$("track").addEventListener("click", ev => {
+  const d = ev.target.closest("g.det");
+  if (d) { pick(d.dataset.lever, d.dataset.opt); return; }
+  const g = ev.target.closest("g.callout"); if (g && g.dataset.levers) pick(g.dataset.levers, null);
+});
+update();
 </script>
 </body>
 </html>

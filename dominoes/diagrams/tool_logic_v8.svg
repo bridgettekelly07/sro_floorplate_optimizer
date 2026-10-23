@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3200" height="1800" viewBox="0 0 1600 900" font-family="Helvetica, Arial, DejaVu Sans, sans-serif">
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#3D5A6C" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></marker><marker id="arrowc" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#E0724E" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<rect width="1600" height="900" fill="#E9E2D6"/>
+<text x="60" y="170" font-size="9" fill="#5F6E78" text-anchor="start">BEFORE THE RUN</text>
+<text x="60" y="182" font-size="7.4" fill="#5F6E78" text-anchor="start">evidence is gathered</text>
+<text x="60" y="420" font-size="9" fill="#5F6E78" text-anchor="start">THE RUN</text>
+<text x="60" y="432" font-size="7.4" fill="#5F6E78" text-anchor="start">each time a setting is chosen</text>
+<text x="60" y="670" font-size="9" fill="#5F6E78" text-anchor="start">MAKING THE CASE</text>
+<text x="60" y="682" font-size="7.4" fill="#5F6E78" text-anchor="start">after a run</text>
+<line x1="-10" y1="304" x2="1610" y2="304" stroke="#C9BFAE" stroke-width="1.6"/>
+<line x1="-10" y1="600" x2="1610" y2="600" stroke="#C9BFAE" stroke-width="1.6"/>
+<rect x="490" y="150" width="220" height="58" rx="29.0" fill="#3D5A6C"/>
+<text x="600.0" y="176.0" font-size="12" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Add a Council report</text>
+<text x="600.0" y="189.0" font-size="8.4" fill="#F2EFE9" text-anchor="middle">one permit case, as a PDF</text>
+<rect x="760" y="150" width="220" height="58" rx="29.0" fill="#E0724E"/>
+<text x="870.0" y="176.0" font-size="12" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Extract case</text>
+<text x="870.0" y="189.0" font-size="8.4" fill="#F2EFE9" text-anchor="middle">dates, rooms, fee, route</text>
+<rect x="1030" y="150" width="220" height="58" rx="6" fill="none" stroke="#3D5A6C" stroke-width="0.8" stroke-dasharray="5 4"/>
+<text x="1140.0" y="176.0" font-size="12" fill="#2B3A42" text-anchor="middle" font-weight="bold">Case file</text>
+<text x="1140.0" y="189.0" font-size="8.4" fill="#2B3A42" text-anchor="middle">timing.json</text>
+<rect x="1300" y="150" width="220" height="58" rx="6" fill="none" stroke="#3D5A6C" stroke-width="0.8" stroke-dasharray="5 4"/>
+<text x="1410.0" y="176.0" font-size="12" fill="#2B3A42" text-anchor="middle" font-weight="bold">Rule set</text>
+<text x="1410.0" y="189.0" font-size="8.4" fill="#2B3A42" text-anchor="middle">edges.json, written by hand</text>
+<path d="M710 179.0 L758 179.0" fill="none" stroke="#3D5A6C" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M980 179.0 L1028 179.0" fill="none" stroke="#3D5A6C" stroke-width="1.1" marker-end="url(#arrow)"/>
+<rect x="220" y="400" width="220" height="58" rx="29.0" fill="#3D5A6C"/>
+<text x="330.0" y="426.0" font-size="12" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Set levers</text>
+<text x="330.0" y="439.0" font-size="8.4" fill="#F2EFE9" text-anchor="middle">any number, one setting each</text>
+<rect x="490" y="400" width="220" height="58" rx="6" fill="#E9E2D6" stroke="#9DB9F0" stroke-width="2.4"/>
+<text x="600.0" y="426.0" font-size="12" fill="#2B3A42" text-anchor="middle" font-weight="bold">Source check</text>
+<text x="600.0" y="439.0" font-size="8.4" fill="#2B3A42" text-anchor="middle">a sourced effect for each?</text>
+<rect x="760" y="400" width="220" height="58" rx="29.0" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/>
+<text x="870.0" y="426.0" font-size="12" fill="#2B3A42" text-anchor="middle" font-weight="bold">Walk rule chains</text>
+<text x="870.0" y="439.0" font-size="8.4" fill="#2B3A42" text-anchor="middle">rules and lags</text>
+<rect x="1030" y="400" width="220" height="58" rx="29.0" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/>
+<text x="1140.0" y="426.0" font-size="12" fill="#2B3A42" text-anchor="middle" font-weight="bold">Effects by who</text>
+<text x="1140.0" y="439.0" font-size="8.4" fill="#2B3A42" text-anchor="middle">the sheet and the chart</text>
+<path d="M440 429.0 L488 429.0" fill="none" stroke="#3D5A6C" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M710 429.0 L758 429.0" fill="none" stroke="#3D5A6C" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M980 429.0 L1028 429.0" fill="none" stroke="#3D5A6C" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M600.0 400 L600.0 354" fill="none" stroke="#E0724E" stroke-width="1.1" marker-end="url(#arrowc)"/>
+<rect x="500.0" y="318" width="200" height="36" rx="6" fill="none" stroke="#3D5A6C" stroke-width="0.8" stroke-dasharray="5 4"/>
+<text x="600.0" y="333.0" font-size="11" fill="#2B3A42" text-anchor="middle" font-weight="bold">Stop</text>
+<text x="600.0" y="346.0" font-size="8" fill="#2B3A42" text-anchor="middle">no source: asks for one</text>
+<path d="M500.0 336 L330.0 336 L330.0 398" fill="none" stroke="#E0724E" stroke-width="1.1" stroke-dasharray="5 4" marker-end="url(#arrowc)"/>
+<path d="M1140.0 208 L1140.0 398" fill="none" stroke="#3D5A6C" stroke-width="1.1" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+<text x="1148.0" y="316.0" font-size="8" fill="#5F6E78" text-anchor="start">step durations</text>
+<path d="M1410.0 208 L1410.0 262 L870.0 262 L870.0 398" fill="none" stroke="#3D5A6C" stroke-width="1.1" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+<text x="1402.0" y="254" font-size="8" fill="#5F6E78" text-anchor="end">rules, read at every run</text>
+<rect x="220" y="650" width="220" height="58" rx="29.0" fill="#3D5A6C"/>
+<text x="330.0" y="676.0" font-size="12" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Pick effects to cite</text>
+<text x="330.0" y="689.0" font-size="8.4" fill="#F2EFE9" text-anchor="middle">which ones to argue</text>
+<rect x="490" y="650" width="220" height="58" rx="29.0" fill="#E0724E"/>
+<text x="600.0" y="676.0" font-size="12" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Draft the case</text>
+<text x="600.0" y="689.0" font-size="8.4" fill="#F2EFE9" text-anchor="middle">one edge in, one sentence out</text>
+<rect x="760" y="650" width="220" height="58" rx="6" fill="#E9E2D6" stroke="#9DB9F0" stroke-width="2.4"/>
+<text x="870.0" y="676.0" font-size="12" fill="#2B3A42" text-anchor="middle" font-weight="bold">Citation check</text>
+<text x="870.0" y="689.0" font-size="8.4" fill="#2B3A42" text-anchor="middle">every sentence cites an edge</text>
+<rect x="1030" y="650" width="220" height="58" rx="29.0" fill="#3D5A6C"/>
+<text x="1140.0" y="676.0" font-size="12" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Person edits</text>
+<text x="1140.0" y="689.0" font-size="8.4" fill="#F2EFE9" text-anchor="middle">chooses which reading to follow</text>
+<rect x="1300" y="650" width="220" height="58" rx="6" fill="none" stroke="#3D5A6C" stroke-width="0.8" stroke-dasharray="5 4"/>
+<text x="1410.0" y="676.0" font-size="12" fill="#2B3A42" text-anchor="middle" font-weight="bold">Case for Council</text>
+<text x="1410.0" y="689.0" font-size="8.4" fill="#2B3A42" text-anchor="middle">memo or testimony</text>
+<path d="M440 679.0 L488 679.0" fill="none" stroke="#3D5A6C" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M710 679.0 L758 679.0" fill="none" stroke="#3D5A6C" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M980 679.0 L1028 679.0" fill="none" stroke="#3D5A6C" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M1250 679.0 L1298 679.0" fill="none" stroke="#3D5A6C" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M1140.0 458 L1140.0 545 L330.0 545 L330.0 648" fill="none" stroke="#3D5A6C" stroke-width="1.1" marker-end="url(#arrow)"/>
+<text x="735.0" y="537" font-size="8" fill="#5F6E78" text-anchor="middle">effects, with their edge ids</text>
+<text x="500" y="142" font-size="8.5" fill="#E0724E" text-anchor="start">planner input</text>
+<text x="230" y="392" font-size="8.5" fill="#E0724E" text-anchor="start">planner input</text>
+<text x="230" y="642" font-size="8.5" fill="#E0724E" text-anchor="start">planner input</text>
+<rect x="60" y="843" width="40" height="14" rx="7.0" fill="#3D5A6C"/>
+<text x="80.0" y="854.0" font-size="11" fill="#F2EFE9" text-anchor="middle" font-weight="bold"></text>
+<text x="108" y="854" font-size="9" fill="#2B3A42" text-anchor="start">person</text>
+<rect x="178" y="843" width="40" height="14" rx="7.0" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/>
+<text x="198.0" y="854.0" font-size="11" fill="#2B3A42" text-anchor="middle" font-weight="bold"></text>
+<text x="226" y="854" font-size="9" fill="#2B3A42" text-anchor="start">code</text>
+<rect x="286" y="843" width="40" height="14" rx="7.0" fill="#E0724E"/>
+<text x="306.0" y="854.0" font-size="11" fill="#F2EFE9" text-anchor="middle" font-weight="bold"></text>
+<text x="334" y="854" font-size="9" fill="#2B3A42" text-anchor="start">model</text>
+<rect x="399" y="843" width="40" height="14" rx="6" fill="#E9E2D6" stroke="#9DB9F0" stroke-width="2.4"/>
+<text x="419.0" y="854.0" font-size="11" fill="#2B3A42" text-anchor="middle" font-weight="bold"></text>
+<text x="447" y="854" font-size="9" fill="#2B3A42" text-anchor="start">code check or person review</text>
+<rect x="622" y="843" width="40" height="14" rx="6" fill="none" stroke="#3D5A6C" stroke-width="0.8" stroke-dasharray="5 4"/>
+<text x="642.0" y="854.0" font-size="11" fill="#2B3A42" text-anchor="middle" font-weight="bold"></text>
+<text x="670" y="854" font-size="9" fill="#2B3A42" text-anchor="start">file or data passed</text>
+<path d="M805 850 L845 850" fill="none" stroke="#E0724E" stroke-width="1.1" stroke-dasharray="5 4" marker-end="url(#arrowc)"/>
+<text x="853" y="854" font-size="9" fill="#2B3A42" text-anchor="start">stop</text>
+<text x="1540" y="854" font-size="8.5" fill="#5F6E78" text-anchor="end">A model sees one report or one edge at a time. Change a setting and run again.</text>
+</svg>

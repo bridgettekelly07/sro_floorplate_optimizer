@@ -1,0 +1,191 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 830" font-family="Helvetica, Arial, DejaVu Sans, sans-serif">
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#3D5A6C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker><marker id="arrowc" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#E0724E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<rect width="1600" height="830" fill="#E9E2D6"/>
+<g font-size="8.75" fill="#2B3A42"><text x="60" y="30" font-size="10.00" font-weight="bold">Each decision is a box of dots</text><circle cx="66" cy="46" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/><text x="78" y="49">a setting with a sourced effect</text><circle cx="66" cy="62" r="5" fill="#E0724E" stroke="#E0724E"/><text x="78" y="65">the setting you chose; click it again to clear a lone dot</text><text x="60" y="82" fill="#5F6E78">Left off, no sourced effect: permit route: deny; replacement:</text><text x="60" y="91" fill="#5F6E78">one to one; unit size: 100; tenure: private; rent rule:</text><text x="60" y="100" fill="#5F6E78">vacancy control; income mix: 100 social; conversion fee:</text><text x="60" y="109" fill="#5F6E78">replace in kind.</text></g>
+<g class="callout" data-levers="conversion_permit" data-col="2">
+<rect x="499.246609350344" y="14" width="162" height="68" rx="6" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7" stroke-dasharray="5 4"/>
+<text x="509.246609350344" y="27" font-size="11.25" fill="#2B3A42" font-weight="bold">Permit route</text>
+<text class="timing timed" x="509.246609350344" y="38" font-size="8.12" fill="#2B3A42">minor repair skips Council, 9</text>
+<text class="timing timed" x="509.246609350344" y="47" font-size="8.12" fill="#2B3A42">to 12 wks</text>
+<g class="det has" data-lever="conversion_permit" data-opt="allow"><title>allow: sourced effects</title><circle cx="521.2" cy="61" r="9" fill="transparent"/>
+<circle class="dot" cx="521.2" cy="61" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/></g>
+<text x="513.2" y="76" font-size="7.88" fill="#2B3A42" text-anchor="start">allow</text>
+<g class="det has" data-lever="conversion_permit" data-opt="minor_repair_staff"><title>minor repair: sourced effects; in force now: since 2015 most renovation cases take this route</title><circle cx="639.2" cy="61" r="9" fill="transparent"/>
+<circle class="dot" cx="639.2" cy="61" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/></g>
+<text x="647.2" y="76" font-size="7.88" fill="#2B3A42" text-anchor="end">minor repair</text>
+</g>
+<g class="callout" data-levers="conversion_fee" data-col="2">
+<rect x="499.246609350344" y="85" width="162" height="68" rx="6" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7" stroke-dasharray="5 4"/>
+<text x="509.246609350344" y="98" font-size="11.25" fill="#2B3A42" font-weight="bold">Conversion fee</text>
+<text class="timing" x="509.246609350344" y="109" font-size="8.12" fill="#5F6E78">no timing data</text>
+<g class="det has" data-lever="conversion_fee" data-opt="waived"><title>waived: sourced effects; in force now: last actually charged in 2015; since then waived or set by pro forma</title><circle cx="521.2" cy="132" r="9" fill="transparent"/>
+<circle class="dot" cx="521.2" cy="132" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/></g>
+<text x="513.2" y="147" font-size="7.88" fill="#2B3A42" text-anchor="start">waived</text>
+<g class="det has" data-lever="conversion_fee" data-opt="charged"><title>charged: sourced effects</title><circle cx="639.2" cy="132" r="9" fill="transparent"/>
+<circle class="dot" cx="639.2" cy="132" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/></g>
+<text x="647.2" y="147" font-size="7.88" fill="#2B3A42" text-anchor="end">charged</text>
+</g>
+<line x1="580.246609350344" y1="156" x2="610.246609350344" y2="408" stroke="#C9BFAE" stroke-width="0.6" stroke-dasharray="5 4"/>
+<g class="callout" data-levers="unit_size_sf" data-col="3">
+<rect x="669.246609350344" y="14" width="162" height="68" rx="6" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7" stroke-dasharray="5 4"/>
+<text x="679.246609350344" y="27" font-size="11.25" fill="#2B3A42" font-weight="bold">Unit size</text>
+<text class="timing" x="679.246609350344" y="38" font-size="8.12" fill="#5F6E78">sets the route, no duration</text>
+<text class="timing" x="679.246609350344" y="47" font-size="8.12" fill="#5F6E78">data</text>
+<g class="det has" data-lever="unit_size_sf" data-opt="200"><title>200 sf: sourced effects; in force now: the live threshold in current permit reports</title><circle cx="691.2" cy="61" r="9" fill="transparent"/>
+<circle class="dot" cx="691.2" cy="61" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/></g>
+<text x="683.2" y="76" font-size="7.88" fill="#2B3A42" text-anchor="start">200</text>
+<g class="det has" data-lever="unit_size_sf" data-opt="250"><title>250 sf: sourced effects</title><circle cx="750.2" cy="61" r="9" fill="transparent"/>
+<circle class="dot" cx="750.2" cy="61" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/></g>
+<text x="750.2" y="76" font-size="7.88" fill="#2B3A42" text-anchor="middle">250</text>
+<g class="det has" data-lever="unit_size_sf" data-opt="320"><title>320 sf: sourced effects</title><circle cx="809.2" cy="61" r="9" fill="transparent"/>
+<circle class="dot" cx="809.2" cy="61" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/></g>
+<text x="817.2" y="76" font-size="7.88" fill="#2B3A42" text-anchor="end">320</text>
+</g>
+<line x1="750.246609350344" y1="85" x2="750.246609350344" y2="258" stroke="#C9BFAE" stroke-width="0.6" stroke-dasharray="5 4"/>
+<g class="callout" data-levers="replacement_ratio" data-col="4">
+<rect x="839.246609350344" y="14" width="162" height="68" rx="6" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7" stroke-dasharray="5 4"/>
+<text x="849.246609350344" y="27" font-size="11.25" fill="#2B3A42" font-weight="bold">Replacement</text>
+<text class="timing timed" x="849.246609350344" y="38" font-size="8.12" fill="#2B3A42">acts on 3 yrs and open, 1 case</text>
+<g class="det has" data-lever="replacement_ratio" data-opt="none"><title>none: sourced effects</title><circle cx="861.2" cy="61" r="9" fill="transparent"/>
+<circle class="dot" cx="861.2" cy="61" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/></g>
+<text x="853.2" y="76" font-size="7.88" fill="#2B3A42" text-anchor="start">none</text>
+<g class="det has" data-lever="replacement_ratio" data-opt="partial"><title>partial: sourced effects</title><circle cx="979.2" cy="61" r="9" fill="transparent"/>
+<circle class="dot" cx="979.2" cy="61" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/></g>
+<text x="987.2" y="76" font-size="7.88" fill="#2B3A42" text-anchor="end">partial</text>
+</g>
+<g class="callout" data-levers="tenure" data-col="4">
+<rect x="839.246609350344" y="85" width="162" height="68" rx="6" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7" stroke-dasharray="5 4"/>
+<text x="849.246609350344" y="98" font-size="11.25" fill="#2B3A42" font-weight="bold">Tenure</text>
+<text class="timing" x="849.246609350344" y="109" font-size="8.12" fill="#5F6E78">no timing data</text>
+<g class="det has" data-lever="tenure" data-opt="nonprofit"><title>nonprofit: sourced effects</title><circle cx="920.2" cy="132" r="9" fill="transparent"/>
+<circle class="dot" cx="920.2" cy="132" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/></g>
+<text x="920.2" y="147" font-size="7.88" fill="#2B3A42" text-anchor="middle">nonprofit</text>
+</g>
+<g class="callout" data-levers="income_mix" data-col="4">
+<rect x="839.246609350344" y="156" width="162" height="68" rx="6" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7" stroke-dasharray="5 4"/>
+<text x="849.246609350344" y="169" font-size="11.25" fill="#2B3A42" font-weight="bold">Income mix</text>
+<text class="timing" x="849.246609350344" y="180" font-size="8.12" fill="#5F6E78">no timing data</text>
+<g class="det has" data-lever="income_mix" data-opt="60_40"><title>60/40: sourced effects</title><circle cx="920.2" cy="203" r="9" fill="transparent"/>
+<circle class="dot" cx="920.2" cy="203" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/></g>
+<text x="920.2" y="218" font-size="7.88" fill="#2B3A42" text-anchor="middle">60/40</text>
+</g>
+<line x1="920.246609350344" y1="227" x2="890.246609350344" y2="258" stroke="#C9BFAE" stroke-width="0.6" stroke-dasharray="5 4"/>
+<g class="callout" data-levers="rent_at_turnover" data-col="6">
+<rect x="1179.1661036611858" y="14" width="162" height="68" rx="6" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.7" stroke-dasharray="5 4"/>
+<text x="1189.1661036611858" y="27" font-size="11.25" fill="#2B3A42" font-weight="bold">Rent rule</text>
+<text class="timing" x="1189.1661036611858" y="38" font-size="8.12" fill="#5F6E78">no timing data, needs a rent</text>
+<text class="timing" x="1189.1661036611858" y="47" font-size="8.12" fill="#5F6E78">roll</text>
+<g class="det has" data-lever="rent_at_turnover" data-opt="market"><title>market: sourced effects</title><circle cx="1260.2" cy="61" r="9" fill="transparent"/>
+<circle class="dot" cx="1260.2" cy="61" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1.2"/></g>
+<text x="1260.2" y="76" font-size="7.88" fill="#2B3A42" text-anchor="middle">market</text>
+</g>
+<line x1="1260.1661036611858" y1="85" x2="1260.1661036611858" y2="258" stroke="#C9BFAE" stroke-width="0.6" stroke-dasharray="5 4"/>
+<line x1="-10" y1="375" x2="1610" y2="375" stroke="#3D5A6C" stroke-width="0.9" stroke-dasharray="5 4"/>
+<text x="44" y="351" font-size="10.00" fill="#5F6E78" letter-spacing="1.2">OUTSIDE THE CITY</text>
+<text x="44" y="363" font-size="8.75" fill="#5F6E78">owner, architect, funder, Province</text>
+<text x="44" y="393" font-size="10.00" fill="#5F6E78" letter-spacing="1.2">CITY OF VANCOUVER</text>
+<text x="44" y="405" font-size="8.75" fill="#5F6E78">intake, Council, permits, inspection, survey</text>
+<path d="M-10 261 L190 261 A39 39 0 0 1 216.3 271.2 L444.0 478.8 A39 39 0 0 0 470.2 489.0 L610.2 489.0 A39 39 0 0 0 646.7 463.8 L713.8 286.2 A39 39 0 0 1 750.2 261.0 L890.2 261.0 A39 39 0 0 1 920.0 274.7 L1090.5 475.3 A39 39 0 0 0 1156.7 463.8 L1223.7 286.2 A39 39 0 0 1 1296.7 286.2 L1363.7 463.8 A39 39 0 0 0 1400.2 489.0 L1610 489.0" fill="none" stroke="#3D5A6C" stroke-width="1.2"/>
+<path class="bypass" d="M470.246609350344 489 L470.246609350344 539 L750.246609350344 539 L750.246609350344 342" fill="none" stroke="#E0724E" stroke-width="0.9" stroke-dasharray="5 4" marker-end="url(#arrowc)"/>
+<text x="610.246609350344" y="549" font-size="8.75" fill="#E0724E" text-anchor="middle">minor repair, staff approval, no Council</text>
+<circle cx="330.1" cy="375.0" r="5.5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.6"/>
+<text x="340.1" y="390.0" font-size="8.75" fill="#5F6E78" text-anchor="start">relocation plan</text>
+<circle cx="540.2" cy="489.0" r="5.5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.6"/>
+<text x="540.2" y="503.0" font-size="8.75" fill="#5F6E78" text-anchor="middle">application</text>
+<circle cx="680.2" cy="375.0" r="5.5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.6"/>
+<text x="670.2" y="366.0" font-size="8.75" fill="#5F6E78" text-anchor="end">permit, conditions</text>
+<circle cx="820.2" cy="261.0" r="5.5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.6"/>
+<text x="820.2" y="252.0" font-size="8.75" fill="#5F6E78" text-anchor="middle">drawings</text>
+<circle cx="1005.2" cy="375.0" r="5.5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.6"/>
+<text x="1015.2" y="390.0" font-size="8.75" fill="#5F6E78" text-anchor="start">agreement</text>
+<circle cx="1190.2" cy="375.0" r="5.5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.6"/>
+<text x="1180.2" y="366.0" font-size="8.75" fill="#5F6E78" text-anchor="end">occupancy permit</text>
+<circle cx="1330.2" cy="375.0" r="5.5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.6"/>
+<text x="1340.2" y="390.0" font-size="8.75" fill="#5F6E78" text-anchor="start">rent roll</text>
+<g class="stage" data-stage="Tenants out">
+<circle cx="190" cy="300" r="32" fill="#3D5A6C" stroke="#9DB9F0" stroke-width="2.6"/>
+<text x="190" y="303.5" font-size="9.75" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Tenants out</text>
+</g>
+<g class="stage" data-stage="Apply">
+<circle cx="470.246609350344" cy="450" r="32" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1"/>
+<text x="470.246609350344" y="453.5" font-size="9.75" fill="#2B3A42" text-anchor="middle" font-weight="bold">Apply</text>
+</g>
+<g class="stage" data-stage="Council">
+<circle cx="610.246609350344" cy="450" r="32" fill="#3D5A6C" stroke="#9DB9F0" stroke-width="2.6"/>
+<text x="610.246609350344" y="453.5" font-size="9.75" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Council</text>
+</g>
+<g class="stage" data-stage="Design">
+<circle cx="750.246609350344" cy="300" r="32" fill="#3D5A6C" stroke="#9DB9F0" stroke-width="2.6"/>
+<text x="750.246609350344" y="303.5" font-size="9.75" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Design</text>
+</g>
+<g class="stage" data-stage="Fund">
+<circle cx="890.246609350344" cy="300" r="32" fill="#3D5A6C" stroke="#3D5A6C" stroke-width="1"/>
+<text x="890.246609350344" y="303.5" font-size="9.75" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Fund</text>
+</g>
+<g class="stage" data-stage="Build">
+<circle cx="1120.1661036611858" cy="450" r="32" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1"/>
+<text x="1120.1661036611858" y="453.5" font-size="9.75" fill="#2B3A42" text-anchor="middle" font-weight="bold">Build</text>
+</g>
+<g class="stage" data-stage="Rent">
+<circle cx="1260.1661036611858" cy="300" r="32" fill="#3D5A6C" stroke="#9DB9F0" stroke-width="2.6"/>
+<text x="1260.1661036611858" y="303.5" font-size="9.75" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Rent</text>
+</g>
+<g class="stage" data-stage="Monitor">
+<circle cx="1400.1661036611858" cy="450" r="32" fill="#E9E2D6" stroke="#9DB9F0" stroke-width="2.6"/>
+<text x="1400.1661036611858" y="453.5" font-size="9.75" fill="#2B3A42" text-anchor="middle" font-weight="bold">Monitor</text>
+</g>
+<line x1="190" y1="633" x2="190" y2="647" stroke="#2B3A42" stroke-width="1.6"/>
+<line x1="470.246609350344" y1="633" x2="470.246609350344" y2="647" stroke="#2B3A42" stroke-width="1.6"/>
+<line x1="610.246609350344" y1="633" x2="610.246609350344" y2="647" stroke="#2B3A42" stroke-width="1.6"/>
+<line x1="750.246609350344" y1="633" x2="750.246609350344" y2="647" stroke="#2B3A42" stroke-width="1.6"/>
+<line x1="890.246609350344" y1="633" x2="890.246609350344" y2="647" stroke="#2B3A42" stroke-width="1.6"/>
+<line x1="1120.1661036611858" y1="633" x2="1120.1661036611858" y2="647" stroke="#2B3A42" stroke-width="1.6"/>
+<line x1="1260.1661036611858" y1="633" x2="1260.1661036611858" y2="647" stroke="#2B3A42" stroke-width="1.6"/>
+<line x1="1400.1661036611858" y1="633" x2="1400.1661036611858" y2="647" stroke="#2B3A42" stroke-width="1.6"/>
+<text x="190" y="658" font-size="10.00" fill="#2B3A42" text-anchor="middle" font-weight="bold">Owner, fire, closure</text>
+<text x="470.246609350344" y="658" font-size="10.00" fill="#2B3A42" text-anchor="middle" font-weight="bold">Owner</text>
+<text x="610.246609350344" y="658" font-size="10.00" fill="#2B3A42" text-anchor="middle" font-weight="bold">Council, SRA Bylaw</text>
+<text x="750.246609350344" y="658" font-size="10.00" fill="#2B3A42" text-anchor="middle" font-weight="bold">Architect, City</text>
+<text x="890.246609350344" y="658" font-size="10.00" fill="#2B3A42" text-anchor="middle" font-weight="bold">BC Housing</text>
+<text x="1120.1661036611858" y="658" font-size="10.00" fill="#2B3A42" text-anchor="middle" font-weight="bold">Owner, City</text>
+<text x="1260.1661036611858" y="658" font-size="10.00" fill="#2B3A42" text-anchor="middle" font-weight="bold">Owner, RTA</text>
+<text x="1400.1661036611858" y="658" font-size="10.00" fill="#2B3A42" text-anchor="middle" font-weight="bold">City, CCAP</text>
+<line x1="199" y1="640" x2="461.246609350344" y2="640" stroke="#3D5A6C" stroke-width="2.6"/>
+<text class="axis" data-stage="Tenants out" x="330.123304675172" y="627" font-size="9.38" fill="#2B3A42" text-anchor="middle">1 day to 10 years before</text>
+<line x1="479.246609350344" y1="640" x2="601.246609350344" y2="640" stroke="#3D5A6C" stroke-width="2.6"/>
+<text class="axis" data-stage="Council" x="540.246609350344" y="627" font-size="9.38" fill="#2B3A42" text-anchor="middle">9 to 12 weeks</text>
+<line x1="619.246609350344" y1="640" x2="741.246609350344" y2="640" stroke="#5F6E78" stroke-width="1.2" stroke-dasharray="1 5" stroke-linecap="round"/>
+<text class="axis gap" data-stage="Design" x="680.246609350344" y="627" font-size="9.38" fill="#5F6E78" text-anchor="middle">no case yet</text>
+<line x1="759.246609350344" y1="640" x2="881.246609350344" y2="640" stroke="#5F6E78" stroke-width="1.2" stroke-dasharray="1 5" stroke-linecap="round"/>
+<text class="axis gap" data-stage="" x="820.246609350344" y="627" font-size="9.38" fill="#5F6E78" text-anchor="middle">no case yet</text>
+<line x1="899.246609350344" y1="640" x2="1111.1661036611858" y2="640" stroke="#3D5A6C" stroke-width="2.6"/>
+<path d="M1104.1661036611858 635 L1111.1661036611858 640 L1104.1661036611858 645" fill="none" stroke="#3D5A6C" stroke-width="1.4"/>
+<text class="axis" data-stage="Fund" x="1005.2063565057649" y="627" font-size="9.38" fill="#2B3A42" text-anchor="middle">3 years, open ended</text>
+<line x1="1129.1661036611858" y1="640" x2="1251.1661036611858" y2="640" stroke="#5F6E78" stroke-width="1.2" stroke-dasharray="1 5" stroke-linecap="round"/>
+<text class="axis gap" data-stage="Build" x="1190.1661036611858" y="627" font-size="9.38" fill="#5F6E78" text-anchor="middle">no case yet</text>
+<line x1="1269.1661036611858" y1="640" x2="1391.1661036611858" y2="640" stroke="#5F6E78" stroke-width="1.2" stroke-dasharray="1 5" stroke-linecap="round"/>
+<text class="axis gap" data-stage="Rent" x="1330.1661036611858" y="627" font-size="9.38" fill="#5F6E78" text-anchor="middle">no case yet</text>
+<line x1="1409.1661036611858" y1="640" x2="1490.1661036611858" y2="640" stroke="#3D5A6C" stroke-width="2.6"/><path d="M1483.1661036611858 635 L1490.1661036611858 640 L1483.1661036611858 645" fill="none" stroke="#3D5A6C" stroke-width="1.4"/>
+<text class="axis" data-stage="Monitor" x="1450.1661036611858" y="627" font-size="9.38" fill="#2B3A42" text-anchor="middle">0 to 104 weeks</text>
+<text x="470.246609350344" y="682" font-size="8.75" fill="#5F6E78" text-anchor="middle">week 0, application filed</text>
+<text x="1576" y="610" font-size="8.75" fill="#5F6E78" text-anchor="end">Distance between stages grows with the log of the weeks measured between them. Dotted: no case, drawn at the shortest length.</text>
+<line x1="120" y1="692" x2="1610" y2="692" stroke="#C9BFAE" stroke-width="0.5"/>
+<text x="112" y="695" font-size="10.00" fill="#5F6E78" text-anchor="end">planner steps in</text>
+<circle cx="610.246609350344" cy="692" r="4" fill="#3D5A6C"/>
+<circle cx="1400.1661036611858" cy="692" r="4" fill="#3D5A6C"/>
+<line x1="120" y1="710" x2="1610" y2="710" stroke="#C9BFAE" stroke-width="0.5"/>
+<text x="112" y="713" font-size="10.00" fill="#5F6E78" text-anchor="end">decision set here</text>
+<polygon class="dia read" data-stage="Council" points="610.246609350344,705 615.246609350344,710 610.246609350344,715 605.246609350344,710" fill="#E0724E" stroke="#E0724E" stroke-width="1.1"/>
+<polygon class="dia read" data-stage="Design" points="750.246609350344,705 755.246609350344,710 750.246609350344,715 745.246609350344,710" fill="#E0724E" stroke="#E0724E" stroke-width="1.1"/>
+<polygon class="dia read" data-stage="Fund" points="890.246609350344,705 895.246609350344,710 890.246609350344,715 885.246609350344,710" fill="#E0724E" stroke="#E0724E" stroke-width="1.1"/>
+<polygon class="dia read" data-stage="Rent" points="1260.1661036611858,705 1265.1661036611858,710 1260.1661036611858,715 1255.1661036611858,710" fill="#E0724E" stroke="#E0724E" stroke-width="1.1"/>
+<line x1="120" y1="728" x2="1610" y2="728" stroke="#C9BFAE" stroke-width="0.5"/>
+<text x="112" y="731" font-size="10.00" fill="#5F6E78" text-anchor="end">effects land here</text>
+<polygon class="dia effect" data-stage="Tenants out" points="190,723 195,728 190,733 185,728" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.1"/>
+<polygon class="dia effect" data-stage="Council" points="610.246609350344,723 615.246609350344,728 610.246609350344,733 605.246609350344,728" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.1"/>
+<polygon class="dia effect" data-stage="Design" points="750.246609350344,723 755.246609350344,728 750.246609350344,733 745.246609350344,728" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.1"/>
+<polygon class="dia effect" data-stage="Fund" points="890.246609350344,723 895.246609350344,728 890.246609350344,733 885.246609350344,728" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.1"/>
+<polygon class="dia effect" data-stage="Rent" points="1260.1661036611858,723 1265.1661036611858,728 1260.1661036611858,733 1255.1661036611858,728" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.1"/>
+<text x="120" y="748" font-size="9.38" fill="#5F6E78">The tool sits outside the eight steps. No rule reaches Apply, Build or Monitor. Planner placement is assumed until user session 1.</text>
+<g font-size="11.25" fill="#2B3A42"><circle cx="52" cy="790" r="7" fill="#3D5A6C"/><text x="66" y="793">Judgment</text><circle cx="160" cy="790" r="7" fill="#E9E2D6" stroke="#3D5A6C"/><text x="174" y="793">Handover</text><circle cx="270" cy="790" r="7" fill="none" stroke="#9DB9F0" stroke-width="2.6"/><text x="284" y="793">Pain point</text><circle cx="380" cy="790" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.6"/><text x="394" y="793">Document</text><line x1="490" y1="790" x2="520" y2="790" stroke="#E0724E" stroke-width="0.9" stroke-dasharray="5 4"/><text x="528" y="793">Minor repair route</text><polygon points="660,785 665,790 660,795 655,790" fill="#E0724E" stroke="#E0724E"/><text x="674" y="793">Decision set here</text><polygon points="820,785 825,790 820,795 815,790" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.1"/><text x="834" y="793">Effects land here</text><circle cx="995" cy="790" r="4" fill="#3D5A6C"/><text x="1007" y="793">Planner / advocate steps in</text></g>
+</svg>

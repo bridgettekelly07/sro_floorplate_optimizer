@@ -20,7 +20,9 @@ run.py writes timeline.json; render.py turns it into an SVG. Saved case outputs 
 - timing.json: seven SRA permit cases from Council reports 2013 to 2026, with step durations.
 - run.py: load, check, walk the chains by lag, write timeline.json. No model.
 - render.py: timeline.json to SVG. Reads nothing else.
-- page_template.html, build_page.py, index.html: the interactive page. Pick a lever and setting, set the horizon, click a bar for its source. It carries a JavaScript port of run.py and render.py. Rebuild after editing edges.json, timing.json or the template with `python3 build_page.py`, then open index.html.
+- page_template.html, build_page.py, index.html: the interactive page. Pick a lever and setting, set the horizon, click a bar for its source. It carries a JavaScript port of run.py and render.py. The case-study sheet at the top is the control: click a dashed callout to set its lever, and the stages the evidence reaches are ringed. Rebuild after editing edges.json, timing.json, track_map.json or the template with `(cd diagrams && python3 build_case_study_wide.py --page) && python3 build_page.py`, then open index.html.
+- track_map.json: presentation only, which stage of the case-study sheet each outcome is drawn against. The author's reading, not a sourced claim.
+- floorplate_unit_size.mjs, floorplate_unit_size.json: a separate model. Room counts from the floorplate engine in frontend/src/lib at each unit_size_sf setting. Counts, not claims; the page shows them in their own panel and the chain never uses them. Rerun with `node floorplate_unit_size.mjs`.
 - first_attempt.md: what the runs showed, the evaluation cases as first run and as rerun, and what is still open.
 - cases/: outputs of the six evaluation cases, one commit per rule-driven change.
 - sources/: every source with verification status; pitch notes and user sessions.

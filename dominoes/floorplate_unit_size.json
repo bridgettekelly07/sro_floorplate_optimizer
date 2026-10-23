@@ -1,0 +1,121 @@
+{
+  "note": "Separate model from the claim chains. Counts of rooms from the floorplate model in frontend/src/lib under the City's other thresholds (SOURCE_POLICY) and the tool's own assumptions (SOURCE_ASSUME). Every room is read as occupied, so rooms lost = tenants displaced. A count, not a claim from a source.",
+  "policy": {
+    "minUnit": 200,
+    "maxReduction": 0.5,
+    "minReplace": 0.5,
+    "smallLoss": 3,
+    "residentDays": 30,
+    "maxMerge": 3
+  },
+  "assume": {
+    "cap": 180,
+    "circ": 25
+  },
+  "rows": [
+    {
+      "unit_size_sf": 100,
+      "read": "average",
+      "buildings": 142,
+      "convert": 141,
+      "cannot": 1,
+      "tenants_in_stock": 6463,
+      "rooms_lost": 104,
+      "units": 6189,
+      "rooms_kept": 144,
+      "need_council": 6,
+      "no_plan": 0
+    },
+    {
+      "unit_size_sf": 200,
+      "read": "average",
+      "buildings": 142,
+      "convert": 130,
+      "cannot": 12,
+      "tenants_in_stock": 6463,
+      "rooms_lost": 1138,
+      "units": 3881,
+      "rooms_kept": 904,
+      "need_council": 85,
+      "no_plan": 0
+    },
+    {
+      "unit_size_sf": 250,
+      "read": "average",
+      "buildings": 142,
+      "convert": 113,
+      "cannot": 29,
+      "tenants_in_stock": 6463,
+      "rooms_lost": 1301,
+      "units": 2562,
+      "rooms_kept": 702,
+      "need_council": 103,
+      "no_plan": 0
+    },
+    {
+      "unit_size_sf": 320,
+      "read": "average",
+      "buildings": 142,
+      "convert": 77,
+      "cannot": 65,
+      "tenants_in_stock": 6463,
+      "rooms_lost": 1365,
+      "units": 1626,
+      "rooms_kept": 150,
+      "need_council": 75,
+      "no_plan": 0
+    },
+    {
+      "unit_size_sf": 100,
+      "read": "strict",
+      "buildings": 142,
+      "convert": 135,
+      "cannot": 7,
+      "tenants_in_stock": 6463,
+      "rooms_lost": 18,
+      "units": 5951,
+      "rooms_kept": 0,
+      "need_council": 1,
+      "no_plan": 0
+    },
+    {
+      "unit_size_sf": 200,
+      "read": "strict",
+      "buildings": 142,
+      "convert": 36,
+      "cannot": 106,
+      "tenants_in_stock": 6463,
+      "rooms_lost": 654,
+      "units": 654,
+      "rooms_kept": 15,
+      "need_council": 34,
+      "no_plan": 0
+    },
+    {
+      "unit_size_sf": 250,
+      "read": "strict",
+      "buildings": 142,
+      "convert": 32,
+      "cannot": 110,
+      "tenants_in_stock": 6463,
+      "rooms_lost": 530,
+      "units": 530,
+      "rooms_kept": 14,
+      "need_council": 30,
+      "no_plan": 0
+    },
+    {
+      "unit_size_sf": 320,
+      "read": "strict",
+      "buildings": 142,
+      "convert": 24,
+      "cannot": 118,
+      "tenants_in_stock": 6463,
+      "rooms_lost": 405,
+      "units": 405,
+      "rooms_kept": 11,
+      "need_council": 22,
+      "no_plan": 0
+    }
+  ]
+}

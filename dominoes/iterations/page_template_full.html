@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SRO dominoes</title>
+<style>
+  :root { --bg:#E9E2D6; --slate:#3D5A6C; --coral:#E0724E; --tan:#9DB9F0; --ink:#2B3A42; --muted:#5F6E78; --panel:#F1ECE2; --line:#cfc6b6; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 Helvetica, Arial, sans-serif; }
+  header { padding:20px 24px 8px; max-width:1400px; margin:0 auto; }
+  h1 { margin:0; font-size:22px; }
+  header p { margin:4px 0 0; color:var(--muted); max-width:70ch; }
+  main { display:grid; grid-template-columns:300px 1fr; gap:20px; padding:12px 24px 40px; max-width:1400px; margin:0 auto; }
+  @media (max-width:860px) { main { grid-template-columns:1fr; } }
+  aside, .card { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:14px 16px; }
+  aside h2, .card h2 { font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:0 0 8px; }
+  label { display:block; font-size:13px; color:var(--muted); margin:10px 0 4px; }
+  select { width:100%; font:inherit; padding:6px; background:#fff; border:1px solid var(--line); border-radius:4px; color:var(--ink); }
+  .opts { display:flex; flex-wrap:wrap; gap:6px; }
+  .opts button { font:inherit; padding:6px 10px; border:1px solid var(--slate); background:transparent; color:var(--slate); border-radius:999px; cursor:pointer; }
+  .opts button[aria-pressed="true"] { background:var(--slate); color:#fff; }
+  .opts button.empty { border-style:dashed; border-color:var(--muted); color:var(--muted); }
+  .opts button.empty[aria-pressed="true"] { background:var(--muted); color:#fff; }
+  input[type=range] { width:100%; accent-color:var(--slate); }
+  .note { font-size:13px; color:var(--muted); }
+  .stack { display:flex; flex-direction:column; gap:16px; min-width:0; }
+  #chart svg { width:100%; min-width:900px; height:auto; display:block; }
+  #chart { overflow-x:auto; }
+  .stop { border-left:4px solid var(--coral); background:#fff; padding:12px 14px; border-radius:4px; }
+  .stop b { color:var(--coral); }
+  #detail h3 { margin:0 0 4px; font-size:15px; }
+  #detail dl { display:grid; grid-template-columns:110px 1fr; gap:2px 10px; margin:8px 0 0; font-size:13px; }
+  #detail dt { color:var(--muted); }
+  #detail dd { margin:0; }
+  .hint { color:var(--muted); font-size:13px; }
+  svg g.ev { cursor:pointer; }
+  svg g.ev:hover rect, svg g.ev:hover polygon { fill-opacity:.6; }
+  svg g.ev.sel rect, svg g.ev.sel polygon:first-child { stroke-width:5; }
+  details summary { cursor:pointer; color:var(--slate); }
+  ul.edges { margin:6px 0 0; padding-left:18px; font-size:13px; }
+  #trackwrap { max-width:1400px; margin:0 auto; padding:0 24px; }
+  #track { padding:10px 12px 6px; }
+  #track svg { width:100%; height:auto; display:block; }
+  #track .hintline { margin:0 4px 6px; font-size:13px; color:var(--muted); }
+  #track g.callout[data-levers]:not([data-levers=""]) { cursor:pointer; }
+  #track g.callout[data-levers]:not([data-levers=""]):hover rect { stroke:var(--coral); }
+  #track g.callout.on rect { stroke:var(--coral); stroke-width:1.6; stroke-dasharray:none; }
+  #track g.stage circle { transition:stroke .15s; }
+  #track.has-run g.stage:not(.lit) { opacity:.4; }
+  #track g.stage.lit circle { stroke:var(--coral); stroke-width:4; }
+  #track text.axis.gap { font-style:italic; }
+  #track text.axis.on { fill:var(--coral); font-weight:bold; }
+  #track path.bypass { transition:stroke-width .15s; }
+  #track.bypass-on path.bypass { stroke-width:2.4; }
+  #track.bypass-on g.stage[data-stage="Council"] { opacity:.3; }
+  #track.bypass-on text.axis[data-stage="Council"] { text-decoration:line-through; }
+  #track polygon.dia { transition:transform .15s; transform-box:fill-box; transform-origin:center; }
+  #track.has-run polygon.dia:not(.on) { opacity:.3; }
+  #track polygon.dia.on { transform:scale(1.5); stroke-width:2; }
+  #track polygon.dia.effect.on { fill:var(--coral); fill-opacity:.35; }
+  #track .count { font-size:11px; font-weight:bold; fill:var(--coral); }
+  #floorplate { border-left:4px solid var(--slate); background:#fff; }
+  #floorplate table { border-collapse:collapse; width:100%; font-size:13px; margin:8px 0; }
+  #floorplate th, #floorplate td { text-align:right; padding:4px 8px; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums; }
+  #floorplate th:first-child, #floorplate td:first-child { text-align:left; }
+  #floorplate tr.on td { background:#E4ECF2; font-weight:bold; }
+  #floorplate .sep { color:var(--muted); font-size:12px; letter-spacing:.06em; text-transform:uppercase; }
+</style>
+</head>
+<body>
+<header>
+  <h1>SRO dominoes</h1>
+  <p>Pick a decision in Vancouver's SRO conversion process. The page traces what the published evidence says follows, year by year, with a source on every link and both sides of every disagreement. No magnitudes are asserted. No model is called.</p>
+</header>
+<div id="trackwrap"><div class="card" id="track">
+  <p class="hintline"><b>The seven decisions on the as-is process, spaced by time.</b> Each dashed box is one decision, placed at the stage where it is set; click it to set it. The distance between two stages follows the weeks timing.json measured between them (seven Council cases), on a log scale so a 10 week step and a 3 year step read as different lengths. A dotted gap has no case yet and is drawn at the shortest length, which says nothing about its duration. Coral on the time scale means the chosen decision acts on that step; grey text in a box means no timing data. Choosing minor repair skips Council. Coral rings show where its sourced effects land; which stage an effect sits at is the author's reading (track_map.json), not a sourced claim.</p>
+<!--__TRACK__-->
+</div></div>
+<main>
+  <aside>
+    <h2>Decision</h2>
+    <label for="dec">What is being decided</label>
+    <select id="dec"></select>
+    <label>Option</label>
+    <div class="opts" id="opts"></div>
+    <p class="note" id="decnote"></p>
+    <label for="hor">Horizon: <span id="horv"></span> years</label>
+    <input type="range" id="hor" min="5" max="30" step="1" value="10">
+    <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
+    <h2>What reaches an outcome?</h2>
+    <select id="tgt"></select>
+    <div id="tgtout" class="note" style="margin-top:8px"></div>
+  </aside>
+  <div class="stack">
+    <div class="card" id="chart"></div>
+    <div id="stopbox"></div>
+    <div class="card" id="floorplate" hidden></div>
+    <div class="card" id="detail"><h2>Evidence</h2><p class="hint">Select a bar to see its claim, source and note.</p></div>
+    <div class="card"><h2>How to read it</h2>
+      <p class="note">Each row is an outcome. A bar runs from the earliest to the latest year the effect lands, counted from the decision (the vertical rule). The sign in the label column is the net direction along the chain: signs multiply, so a decrease of a decrease reads as an increase. Heavier outlines mean stronger evidence; dashed outlines mean a mechanism or theory with no grade. Rows joined by a coral bracket are a fork: two sourced claims that contradict each other, both drawn, neither chosen. A bar that runs past the horizon is clipped and ends in a pale cornflower arrow.</p>
+    </div>
+  </div>
+</main>
+<script>
+const GRAPH = /*__EDGES__*/null;
+const TIMING = /*__TIMING__*/null;
+const TRACKMAP = /*__TRACKMAP__*/null;
+const FLOORPLATE = /*__FLOORPLATE__*/null;
+
+const BG="#E9E2D6", SLATE="#3D5A6C", CORAL="#E0724E", INK="#2B3A42", MUTED="#5F6E78", TAN="#9DB9F0";
+const CAMP_COLOUR = {economics:SLATE, planning:"#6E8594", architecture:"#9FB0BA", health:CORAL, geography:"#B8553A"};
+const GRADE_WEIGHT = {strong:4, moderate:2.5, weak:1.2};
+const SIGN = {"+":1,"-":-1,"0":0}, CHAR = {"1":"+","-1":"-","0":"0"};
+const LEFT=300, RIGHT=240, TOP=70, ROW_H=30, BAR_H=14, YEAR_W=36, LEGEND_W=560, MARK=7;
+const FONT="Helvetica, Arial, sans-serif";
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+// ---- run: load, check, traverse by lag (port of run.py; nothing here adds an edge, sets a lag or picks a source)
+class Stop extends Error {}
+function checkSource(e) {
+  if (!e.source || !(e.source in GRAPH.sources)) throw new Stop(`Edge ${e.id} has no source listed in edges.json.`);
+  if (e.source === "timing_json_cases" && !(TIMING.cases && TIMING.cases.length)) throw new Stop(`Edge ${e.id} cites timing.json but it has no cases.`);
+}
+function checkOption(option) {
+  const [decId, opt] = option.split("=");
+  const dec = GRAPH.decisions.find(d => d.id === decId);
+  const edges = GRAPH.edges.filter(e => e.from === option);
+  if (!edges.length) throw new Stop(`${dec.label}: ${opt.replace(/_/g," ")} has no sourced outgoing edge. A source has to be added to edges.json before this option can be run.`);
+  edges.forEach(checkSource);
+  return dec.label;
+}
+function traverse(option, horizon) {
+  const labels = Object.fromEntries(GRAPH.outcomes.map(o => [o.id, o.label]));
+  const events = [], queue = [[option,0,0,[],1]];
+  while (queue.length) {
+    const [node, yMin, yMax, path, sign] = queue.shift();
+    for (const e of GRAPH.edges) {
+      if (e.from !== node || path.includes(e.id)) continue;
+      checkSource(e);
+      const emin = yMin + e.lag_min, emax = yMax + e.lag_max, net = sign * SIGN[e.direction];
+      const ev = {};
+      for (const k of ["claim_type","from","to","direction","camp","evidence","geography","source","fork","note"]) ev[k] = e[k] ?? null;
+      Object.assign(ev, {edge:e.id, to_label:labels[e.to] ?? e.to, direction_net:CHAR[net], year_min:emin, year_max:emax,
+        past_horizon:(emin+emax)/2 > horizon, before_decision:emin < 0, path:[...path, e.id]});
+      events.push(ev);
+      if (net !== 0) queue.push([e.to, emin, emax, ev.path, net]);
+    }
+  }
+  return events;
+}
+function run(option, horizon) {
+  const decision_label = checkOption(option);
+  const events = traverse(option, horizon);
+  return {option, decision_label, option_label:option.split("=")[1].replace(/_/g," "), horizon,
+          axis_start:Math.min(0, ...events.map(e => e.year_min)), events};
+}
+
+// ---- render: timeline object in, SVG string out (port of render.py; reads only the timeline)
+function rowOrder(events) {
+  const byOutcome = new Map();
+  const sorted = [...events].sort((a,b) => a.path.length-b.path.length || a.year_min-b.year_min || a.year_max-b.year_max || (a.edge<b.edge?-1:a.edge>b.edge?1:0));
+  for (const ev of sorted) { if (!byOutcome.has(ev.to)) byOutcome.set(ev.to, []); byOutcome.get(ev.to).push(ev); }
+  const rows = [], done = new Set();
+  for (const [key, evs] of byOutcome) {
+    const plain = evs.filter(e => !e.fork);
+    if (plain.length) rows.push({id:key, label:plain[0].to_label, fork:null, evs:plain});
+    for (const ev of evs) {
+      if (!ev.fork || done.has(ev.fork)) continue;
+      done.add(ev.fork);
+      const sides = events.filter(e => e.fork === ev.fork).sort((a,b) => a.year_min-b.year_min || (a.edge<b.edge?-1:1));
+      for (const s of sides) rows.push({id:s.to, label:s.to_label, fork:ev.fork, evs:[s]});
+    }
+  }
+  return rows;
+}
+function wrap(text, width) {
+  const words = text.split(/\s+/), lines = []; let cur = "";
+  for (const w of words) { if ((cur + " " + w).trim().length > width) { lines.push(cur); cur = w; } else cur = (cur + " " + w).trim(); }
+  if (cur) lines.push(cur); return lines;
+}
+function render(tl) {
+  const events = tl.events, horizon = tl.horizon, x0 = tl.axis_start, x1 = horizon;
+  const rows = rowOrder(events);
+  const width = Math.max(LEFT + (x1-x0)*YEAR_W, LEFT + LEGEND_W) + RIGHT;
+  const noteLines = events.filter(e => e.direction === "0" && e.note).flatMap(e => wrap(`${e.edge}: ${e.note}`, Math.floor((LEGEND_W+RIGHT+100)/5.2)));
+  const height = TOP + rows.length*ROW_H + 110 + (noteLines.length ? 18 + 14*noteLines.length : 0);
+  const X = yr => LEFT + (yr - x0) * YEAR_W;
+  const o = [];
+  o.push(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" font-family="${FONT}" font-size="12" fill="${INK}">`);
+  o.push(`<rect width="${width}" height="${height}" fill="${BG}"/>`);
+  o.push(`<text x="${LEFT}" y="28" font-size="15" font-weight="bold">${esc(tl.decision_label)}: ${esc(tl.option_label)}</text>`);
+  o.push(`<text x="${LEFT}" y="46" fill="${MUTED}">what the sourced evidence says follows over ${horizon} years: ${events.length} effects, from year ${x0}</text>`);
+  const pt = TOP, pb = TOP + rows.length*ROW_H;
+  for (let yr = x0; yr <= x1; yr++) {
+    const x = X(yr);
+    o.push(`<line x1="${x}" y1="${pt}" x2="${x}" y2="${pb}" stroke="${SLATE}" stroke-opacity="0.15"/>`);
+    if (yr % 5 === 0 || yr === x0 || yr === x1) o.push(`<text x="${x}" y="${pb+18}" text-anchor="middle" fill="${MUTED}">${yr}</text>`);
+  }
+  o.push(`<text x="${(X(x0)+X(x1))/2}" y="${pb+36}" text-anchor="middle" fill="${MUTED}">years from the decision</text>`);
+  let prevFork = null;
+  rows.forEach((r, i) => {
+    const y = pt + i*ROW_H, cy = y + ROW_H/2;
+    if (i % 2 === 0) o.push(`<rect x="0" y="${y}" width="${width}" height="${ROW_H}" fill="${SLATE}" fill-opacity="0.04"/>`);
+    o.push(`<text x="${LEFT-28}" y="${cy+4}" text-anchor="end">${esc(r.label)}</text>`);
+    if (r.fork && r.fork !== prevFork) {
+      const n = rows.filter(q => q.fork === r.fork).length;
+      o.push(`<line x1="18" y1="${y+4}" x2="18" y2="${y+n*ROW_H-4}" stroke="${CORAL}" stroke-width="2"/>`);
+      o.push(`<text x="24" y="${y+14}" fill="${CORAL}" font-size="10" font-weight="bold">fork ${esc(r.fork)}</text>`);
+    }
+    prevFork = r.fork;
+    const k = r.evs.length, subH = k === 1 ? BAR_H : Math.max(5, (ROW_H-8)/k);
+    r.evs.forEach((ev, j) => {
+      const by = cy - (k*subH)/2 + j*subH, over = ev.year_max > horizon;
+      const xa = Math.min(X(ev.year_min), X(horizon)), xb = Math.min(X(ev.year_max), X(horizon)), w = xb - xa;
+      const colour = CAMP_COLOUR[ev.camp] || SLATE, grade = ev.evidence, weight = GRADE_WEIGHT[grade] || 1.2;
+      const dash = grade ? "" : ' stroke-dasharray="4 3"';
+      const style = `fill="${colour}" fill-opacity="0.35" stroke="${colour}" stroke-width="${weight}"${dash}`;
+      const my = by + subH/2;
+      let shape, lx;
+      if (ev.year_min === ev.year_max && !over) {
+        shape = `<polygon points="${xa},${my-MARK} ${xa+MARK},${my} ${xa},${my+MARK} ${xa-MARK},${my}" ${style}/>`; lx = xa + MARK + 6;
+      } else { shape = `<rect x="${xa}" y="${by+1}" width="${w}" height="${subH-2}" ${style}/>`; lx = xb + 6; }
+      let src = `${ev.edge}  ${ev.source}`;
+      if (over) { shape += `<polygon points="${xb},${my-subH/2} ${xb+9},${my} ${xb},${my+subH/2}" fill="${TAN}"/>`; src = `to yr ${ev.year_max}   ${src}`; lx = xb + 14; }
+      const title = `${ev.edge}: ${ev.from} -> ${ev.to}, direction ${ev.direction_net}, yr ${ev.year_min} to ${ev.year_max}, ${ev.camp}, ${grade || ev.claim_type}, ${ev.source}`;
+      o.push(`<g class="ev" data-edge="${ev.edge}"><title>${esc(title)}</title>${shape}` +
+        `<text x="${LEFT-10}" y="${my+4}" text-anchor="end" font-size="11" font-weight="bold">${esc(ev.direction_net)}</text>` +
+        `<text x="${lx}" y="${my+4}" font-size="10" fill="${MUTED}">${esc(src)}</text></g>`);
+    });
+  });
+  const xd = X(0);
+  o.push(`<line x1="${xd}" y1="${pt-14}" x2="${xd}" y2="${pb}" stroke="${INK}" stroke-width="1.5"/>`);
+  o.push(`<text x="${xd+5}" y="${pt-4}" font-size="11" font-weight="bold">decision</text>`);
+  let ly = pb + 60, lx = LEFT;
+  for (const [camp, c] of Object.entries(CAMP_COLOUR)) {
+    o.push(`<rect x="${lx}" y="${ly-9}" width="14" height="10" fill="${c}" fill-opacity="0.35" stroke="${c}" stroke-width="2"/><text x="${lx+18}" y="${ly}" font-size="11">${camp}</text>`);
+    lx += 100;
+  }
+  ly += 20; lx = LEFT;
+  for (const [g, wt] of Object.entries(GRADE_WEIGHT)) {
+    o.push(`<line x1="${lx}" y1="${ly-4}" x2="${lx+24}" y2="${ly-4}" stroke="${INK}" stroke-width="${wt}"/><text x="${lx+30}" y="${ly}" font-size="11">${g}</text>`);
+    lx += 100;
+  }
+  o.push(`<line x1="${lx}" y1="${ly-4}" x2="${lx+24}" y2="${ly-4}" stroke="${INK}" stroke-width="1.2" stroke-dasharray="4 3"/><text x="${lx+30}" y="${ly}" font-size="11">mechanism or theory, no grade</text>`);
+  if (noteLines.length) {
+    ly += 26;
+    o.push(`<text x="${LEFT}" y="${ly}" font-size="10" font-weight="bold" fill="${MUTED}">direction 0: lands on the axis, passes nothing on</text>`);
+    for (const l of noteLines) { ly += 14; o.push(`<text x="${LEFT}" y="${ly}" font-size="10" fill="${MUTED}">${esc(l)}</text>`); }
+  }
+  o.push("</svg>");
+  return o.join("\n");
+}
+
+// ---- page
+const $ = id => document.getElementById(id);
+const state = {dec:GRAPH.decisions[0].id, opt:null, horizon:10, sel:null};
+let timeline = null;
+
+// ---- track: the case-study sheet as the control. Reads the timeline and track_map.json; adds nothing to the run.
+const SHORT = {conversion_permit:"permit", conversion_fee:"fee", unit_size_sf:"size", replacement_ratio:"replacement", tenure:"tenure", income_mix:"mix", rent_at_turnover:"rent"};
+function optText(decId, opt) { return decId === "unit_size_sf" ? opt + " sf" : opt.replace(/_/g, " "); }
+function updateTrack() {
+  const tr = $("track");
+  const dec = GRAPH.decisions.find(d => d.id === state.dec);
+  tr.querySelectorAll("g.callout").forEach(g => {
+    const levers = (g.dataset.levers || "").split(" ").filter(Boolean);
+    g.classList.toggle("on", levers.includes(state.dec));
+    const t = g.querySelector("text.setting");
+    if (t) t.textContent = levers.includes(state.dec)
+      ? `${SHORT[state.dec]}: ${optText(state.dec, state.opt)}`
+      : "click to set";
+  });
+  const reached = new Map();
+  if (timeline) for (const ev of timeline.events) {
+    const st = TRACKMAP.outcome_stage[ev.to];
+    if (st) reached.set(st, (reached.get(st) || 0) + 1);
+  }
+  tr.classList.toggle("has-run", !!timeline);
+  tr.querySelectorAll("g.stage").forEach(g => {
+    const n = reached.get(g.dataset.stage) || 0;
+    g.classList.toggle("lit", n > 0);
+    g.querySelector("title")?.remove();
+    const tt = document.createElementNS("http://www.w3.org/2000/svg", "title");
+    tt.textContent = n ? `${g.dataset.stage}: ${n} effect${n > 1 ? "s" : ""} from ${dec.label}` : g.dataset.stage;
+    g.prepend(tt);
+  });
+  const dt = TRACKMAP.decision_timing[state.dec];
+  tr.querySelectorAll("text.axis").forEach(t => t.classList.toggle("on", !!dt.stage && t.dataset.stage === dt.stage));
+  tr.classList.toggle("bypass-on", state.dec === "conversion_permit" && state.opt === "minor_repair_staff");
+  tr.querySelectorAll("polygon.dia.read").forEach(d => d.classList.toggle("on", d.dataset.stage === TRACKMAP.lever_stage[state.dec]));
+  tr.querySelectorAll("polygon.dia.effect").forEach(d => d.classList.toggle("on", reached.has(d.dataset.stage)));
+  tr.querySelectorAll("text.count").forEach(t => t.remove());
+  tr.querySelectorAll("g.stage.lit").forEach(g => {
+    const c = g.querySelector("circle"), t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    t.setAttribute("class", "count"); t.setAttribute("text-anchor", "middle");
+    t.setAttribute("x", c.getAttribute("cx")); t.setAttribute("y", +c.getAttribute("cy") + (+c.getAttribute("cy") < 375 ? -48 : 56));
+    t.textContent = reached.get(g.dataset.stage) + " effect" + (reached.get(g.dataset.stage) > 1 ? "s" : "");
+    g.appendChild(t);
+  });
+}
+// ---- second panel: a separate model, shown only for the unit-size lever. Counts, not claims from a source.
+function updateFloorplate() {
+  const box = $("floorplate");
+  box.hidden = state.dec !== "unit_size_sf";
+  if (box.hidden) return;
+  const by = (read, sf) => FLOORPLATE.rows.find(r => r.read === read && r.unit_size_sf === sf);
+  const sizes = [...new Set(FLOORPLATE.rows.map(r => r.unit_size_sf))];
+  const f = n => n.toLocaleString("en-CA");
+  box.innerHTML = `<h2>Separate model: floorplate arithmetic</h2>
+    <p class="note"><b>Counts, not claims.</b> This is the floorplate model run over all ${f(by("average", sizes[0]).buildings)} surveyed buildings (${f(by("average", sizes[0]).tenants_in_stock)} rooms), with every other threshold at the City's figure. Every room is read as occupied, so a room lost is a tenant displaced. It is not drawn on the chain above and the chain does not use it.</p>
+    <table><tr><th>Minimum unit</th><th colspan="2" class="sep">size test as an average</th><th colspan="2" class="sep">size test strict</th></tr>
+    <tr><th></th><th>rooms lost</th><th>cannot convert</th><th>rooms lost</th><th>cannot convert</th></tr>
+    ${sizes.map(sf => { const a = by("average", sf), s2 = by("strict", sf);
+      return `<tr class="${String(sf) === state.opt ? "on" : ""}"><td>${sf} sf</td><td>${f(a.rooms_lost)}</td><td>${a.cannot} bldgs</td><td>${f(s2.rooms_lost)}</td><td>${s2.cannot} bldgs</td></tr>`; }).join("")}</table>
+    <p class="note">Rooms lost counts only buildings that convert, so a larger minimum can show fewer rooms lost under the strict read because more buildings cannot meet it and stay as they are. The assumptions (largest room ${FLOORPLATE.assume.cap} SF, circulation ${FLOORPLATE.assume.circ}%, at most ${FLOORPLATE.policy.maxMerge} rooms per unit) are the tool's own, not a source's. Rebuild with <code>node floorplate_unit_size.mjs</code>.</p>`;
+}
+function hasEdges(dec, opt) { return GRAPH.edges.some(e => e.from === `${dec}=${opt}`); }
+
+function setup() {
+  $("dec").innerHTML = GRAPH.decisions.map(d => `<option value="${d.id}">${esc(d.label)}</option>`).join("");
+  $("tgt").innerHTML = `<option value="">choose an outcome</option>` + GRAPH.outcomes.map(o => `<option value="${o.id}">${esc(o.label)}</option>`).join("");
+  $("dec").onchange = () => { state.dec = $("dec").value; state.opt = null; state.sel = null; update(); };
+  $("hor").oninput = () => { state.horizon = +$("hor").value; update(); };
+  $("tgt").onchange = target;
+  $("track").addEventListener("click", ev => {
+    const g = ev.target.closest("g.callout"); if (!g) return;
+    const levers = (g.dataset.levers || "").split(" ").filter(Boolean); if (!levers.length) return;
+    const i = levers.indexOf(state.dec);
+    state.dec = levers[(i + 1) % levers.length]; $("dec").value = state.dec; state.opt = null; state.sel = null; update();
+  });
+  $("chart").addEventListener("click", ev => { const g = ev.target.closest("g.ev"); if (g) { state.sel = g.dataset.edge; showDetail(); } });
+  update();
+}
+function update() {
+  const dec = GRAPH.decisions.find(d => d.id === state.dec);
+  if (!state.opt || !dec.options.includes(state.opt)) state.opt = dec.options.find(o => hasEdges(dec.id, o)) || dec.options[0];
+  $("decnote").textContent = dec.note ? dec.note : "";
+  $("horv").textContent = state.horizon;
+  $("opts").innerHTML = dec.options.map(o => `<button class="${hasEdges(dec.id,o)?"":"empty"}" aria-pressed="${o===state.opt}" data-o="${o}" title="${hasEdges(dec.id,o)?"":"no sourced edge yet"}">${esc(o.replace(/_/g," "))}</button>`).join("");
+  $("opts").querySelectorAll("button").forEach(b => b.onclick = () => { state.opt = b.dataset.o; state.sel = null; update(); });
+  $("stopbox").innerHTML = "";
+  try {
+    timeline = run(`${dec.id}=${state.opt}`, state.horizon);
+    $("chart").innerHTML = render(timeline);
+    $("chart").hidden = false;
+  } catch (err) {
+    if (!(err instanceof Stop)) throw err;
+    timeline = null; $("chart").hidden = true;
+    $("stopbox").innerHTML = `<div class="stop"><b>Stopped.</b> ${esc(err.message)}<br><span class="note">The tool will not draw an option it has no source for. Options with a dashed outline in the left panel have no sourced edge yet.</span></div>`;
+  }
+  showDetail();
+  updateTrack();
+  updateFloorplate();
+}
+function showDetail() {
+  const box = $("detail");
+  document.querySelectorAll("g.ev.sel").forEach(g => g.classList.remove("sel"));
+  const ev = timeline && timeline.events.find(e => e.edge === state.sel);
+  if (!ev) { box.innerHTML = `<h2>Evidence</h2><p class="hint">${timeline ? "Select a bar to see its claim, source and note." : "Nothing to show."}</p>`; return; }
+  document.querySelector(`g.ev[data-edge="${ev.edge}"]`)?.classList.add("sel");
+  const forkSides = ev.fork ? timeline.events.filter(e => e.fork === ev.fork && e.edge !== ev.edge) : [];
+  box.innerHTML = `<h2>Evidence</h2><h3>${esc(ev.edge)}: ${esc(ev.from.replace("="," = ").replace(/_/g," "))} to ${esc(ev.to_label)}</h3>
+    <dl><dt>Direction</dt><dd>edge reads ${esc(ev.direction)}, net ${esc(ev.direction_net)} along the chain</dd>
+    <dt>Lands</dt><dd>year ${ev.year_min} to ${ev.year_max}${ev.before_decision ? " (before the decision)" : ""}${ev.past_horizon ? " (past the horizon)" : ""}</dd>
+    <dt>Claim type</dt><dd>${esc(ev.claim_type)}</dd><dt>Evidence</dt><dd>${esc(ev.evidence || "no grade")}</dd>
+    <dt>Camp</dt><dd>${esc(ev.camp)}</dd><dt>Geography</dt><dd>${esc(ev.geography)}</dd>
+    <dt>Source</dt><dd>${esc(GRAPH.sources[ev.source])} <span class="hint">(${esc(ev.source)})</span></dd>
+    ${ev.note ? `<dt>Note</dt><dd>${esc(ev.note)}</dd>` : ""}
+    ${ev.fork ? `<dt>Fork ${esc(ev.fork)}</dt><dd>contradicted by ${forkSides.map(s => esc(s.edge) + " (" + esc(s.source) + ")").join(", ")}. Both are drawn; neither is chosen.</dd>` : ""}
+    <dt>Chain</dt><dd>${ev.path.join(" then ")}</dd></dl>`;
+}
+function target() {
+  const id = $("tgt").value, out = $("tgtout");
+  if (!id) { out.innerHTML = ""; return; }
+  const o = GRAPH.outcomes.find(x => x.id === id), edges = GRAPH.edges.filter(e => e.to === id);
+  out.innerHTML = edges.length
+    ? `Reached through:<ul class="edges">${edges.map(e => `<li>${esc(e.id)}: from ${esc(e.from.replace(/_/g," "))} (${esc(e.source)})</li>`).join("")}</ul>`
+    : `<div class="stop"><b>No sourced edge leads here.</b> ${esc(o.note || "")}</div>`;
+}
+setup();
+</script>
+</body>
+</html>

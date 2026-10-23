@@ -1,0 +1,293 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3200" height="1800" viewBox="0 0 1600 900" font-family="Helvetica, Arial, DejaVu Sans, sans-serif">
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#3D5A6C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker><marker id="arrowc" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#E0724E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<rect width="1600" height="900" fill="#E9E2D6"/>
+<rect x="119.0" y="100" width="162" height="46" rx="6" fill="none" stroke="#3D5A6C" stroke-width="0.7" stroke-dasharray="5 4"/>
+<text x="129.0" y="116" font-size="9" fill="#2B3A42" font-weight="bold">Relocation</text>
+<text x="129.0" y="132" font-size="6.9" fill="#2B3A42">6 of 7 cases: gone before filing</text>
+<rect x="455.0" y="100" width="162" height="46" rx="6" fill="none" stroke="#3D5A6C" stroke-width="0.7" stroke-dasharray="5 4"/>
+<text x="465.0" y="116" font-size="9" fill="#2B3A42" font-weight="bold">Council conditions</text>
+<text x="465.0" y="132" font-size="6.9" fill="#2B3A42">fee $300k per door, last charged 2015</text>
+<rect x="623.0" y="100" width="162" height="46" rx="6" fill="none" stroke="#3D5A6C" stroke-width="0.7" stroke-dasharray="5 4"/>
+<text x="633.0" y="116" font-size="9" fill="#2B3A42" font-weight="bold">Unit size</text>
+<text x="633.0" y="132" font-size="6.9" fill="#2B3A42">200 sf average decides designation</text>
+<rect x="791.0" y="100" width="162" height="46" rx="6" fill="none" stroke="#3D5A6C" stroke-width="0.7" stroke-dasharray="5 4"/>
+<text x="801.0" y="116" font-size="9" fill="#2B3A42" font-weight="bold">Replacement</text>
+<text x="801.0" y="132" font-size="6.9" fill="#2B3A42">committed, interim, permanent open</text>
+<rect x="1127.0" y="100" width="162" height="46" rx="6" fill="none" stroke="#3D5A6C" stroke-width="0.7" stroke-dasharray="5 4"/>
+<text x="1137.0" y="116" font-size="9" fill="#2B3A42" font-weight="bold">Rent rule</text>
+<text x="1137.0" y="132" font-size="6.9" fill="#2B3A42">resets between tenants</text>
+<rect x="1295.0" y="100" width="162" height="46" rx="6" fill="none" stroke="#3D5A6C" stroke-width="0.7" stroke-dasharray="5 4"/>
+<text x="1305.0" y="116" font-size="9" fill="#2B3A42" font-weight="bold">Monitoring</text>
+<text x="1305.0" y="132" font-size="6.9" fill="#2B3A42">City survey every 2 years</text>
+<line x1="200" y1="146" x2="200" y2="221" stroke="#C9BFAE" stroke-width="0.6" stroke-dasharray="5 4"/>
+<line x1="704" y1="146" x2="704" y2="221" stroke="#C9BFAE" stroke-width="0.6" stroke-dasharray="5 4"/>
+<line x1="872" y1="146" x2="872" y2="221" stroke="#C9BFAE" stroke-width="0.6" stroke-dasharray="5 4"/>
+<line x1="1208" y1="146" x2="1208" y2="221" stroke="#C9BFAE" stroke-width="0.6" stroke-dasharray="5 4"/>
+<line x1="-10" y1="375" x2="1610" y2="375" stroke="#3D5A6C" stroke-width="0.9" stroke-dasharray="5 4"/>
+<text x="44" y="351" font-size="8" fill="#5F6E78" letter-spacing="1.2">OUTSIDE THE CITY</text>
+<text x="44" y="363" font-size="7" fill="#5F6E78">owner, architect, funder, Province</text>
+<text x="44" y="393" font-size="8" fill="#5F6E78" letter-spacing="1.2">CITY OF VANCOUVER</text>
+<text x="44" y="405" font-size="7" fill="#5F6E78">intake, Council, permits, inspection, survey</text>
+<path d="M-10 261 L200 261 A39 39 0 0 1 234.4 281.7 L333.6 468.3 A39 39 0 0 0 368.0 489.0 L536.0 489.0 A39 39 0 0 0 570.4 468.3 L669.6 281.7 A39 39 0 0 1 704.0 261.0 L872.0 261.0 A39 39 0 0 1 906.4 281.7 L1005.6 468.3 A39 39 0 0 0 1074.4 468.3 L1173.6 281.7 A39 39 0 0 1 1242.4 281.7 L1341.6 468.3 A39 39 0 0 0 1376.0 489.0 L1610 489.0" fill="none" stroke="#3D5A6C" stroke-width="1.2"/>
+<path d="M368 489 L368 539 L704 539 L704 342" fill="none" stroke="#E0724E" stroke-width="0.9" stroke-dasharray="5 4" marker-end="url(#arrowc)"/>
+<text x="536.0" y="549" font-size="7" fill="#E0724E" text-anchor="middle">minor repair, staff approval, no Council</text>
+<circle cx="284.0" cy="375.0" r="5.5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.6"/>
+<text x="294.0" y="390.0" font-size="7" fill="#5F6E78" text-anchor="start">relocation plan</text>
+<circle cx="452.0" cy="489.0" r="5.5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.6"/>
+<text x="452.0" y="503.0" font-size="7" fill="#5F6E78" text-anchor="middle">application</text>
+<circle cx="620.0" cy="375.0" r="5.5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.6"/>
+<text x="610.0" y="366.0" font-size="7" fill="#5F6E78" text-anchor="end">permit, conditions</text>
+<circle cx="788.0" cy="261.0" r="5.5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.6"/>
+<text x="788.0" y="252.0" font-size="7" fill="#5F6E78" text-anchor="middle">drawings</text>
+<circle cx="956.0" cy="375.0" r="5.5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.6"/>
+<text x="966.0" y="390.0" font-size="7" fill="#5F6E78" text-anchor="start">agreement</text>
+<circle cx="1124.0" cy="375.0" r="5.5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.6"/>
+<text x="1114.0" y="366.0" font-size="7" fill="#5F6E78" text-anchor="end">occupancy permit</text>
+<circle cx="1292.0" cy="375.0" r="5.5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.6"/>
+<text x="1302.0" y="390.0" font-size="7" fill="#5F6E78" text-anchor="start">rent roll</text>
+<circle cx="200" cy="300" r="32" fill="#3D5A6C" stroke="#9DB9F0" stroke-width="2.6"/>
+<text x="200" y="303.5" font-size="9.5" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Tenants out</text>
+<circle cx="368" cy="450" r="32" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1"/>
+<text x="368" y="453.5" font-size="9.5" fill="#2B3A42" text-anchor="middle" font-weight="bold">Apply</text>
+<circle cx="536" cy="450" r="32" fill="#3D5A6C" stroke="#9DB9F0" stroke-width="2.6"/>
+<text x="536" y="453.5" font-size="9.5" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Council</text>
+<circle cx="704" cy="300" r="32" fill="#3D5A6C" stroke="#9DB9F0" stroke-width="2.6"/>
+<text x="704" y="303.5" font-size="9.5" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Design</text>
+<circle cx="872" cy="300" r="32" fill="#3D5A6C" stroke="#3D5A6C" stroke-width="1"/>
+<text x="872" y="303.5" font-size="9.5" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Fund</text>
+<circle cx="1040" cy="450" r="32" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="1"/>
+<text x="1040" y="453.5" font-size="9.5" fill="#2B3A42" text-anchor="middle" font-weight="bold">Build</text>
+<circle cx="1208" cy="300" r="32" fill="#3D5A6C" stroke="#9DB9F0" stroke-width="2.6"/>
+<text x="1208" y="303.5" font-size="9.5" fill="#F2EFE9" text-anchor="middle" font-weight="bold">Rent</text>
+<circle cx="1376" cy="450" r="32" fill="#E9E2D6" stroke="#9DB9F0" stroke-width="2.6"/>
+<text x="1376" y="453.5" font-size="9.5" fill="#2B3A42" text-anchor="middle" font-weight="bold">Monitor</text>
+<line x1="0" y1="637" x2="0" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="10" y1="637" x2="10" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="20" y1="637" x2="20" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="30" y1="637" x2="30" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="40" y1="637" x2="40" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="50" y1="637" x2="50" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="60" y1="637" x2="60" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="70" y1="637" x2="70" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="80" y1="637" x2="80" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="90" y1="637" x2="90" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="100" y1="637" x2="100" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="110" y1="637" x2="110" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="120" y1="637" x2="120" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="130" y1="637" x2="130" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="140" y1="637" x2="140" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="150" y1="637" x2="150" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="160" y1="637" x2="160" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="170" y1="637" x2="170" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="180" y1="637" x2="180" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="190" y1="637" x2="190" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="210" y1="637" x2="210" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="220" y1="637" x2="220" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="230" y1="637" x2="230" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="240" y1="637" x2="240" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="250" y1="637" x2="250" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="260" y1="637" x2="260" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="270" y1="637" x2="270" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="280" y1="637" x2="280" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="290" y1="637" x2="290" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="300" y1="637" x2="300" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="310" y1="637" x2="310" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="320" y1="637" x2="320" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="330" y1="637" x2="330" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="340" y1="637" x2="340" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="350" y1="637" x2="350" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="360" y1="637" x2="360" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="380" y1="637" x2="380" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="390" y1="637" x2="390" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="400" y1="637" x2="400" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="410" y1="637" x2="410" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="420" y1="637" x2="420" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="430" y1="637" x2="430" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="440" y1="637" x2="440" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="450" y1="637" x2="450" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="460" y1="637" x2="460" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="470" y1="637" x2="470" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="480" y1="637" x2="480" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="490" y1="637" x2="490" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="500" y1="637" x2="500" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="510" y1="637" x2="510" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="520" y1="637" x2="520" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="530" y1="637" x2="530" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="550" y1="637" x2="550" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="560" y1="637" x2="560" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="570" y1="637" x2="570" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="580" y1="637" x2="580" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="590" y1="637" x2="590" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="600" y1="637" x2="600" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="610" y1="637" x2="610" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="620" y1="637" x2="620" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="630" y1="637" x2="630" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="640" y1="637" x2="640" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="650" y1="637" x2="650" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="660" y1="637" x2="660" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="670" y1="637" x2="670" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="680" y1="637" x2="680" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="690" y1="637" x2="690" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="710" y1="637" x2="710" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="720" y1="637" x2="720" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="730" y1="637" x2="730" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="740" y1="637" x2="740" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="750" y1="637" x2="750" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="760" y1="637" x2="760" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="770" y1="637" x2="770" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="780" y1="637" x2="780" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="790" y1="637" x2="790" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="800" y1="637" x2="800" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="810" y1="637" x2="810" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="820" y1="637" x2="820" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="830" y1="637" x2="830" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="840" y1="637" x2="840" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="850" y1="637" x2="850" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="860" y1="637" x2="860" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="880" y1="637" x2="880" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="890" y1="637" x2="890" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="900" y1="637" x2="900" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="910" y1="637" x2="910" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="920" y1="637" x2="920" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="930" y1="637" x2="930" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="940" y1="637" x2="940" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="950" y1="637" x2="950" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="960" y1="637" x2="960" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="970" y1="637" x2="970" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="980" y1="637" x2="980" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="990" y1="637" x2="990" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1000" y1="637" x2="1000" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1010" y1="637" x2="1010" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1020" y1="637" x2="1020" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1030" y1="637" x2="1030" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1050" y1="637" x2="1050" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1060" y1="637" x2="1060" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1070" y1="637" x2="1070" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1080" y1="637" x2="1080" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1090" y1="637" x2="1090" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1100" y1="637" x2="1100" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1110" y1="637" x2="1110" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1120" y1="637" x2="1120" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1130" y1="637" x2="1130" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1140" y1="637" x2="1140" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1150" y1="637" x2="1150" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1160" y1="637" x2="1160" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1170" y1="637" x2="1170" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1180" y1="637" x2="1180" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1190" y1="637" x2="1190" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1200" y1="637" x2="1200" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1220" y1="637" x2="1220" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1230" y1="637" x2="1230" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1240" y1="637" x2="1240" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1250" y1="637" x2="1250" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1260" y1="637" x2="1260" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1270" y1="637" x2="1270" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1280" y1="637" x2="1280" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1290" y1="637" x2="1290" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1300" y1="637" x2="1300" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1310" y1="637" x2="1310" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1320" y1="637" x2="1320" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1330" y1="637" x2="1330" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1340" y1="637" x2="1340" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1350" y1="637" x2="1350" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1360" y1="637" x2="1360" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1370" y1="637" x2="1370" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1390" y1="637" x2="1390" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1400" y1="637" x2="1400" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1410" y1="637" x2="1410" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1420" y1="637" x2="1420" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1430" y1="637" x2="1430" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1440" y1="637" x2="1440" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1450" y1="637" x2="1450" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1460" y1="637" x2="1460" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1470" y1="637" x2="1470" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1480" y1="637" x2="1480" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1490" y1="637" x2="1490" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1500" y1="637" x2="1500" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1510" y1="637" x2="1510" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1520" y1="637" x2="1520" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1530" y1="637" x2="1530" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1540" y1="637" x2="1540" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1550" y1="637" x2="1550" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1560" y1="637" x2="1560" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1570" y1="637" x2="1570" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1580" y1="637" x2="1580" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1590" y1="637" x2="1590" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="1600" y1="637" x2="1600" y2="643" stroke="#2B3A42" stroke-width="0.9"/>
+<line x1="200" y1="633" x2="200" y2="647" stroke="#2B3A42" stroke-width="1.6"/>
+<line x1="368" y1="633" x2="368" y2="647" stroke="#2B3A42" stroke-width="1.6"/>
+<line x1="536" y1="633" x2="536" y2="647" stroke="#2B3A42" stroke-width="1.6"/>
+<line x1="704" y1="633" x2="704" y2="647" stroke="#2B3A42" stroke-width="1.6"/>
+<line x1="872" y1="633" x2="872" y2="647" stroke="#2B3A42" stroke-width="1.6"/>
+<line x1="1040" y1="633" x2="1040" y2="647" stroke="#2B3A42" stroke-width="1.6"/>
+<line x1="1208" y1="633" x2="1208" y2="647" stroke="#2B3A42" stroke-width="1.6"/>
+<line x1="1376" y1="633" x2="1376" y2="647" stroke="#2B3A42" stroke-width="1.6"/>
+<text x="200" y="627" font-size="7.5" fill="#2B3A42" text-anchor="middle">10 years to 1 day before</text>
+<text x="200" y="658" font-size="8" fill="#2B3A42" text-anchor="middle" font-weight="bold">Owner, fire, closure</text>
+<text x="200" y="670" font-size="7" fill="#5F6E78" text-anchor="middle">Excel list, TRP form</text>
+<text x="368" y="627" font-size="7.5" fill="#2B3A42" text-anchor="middle">week 0</text>
+<text x="368" y="658" font-size="8" fill="#2B3A42" text-anchor="middle" font-weight="bold">Owner</text>
+<text x="368" y="670" font-size="7" fill="#5F6E78" text-anchor="middle">SRA form, PDF drawings</text>
+<text x="536" y="627" font-size="7.5" fill="#2B3A42" text-anchor="middle">9 to 12 weeks</text>
+<text x="536" y="658" font-size="8" fill="#2B3A42" text-anchor="middle" font-weight="bold">Council, SRA Bylaw</text>
+<text x="536" y="670" font-size="7" fill="#5F6E78" text-anchor="middle">Word report, Excel pro forma</text>
+<text x="704" y="658" font-size="8" fill="#2B3A42" text-anchor="middle" font-weight="bold">Architect, City</text>
+<text x="704" y="670" font-size="7" fill="#5F6E78" text-anchor="middle">Revit, Rhino, Forma, VanMap</text>
+<text x="872" y="627" font-size="7.5" fill="#2B3A42" text-anchor="middle">3 years, open ended</text>
+<text x="872" y="658" font-size="8" fill="#2B3A42" text-anchor="middle" font-weight="bold">BC Housing</text>
+<text x="872" y="670" font-size="7" fill="#5F6E78" text-anchor="middle">BC Housing forms, Excel</text>
+<text x="1040" y="658" font-size="8" fill="#2B3A42" text-anchor="middle" font-weight="bold">Owner, City</text>
+<text x="1040" y="670" font-size="7" fill="#5F6E78" text-anchor="middle">Revit docs, MS Project</text>
+<text x="1208" y="658" font-size="8" fill="#2B3A42" text-anchor="middle" font-weight="bold">Owner, RTA</text>
+<text x="1208" y="670" font-size="7" fill="#5F6E78" text-anchor="middle">Yardi or Excel, RTA forms</text>
+<text x="1376" y="627" font-size="7.5" fill="#2B3A42" text-anchor="middle">0 to 104 weeks</text>
+<text x="1376" y="658" font-size="8" fill="#2B3A42" text-anchor="middle" font-weight="bold">City, CCAP</text>
+<text x="1376" y="670" font-size="7" fill="#5F6E78" text-anchor="middle">Excel, ArcGIS, Tableau</text>
+<line x1="120" y1="712" x2="1610" y2="712" stroke="#C9BFAE" stroke-width="0.5"/>
+<text x="112" y="715" font-size="8" fill="#5F6E78" text-anchor="end">docs</text>
+<circle cx="200" cy="712" r="4" fill="#E0724E"/>
+<circle cx="368" cy="712" r="4" fill="#E0724E"/>
+<circle cx="536" cy="712" r="4" fill="#E0724E"/>
+<circle cx="704" cy="712" r="4" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.1"/>
+<circle cx="872" cy="712" r="4" fill="#E0724E"/>
+<circle cx="1040" cy="712" r="4" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.1"/>
+<circle cx="1208" cy="712" r="4" fill="#E0724E"/>
+<circle cx="1376" cy="712" r="4" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.1"/>
+<line x1="120" y1="730" x2="1610" y2="730" stroke="#C9BFAE" stroke-width="0.5"/>
+<text x="112" y="733" font-size="8" fill="#5F6E78" text-anchor="end">sheets</text>
+<circle cx="200" cy="730" r="4" fill="#E0724E"/>
+<circle cx="368" cy="730" r="4" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.1"/>
+<circle cx="536" cy="730" r="4" fill="#E0724E"/>
+<circle cx="872" cy="730" r="4" fill="#E0724E"/>
+<circle cx="1208" cy="730" r="4" fill="#E0724E"/>
+<circle cx="1376" cy="730" r="4" fill="#E0724E"/>
+<line x1="120" y1="748" x2="1610" y2="748" stroke="#C9BFAE" stroke-width="0.5"/>
+<text x="112" y="751" font-size="8" fill="#5F6E78" text-anchor="end">models</text>
+<circle cx="368" cy="748" r="4" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.1"/>
+<circle cx="704" cy="748" r="4" fill="#E0724E"/>
+<circle cx="1040" cy="748" r="4" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.1"/>
+<line x1="120" y1="766" x2="1610" y2="766" stroke="#C9BFAE" stroke-width="0.5"/>
+<text x="112" y="769" font-size="8" fill="#5F6E78" text-anchor="end">data</text>
+<circle cx="368" cy="766" r="4" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.1"/>
+<circle cx="704" cy="766" r="4" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.1"/>
+<circle cx="1376" cy="766" r="4" fill="#E0724E"/>
+<line x1="120" y1="792" x2="1610" y2="792" stroke="#C9BFAE" stroke-width="0.5"/>
+<text x="112" y="795" font-size="8" fill="#5F6E78" text-anchor="end">planner / advocate</text>
+<circle cx="536" cy="792" r="4" fill="#3D5A6C"/>
+<circle cx="1376" cy="792" r="4" fill="#3D5A6C"/>
+<line x1="120" y1="810" x2="1610" y2="810" stroke="#C9BFAE" stroke-width="0.5"/>
+<text x="112" y="813" font-size="8" fill="#5F6E78" text-anchor="end">tool reads lever</text>
+<polygon points="536,805 541,810 536,815 531,810" fill="#E0724E" stroke="#E0724E" stroke-width="1.1"/>
+<polygon points="704,805 709,810 704,815 699,810" fill="#E0724E" stroke="#E0724E" stroke-width="1.1"/>
+<polygon points="872,805 877,810 872,815 867,810" fill="#E0724E" stroke="#E0724E" stroke-width="1.1"/>
+<polygon points="1208,805 1213,810 1208,815 1203,810" fill="#E0724E" stroke="#E0724E" stroke-width="1.1"/>
+<line x1="120" y1="828" x2="1610" y2="828" stroke="#C9BFAE" stroke-width="0.5"/>
+<text x="112" y="831" font-size="8" fill="#5F6E78" text-anchor="end">tool traces effect</text>
+<polygon points="200,823 205,828 200,833 195,828" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.1"/>
+<polygon points="536,823 541,828 536,833 531,828" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.1"/>
+<polygon points="704,823 709,828 704,833 699,828" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.1"/>
+<polygon points="872,823 877,828 872,833 867,828" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.1"/>
+<polygon points="1208,823 1213,828 1208,833 1203,828" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.1"/>
+<text x="120" y="848" font-size="7.5" fill="#5F6E78">The tool sits outside the eight steps: it reads the lever set at a stage and traces effects to the stages marked. No rule reaches Apply, Build or Monitor. Planner / advocate placement is assumed until user session 1.</text>
+<g font-size="9" fill="#2B3A42"><circle cx="52" cy="870" r="7" fill="#3D5A6C"/><text x="66" y="873">Judgment</text><circle cx="160" cy="870" r="7" fill="#E9E2D6" stroke="#3D5A6C"/><text x="174" y="873">Handover</text><circle cx="270" cy="870" r="7" fill="none" stroke="#9DB9F0" stroke-width="2.6"/><text x="284" y="873">Pain point</text><circle cx="380" cy="870" r="5" fill="#E9E2D6" stroke="#3D5A6C" stroke-width="0.6"/><text x="394" y="873">Document</text><line x1="490" y1="870" x2="520" y2="870" stroke="#E0724E" stroke-width="0.9" stroke-dasharray="5 4"/><text x="528" y="873">Minor repair route</text><circle cx="660" cy="870" r="4" fill="#E0724E"/><text x="672" y="873">Tool runs the step</text><circle cx="780" cy="870" r="4" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.1"/><text x="792" y="873">Tool present, not deciding</text><polygon points="940,865 945,870 940,875 935,870" fill="#E0724E" stroke="#E0724E"/><text x="954" y="873">Dominoes reads this lever</text><polygon points="1100,865 1105,870 1100,875 1095,870" fill="#E9E2D6" stroke="#E0724E" stroke-width="1.1"/><text x="1114" y="873">Dominoes traces effects here</text><circle cx="1275" cy="870" r="4" fill="#3D5A6C"/><text x="1287" y="873">Planner / advocate steps in</text></g>
+</svg>

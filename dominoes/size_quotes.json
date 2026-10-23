@@ -1,0 +1,29 @@
+{
+  "note": "Sizes quoted from the notes on edges in edges.json, with the geography and case count each note gives. The tool asserts none of them; it shows them beside the effect they belong to. An edge with no entry here has no size stated by its source. Edit by hand with the paper open.",
+  "quotes": {
+    "e12": {
+      "size": "45 to 70 people out per 100 new units, within 5 years",
+      "where": "US cities"
+    },
+    "e13": {
+      "size": "5 to 7 percent relative rent decline near large new buildings",
+      "where": "US, low-income areas"
+    },
+    "e22": {
+      "size": "21 percent rise in rent between tenancies",
+      "where": "City biennial survey, not peer reviewed"
+    },
+    "e28": {
+      "size": "unit count cut to about half: 161 to 77, 23 to 12",
+      "where": "two buildings, permit records"
+    },
+    "e32": {
+      "size": "8 of 12 rooms under the agreement",
+      "where": "one case"
+    },
+    "e29": {
+      "size": "tenants already gone in 6 of 7 permit files",
+      "where": "seven Vancouver cases"
+    }
+  }
+}

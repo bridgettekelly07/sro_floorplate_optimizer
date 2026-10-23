@@ -1,0 +1,245 @@
+{
+  "note": "Presentation only. Which stage of the case-study track each outcome in edges.json is drawn against. This is the author's reading of where in the process an outcome shows up, not a sourced claim; it adds no edge and sets no lag. Edit by hand. lever_stage is the stage at which each lever is set; planner_stage is where a planner or advocate steps into the process. Both are the author's reading and are to be tested in user session 1. decision_timing says, per decision, whether timing.json has a duration it acts on; decision_stack and fact_callouts place the callouts on the sheet. gap_step gives, for each pair of neighbouring stages, the timing.json step that fills the gap and its weeks; the page draws that gap on a log scale. range gives, per decision, the order its settings sit in on the lever (a presentation order, not a scale) and the setting in force now where edges.json says so. A lever has detents, not a continuous range: there is no sourced effect between two settings. The permit lever shows allow and minor repair only; deny has no sourced edge and none of the seven cases was refused, so it is left off the sheet (edges.json still lists it). outcome_who says who an effect lands on (T tenants, N neighbourhood, C City and owners, B buildings); it is the author's reading and is not sourced.",
+  "outcome_stage": {
+    "tenant_evictions": "Tenants out",
+    "displacement": "Tenants out",
+    "violence_exposure": "Tenants out",
+    "treatment_disruption": "Tenants out",
+    "mortality_risk": "Tenants out",
+    "social_polarization": "Tenants out",
+    "community_ties": "Tenants out",
+    "sro_room_count": "Council",
+    "bylaw_fee_level": "Council",
+    "sra_designation": "Design",
+    "units_per_building": "Design",
+    "floor_area_per_tenant": "Design",
+    "space_wellbeing": "Design",
+    "replacement_reserve": "Fund",
+    "replacement_units_built": "Fund",
+    "tenant_return_rate": "Fund",
+    "new_market_units": "Fund",
+    "sro_rent": "Rent",
+    "rent_gap_pressure": "Rent",
+    "nearby_low_income_rents": "Rent",
+    "vacancy_chain_moves": "Rent",
+    "gentrification_pace": "Rent",
+    "housing_agreement_rooms": "Fund"
+  },
+  "lever_stage": {
+    "conversion_permit": "Council",
+    "conversion_fee": "Council",
+    "unit_size_sf": "Design",
+    "replacement_ratio": "Fund",
+    "tenure": "Fund",
+    "income_mix": "Fund",
+    "rent_at_turnover": "Rent"
+  },
+  "planner_stage": {
+    "Council": "speaks at the hearing",
+    "Monitor": "reads the City survey (CCAP)"
+  },
+  "decision_timing": {
+    "conversion_permit": {
+      "title": "Permit route",
+      "stage": "Council",
+      "callout": "minor repair skips Council, 9 to 12 wks",
+      "basis": "timing.json council_decides (3 cases); the minor_repair_staff note in edges.json"
+    },
+    "conversion_fee": {
+      "title": "Conversion fee",
+      "stage": null,
+      "callout": "no timing data",
+      "basis": "timing.json has no fee step"
+    },
+    "unit_size_sf": {
+      "title": "Unit size",
+      "stage": null,
+      "callout": "sets the route, no duration data",
+      "basis": "unit_size_sf note in edges.json; timing.json unit_design has no case"
+    },
+    "replacement_ratio": {
+      "title": "Replacement",
+      "stage": "Fund",
+      "callout": "acts on 3 yrs and open, 1 case",
+      "basis": "timing.json replace_and_fund (Old Continental, 156 weeks minimum)"
+    },
+    "tenure": {
+      "title": "Tenure",
+      "stage": null,
+      "callout": "no timing data",
+      "basis": "none"
+    },
+    "income_mix": {
+      "title": "Income mix",
+      "stage": null,
+      "callout": "no timing data",
+      "basis": "none"
+    },
+    "rent_at_turnover": {
+      "title": "Rent rule",
+      "stage": null,
+      "callout": "no timing data, needs a rent roll",
+      "basis": "timing.json rent_on_turnover has no case"
+    }
+  },
+  "decision_stack": {
+    "2": [
+      "conversion_permit",
+      "conversion_fee"
+    ],
+    "3": [
+      "unit_size_sf"
+    ],
+    "4": [
+      "replacement_ratio",
+      "tenure",
+      "income_mix"
+    ],
+    "6": [
+      "rent_at_turnover"
+    ]
+  },
+  "gap_step": [
+    {
+      "step": "tenant_relocation",
+      "weeks": 520,
+      "label": "1 day to 10 years before",
+      "stage": "Tenants out"
+    },
+    {
+      "step": "council_decides",
+      "weeks": 10.5,
+      "label": "9 to 12 weeks",
+      "stage": "Council"
+    },
+    {
+      "step": "unit_design",
+      "weeks": null,
+      "label": "no case yet",
+      "stage": "Design"
+    },
+    {
+      "step": null,
+      "weeks": null,
+      "label": "no case yet",
+      "stage": null
+    },
+    {
+      "step": "replace_and_fund",
+      "weeks": 156,
+      "label": "3 years, open ended",
+      "stage": "Fund",
+      "open": true
+    },
+    {
+      "step": "build_and_occupy",
+      "weeks": null,
+      "label": "no case yet",
+      "stage": "Build"
+    },
+    {
+      "step": "rent_on_turnover",
+      "weeks": null,
+      "label": "no case yet",
+      "stage": "Rent"
+    }
+  ],
+  "gap_trailing": {
+    "step": "monitor",
+    "weeks": 104,
+    "label": "0 to 104 weeks",
+    "stage": "Monitor"
+  },
+  "scale": {
+    "min_gap": 140,
+    "per_decade": 100,
+    "note": "Distance between two stages grows with the logarithm of the measured weeks between them (timing.json). A step with no case is drawn dotted at the shortest length, which says nothing about its duration."
+  },
+  "range": {
+    "conversion_permit": {
+      "order": [
+        "allow",
+        "minor_repair_staff"
+      ],
+      "now": "minor_repair_staff",
+      "now_basis": "since 2015 most renovation cases take this route"
+    },
+    "conversion_fee": {
+      "order": [
+        "waived",
+        "replace_in_kind",
+        "charged"
+      ],
+      "now": "waived",
+      "now_basis": "last actually charged in 2015; since then waived or set by pro forma"
+    },
+    "unit_size_sf": {
+      "order": [
+        "100",
+        "200",
+        "250",
+        "320"
+      ],
+      "now": "200",
+      "now_basis": "the live threshold in current permit reports"
+    },
+    "replacement_ratio": {
+      "order": [
+        "none",
+        "partial",
+        "one_to_one"
+      ],
+      "now": null,
+      "now_basis": null
+    },
+    "tenure": {
+      "order": [
+        "private",
+        "nonprofit"
+      ],
+      "now": null,
+      "now_basis": null
+    },
+    "income_mix": {
+      "order": [
+        "100_social",
+        "60_40"
+      ],
+      "now": null,
+      "now_basis": null
+    },
+    "rent_at_turnover": {
+      "order": [
+        "vacancy_control",
+        "market"
+      ],
+      "now": null,
+      "now_basis": null
+    }
+  },
+  "outcome_who": {
+    "tenant_evictions": "T",
+    "violence_exposure": "T",
+    "treatment_disruption": "T",
+    "mortality_risk": "T",
+    "displacement": "T",
+    "vacancy_chain_moves": "T",
+    "space_wellbeing": "T",
+    "tenant_return_rate": "T",
+    "nearby_low_income_rents": "N",
+    "rent_gap_pressure": "N",
+    "gentrification_pace": "N",
+    "social_polarization": "N",
+    "community_ties": "N",
+    "new_market_units": "N",
+    "sro_rent": "N",
+    "sro_room_count": "N",
+    "bylaw_fee_level": "C",
+    "replacement_reserve": "C",
+    "replacement_units_built": "C",
+    "housing_agreement_rooms": "C",
+    "sra_designation": "B",
+    "units_per_building": "B",
+    "floor_area_per_tenant": "B"
+  }
+}

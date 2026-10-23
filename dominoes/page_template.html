@@ -5,281 +5,198 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SRO dominoes</title>
 <style>
-  :root { --bg:#E9E2D6; --slate:#3D5A6C; --coral:#E0724E; --tan:#9DB9F0; --ink:#2B3A42; --muted:#5F6E78; --panel:#F1ECE2; --line:#cfc6b6; }
+  :root { --bg:#E9E2D6; --slate:#3D5A6C; --coral:#E0724E; --ink:#2B3A42; --muted:#5F6E78; }
   * { box-sizing: border-box; }
   body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 Helvetica, Arial, sans-serif; }
-  header { padding:20px 24px 8px; max-width:1400px; margin:0 auto; }
-  h1 { margin:0; font-size:22px; }
-  header p { margin:4px 0 0; color:var(--muted); max-width:70ch; }
-  main { display:grid; grid-template-columns:300px 1fr; gap:20px; padding:12px 24px 40px; max-width:1400px; margin:0 auto; }
-  @media (max-width:860px) { main { grid-template-columns:1fr; } }
-  aside, .card { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:14px 16px; }
-  aside h2, .card h2 { font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:0 0 8px; }
-  label { display:block; font-size:13px; color:var(--muted); margin:10px 0 4px; }
-  select { width:100%; font:inherit; padding:6px; background:#fff; border:1px solid var(--line); border-radius:4px; color:var(--ink); }
-  .opts { display:flex; flex-wrap:wrap; gap:6px; }
-  .opts button { font:inherit; padding:6px 10px; border:1px solid var(--slate); background:transparent; color:var(--slate); border-radius:999px; cursor:pointer; }
-  .opts button[aria-pressed="true"] { background:var(--slate); color:#fff; }
-  .opts button.empty { border-style:dashed; border-color:var(--muted); color:var(--muted); }
-  .opts button.empty[aria-pressed="true"] { background:var(--muted); color:#fff; }
-  input[type=range] { width:100%; accent-color:var(--slate); }
-  .note { font-size:13px; color:var(--muted); }
-  .stack { display:flex; flex-direction:column; gap:16px; min-width:0; }
-  #chart svg { width:100%; min-width:900px; height:auto; display:block; }
-  #chart { overflow-x:auto; }
-  .stop { border-left:4px solid var(--coral); background:#fff; padding:12px 14px; border-radius:4px; }
-  .stop b { color:var(--coral); }
-  #detail h3 { margin:0 0 4px; font-size:15px; }
-  #detail dl { display:grid; grid-template-columns:110px 1fr; gap:2px 10px; margin:8px 0 0; font-size:13px; }
-  #detail dt { color:var(--muted); }
-  #detail dd { margin:0; }
-  .hint { color:var(--muted); font-size:13px; }
-  svg g.ev { cursor:pointer; }
-  svg g.ev:hover rect, svg g.ev:hover polygon { fill-opacity:.6; }
-  svg g.ev.sel rect, svg g.ev.sel polygon:first-child { stroke-width:5; }
-  details summary { cursor:pointer; color:var(--slate); }
-  ul.edges { margin:6px 0 0; padding-left:18px; font-size:13px; }
+  #track { max-width:1600px; margin:0 auto; }
+  #track svg { width:100%; height:auto; display:block; }
+  #track g.callout[data-levers]:not([data-levers=""]) { cursor:pointer; }
+  #track g.callout[data-levers]:not([data-levers=""]):hover rect { stroke:var(--coral); }
+  #track g.callout.on rect { stroke:var(--coral); stroke-width:1.6; stroke-dasharray:none; }
+  #track g.det { cursor:pointer; }
+  #track g.det:hover circle.dot { stroke:var(--coral); stroke-width:2; }
+  #track g.det.sel circle.dot { fill:var(--coral); stroke:var(--coral); }
+  #track g.stage circle { transition:stroke .15s; }
+  #track.has-run g.stage:not(.lit) { opacity:.4; }
+  #track g.stage.lit circle { stroke:var(--coral); stroke-width:4; }
+  #track text.axis.gap { font-style:italic; }
+  #track text.axis.on { fill:var(--coral); font-weight:bold; }
+  #track path.bypass { transition:stroke-width .15s; }
+  #track.bypass-on path.bypass { stroke-width:2.4; }
+  #track.bypass-on g.stage[data-stage="Council"] { opacity:.3; }
+  #track.bypass-on text.axis[data-stage="Council"] { text-decoration:line-through; }
+  #track polygon.dia { transition:transform .15s; transform-box:fill-box; transform-origin:center; }
+  #track.has-run polygon.dia:not(.on) { opacity:.3; }
+  #track polygon.dia.on { transform:scale(1.5); stroke-width:2; }
+  #track polygon.dia.effect.on { fill:var(--coral); fill-opacity:.35; }
+  #track .count { font-size:11px; font-weight:bold; fill:var(--coral); }
+  #effects { max-width:1600px; margin:0 auto; }
+  #effects svg { width:100%; height:auto; display:block; }
 </style>
 </head>
 <body>
-<header>
-  <h1>SRO dominoes</h1>
-  <p>Pick a decision in Vancouver's SRO conversion process. The page traces what the published evidence says follows, year by year, with a source on every link and both sides of every disagreement. No magnitudes are asserted. No model is called.</p>
-</header>
-<main>
-  <aside>
-    <h2>Decision</h2>
-    <label for="dec">What is being decided</label>
-    <select id="dec"></select>
-    <label>Option</label>
-    <div class="opts" id="opts"></div>
-    <p class="note" id="decnote"></p>
-    <label for="hor">Horizon: <span id="horv"></span> years</label>
-    <input type="range" id="hor" min="5" max="30" step="1" value="10">
-    <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
-    <h2>What reaches an outcome?</h2>
-    <select id="tgt"></select>
-    <div id="tgtout" class="note" style="margin-top:8px"></div>
-  </aside>
-  <div class="stack">
-    <div class="card" id="chart"></div>
-    <div id="stopbox"></div>
-    <div class="card" id="detail"><h2>Evidence</h2><p class="hint">Select a bar to see its claim, source and note.</p></div>
-    <div class="card"><h2>How to read it</h2>
-      <p class="note">Each row is an outcome. A bar runs from the earliest to the latest year the effect lands, counted from the decision (the vertical rule). The sign in the label column is the net direction along the chain: signs multiply, so a decrease of a decrease reads as an increase. Heavier outlines mean stronger evidence; dashed outlines mean a mechanism or theory with no grade. Rows joined by a coral bracket are a fork: two sourced claims that contradict each other, both drawn, neither chosen. A bar that runs past the horizon is clipped and ends in a pale cornflower arrow.</p>
-    </div>
-  </div>
-</main>
+<div id="track">
+<!--__TRACK__-->
+</div>
+<div id="effects"></div>
 <script>
 const GRAPH = /*__EDGES__*/null;
 const TIMING = /*__TIMING__*/null;
-
-const BG="#E9E2D6", SLATE="#3D5A6C", CORAL="#E0724E", INK="#2B3A42", MUTED="#5F6E78", TAN="#9DB9F0";
-const CAMP_COLOUR = {economics:SLATE, planning:"#6E8594", architecture:"#9FB0BA", health:CORAL, geography:"#B8553A"};
-const GRADE_WEIGHT = {strong:4, moderate:2.5, weak:1.2};
-const SIGN = {"+":1,"-":-1,"0":0}, CHAR = {"1":"+","-1":"-","0":"0"};
-const LEFT=300, RIGHT=240, TOP=70, ROW_H=30, BAR_H=14, YEAR_W=36, LEGEND_W=560, MARK=7;
-const FONT="Helvetica, Arial, sans-serif";
-
-const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const TRACKMAP = /*__TRACKMAP__*/null;
+const QUOTES = /*__QUOTES__*/null;
 
 // ---- run: load, check, traverse by lag (port of run.py; nothing here adds an edge, sets a lag or picks a source)
+const SIGN = {"+":1,"-":-1,"0":0};
 class Stop extends Error {}
 function checkSource(e) {
   if (!e.source || !(e.source in GRAPH.sources)) throw new Stop(`Edge ${e.id} has no source listed in edges.json.`);
   if (e.source === "timing_json_cases" && !(TIMING.cases && TIMING.cases.length)) throw new Stop(`Edge ${e.id} cites timing.json but it has no cases.`);
 }
-function checkOption(option) {
-  const [decId, opt] = option.split("=");
-  const dec = GRAPH.decisions.find(d => d.id === decId);
-  const edges = GRAPH.edges.filter(e => e.from === option);
-  if (!edges.length) throw new Stop(`${dec.label}: ${opt.replace(/_/g," ")} has no sourced outgoing edge. A source has to be added to edges.json before this option can be run.`);
-  edges.forEach(checkSource);
-  return dec.label;
-}
-function traverse(option, horizon) {
-  const labels = Object.fromEntries(GRAPH.outcomes.map(o => [o.id, o.label]));
-  const events = [], queue = [[option,0,0,[],1]];
+function traverse(option) {
+  const events = [], queue = [[option, 0, 0, [], 1]];
   while (queue.length) {
     const [node, yMin, yMax, path, sign] = queue.shift();
     for (const e of GRAPH.edges) {
       if (e.from !== node || path.includes(e.id)) continue;
       checkSource(e);
-      const emin = yMin + e.lag_min, emax = yMax + e.lag_max, net = sign * SIGN[e.direction];
-      const ev = {};
-      for (const k of ["claim_type","from","to","direction","camp","evidence","geography","source","fork","note"]) ev[k] = e[k] ?? null;
-      Object.assign(ev, {edge:e.id, to_label:labels[e.to] ?? e.to, direction_net:CHAR[net], year_min:emin, year_max:emax,
-        past_horizon:(emin+emax)/2 > horizon, before_decision:emin < 0, path:[...path, e.id]});
-      events.push(ev);
-      if (net !== 0) queue.push([e.to, emin, emax, ev.path, net]);
+      const net = sign * SIGN[e.direction];
+      const emin = yMin + e.lag_min, emax = yMax + e.lag_max;
+      events.push({ edge: e.id, to: e.to, net, fork: e.fork || null, claim: e.claim_type, source: e.source, camp: e.camp, year_min: emin, year_max: emax });
+      if (net !== 0) queue.push([e.to, emin, emax, [...path, e.id], net]);
     }
   }
   return events;
 }
-function run(option, horizon) {
-  const decision_label = checkOption(option);
-  const events = traverse(option, horizon);
-  return {option, decision_label, option_label:option.split("=")[1].replace(/_/g," "), horizon,
-          axis_start:Math.min(0, ...events.map(e => e.year_min)), events};
+// the stages an option's sourced effects reach; an option with no sourced edge reaches nothing and says so
+function run(option) {
+  if (!GRAPH.edges.some(e => e.from === option)) return [];
+  const lever = option.split("=")[0];
+  return traverse(option).map(ev => ({ ...ev, lever, option: option.split("=")[1] }));
 }
 
-// ---- render: timeline object in, SVG string out (port of render.py; reads only the timeline)
-function rowOrder(events) {
-  const byOutcome = new Map();
-  const sorted = [...events].sort((a,b) => a.path.length-b.path.length || a.year_min-b.year_min || a.year_max-b.year_max || (a.edge<b.edge?-1:a.edge>b.edge?1:0));
-  for (const ev of sorted) { if (!byOutcome.has(ev.to)) byOutcome.set(ev.to, []); byOutcome.get(ev.to).push(ev); }
-  const rows = [], done = new Set();
-  for (const [key, evs] of byOutcome) {
-    const plain = evs.filter(e => !e.fork);
-    if (plain.length) rows.push({id:key, label:plain[0].to_label, fork:null, evs:plain});
-    for (const ev of evs) {
-      if (!ev.fork || done.has(ev.fork)) continue;
-      done.add(ev.fork);
-      const sides = events.filter(e => e.fork === ev.fork).sort((a,b) => a.year_min-b.year_min || (a.edge<b.edge?-1:1));
-      for (const s of sides) rows.push({id:s.to, label:s.to_label, fork:ev.fork, evs:[s]});
-    }
-  }
-  return rows;
+// ---- the effect scale: what follows from the pressed decision, in years after it (the lags in edges.json)
+const BG="#E9E2D6", SLATE="#3D5A6C", CORAL="#E0724E", INK="#2B3A42", MUTED="#5F6E78";
+const STAGE_ORDER = ["Tenants out","Apply","Council","Design","Fund","Build","Rent","Monitor"];
+const esc = t => String(t).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const WORD = { "1":"rises", "-1":"falls", "0":"holds" }, GLYPH = { "1":"\u25B2", "-1":"\u25BC", "0":"\u25CF" };
+function nowLine() {
+  const bits = Object.entries(state.sel).map(([lev, opt]) => {
+    const r = TRACKMAP.range[lev];
+    if (!r.now) return null;
+    const name = TRACKMAP.decision_timing[lev].title.toLowerCase();
+    return opt === r.now ? `${name}: ${optText(lev, opt)} is in force now (${r.now_basis})` : `${name}: in force now ${optText(lev, r.now)}, changed to ${optText(lev, opt)}`;
+  }).filter(Boolean);
+  return bits.length ? bits.join("; ") + ". " : "";
 }
-function wrap(text, width) {
-  const words = text.split(/\s+/), lines = []; let cur = "";
-  for (const w of words) { if ((cur + " " + w).trim().length > width) { lines.push(cur); cur = w; } else cur = (cur + " " + w).trim(); }
-  if (cur) lines.push(cur); return lines;
-}
-function render(tl) {
-  const events = tl.events, horizon = tl.horizon, x0 = tl.axis_start, x1 = horizon;
-  const rows = rowOrder(events);
-  const width = Math.max(LEFT + (x1-x0)*YEAR_W, LEFT + LEGEND_W) + RIGHT;
-  const noteLines = events.filter(e => e.direction === "0" && e.note).flatMap(e => wrap(`${e.edge}: ${e.note}`, Math.floor((LEGEND_W+RIGHT+100)/5.2)));
-  const height = TOP + rows.length*ROW_H + 110 + (noteLines.length ? 18 + 14*noteLines.length : 0);
-  const X = yr => LEFT + (yr - x0) * YEAR_W;
-  const o = [];
-  o.push(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" font-family="${FONT}" font-size="12" fill="${INK}">`);
-  o.push(`<rect width="${width}" height="${height}" fill="${BG}"/>`);
-  o.push(`<text x="${LEFT}" y="28" font-size="15" font-weight="bold">${esc(tl.decision_label)}: ${esc(tl.option_label)}</text>`);
-  o.push(`<text x="${LEFT}" y="46" fill="${MUTED}">what the sourced evidence says follows over ${horizon} years: ${events.length} effects, from year ${x0}</text>`);
-  const pt = TOP, pb = TOP + rows.length*ROW_H;
-  for (let yr = x0; yr <= x1; yr++) {
-    const x = X(yr);
-    o.push(`<line x1="${x}" y1="${pt}" x2="${x}" y2="${pb}" stroke="${SLATE}" stroke-opacity="0.15"/>`);
-    if (yr % 5 === 0 || yr === x0 || yr === x1) o.push(`<text x="${x}" y="${pb+18}" text-anchor="middle" fill="${MUTED}">${yr}</text>`);
-  }
-  o.push(`<text x="${(X(x0)+X(x1))/2}" y="${pb+36}" text-anchor="middle" fill="${MUTED}">years from the decision</text>`);
-  let prevFork = null;
-  rows.forEach((r, i) => {
-    const y = pt + i*ROW_H, cy = y + ROW_H/2;
-    if (i % 2 === 0) o.push(`<rect x="0" y="${y}" width="${width}" height="${ROW_H}" fill="${SLATE}" fill-opacity="0.04"/>`);
-    o.push(`<text x="${LEFT-28}" y="${cy+4}" text-anchor="end">${esc(r.label)}</text>`);
-    if (r.fork && r.fork !== prevFork) {
-      const n = rows.filter(q => q.fork === r.fork).length;
-      o.push(`<line x1="18" y1="${y+4}" x2="18" y2="${y+n*ROW_H-4}" stroke="${CORAL}" stroke-width="2"/>`);
-      o.push(`<text x="24" y="${y+14}" fill="${CORAL}" font-size="10" font-weight="bold">fork ${esc(r.fork)}</text>`);
-    }
-    prevFork = r.fork;
-    const k = r.evs.length, subH = k === 1 ? BAR_H : Math.max(5, (ROW_H-8)/k);
-    r.evs.forEach((ev, j) => {
-      const by = cy - (k*subH)/2 + j*subH, over = ev.year_max > horizon;
-      const xa = Math.min(X(ev.year_min), X(horizon)), xb = Math.min(X(ev.year_max), X(horizon)), w = xb - xa;
-      const colour = CAMP_COLOUR[ev.camp] || SLATE, grade = ev.evidence, weight = GRADE_WEIGHT[grade] || 1.2;
-      const dash = grade ? "" : ' stroke-dasharray="4 3"';
-      const style = `fill="${colour}" fill-opacity="0.35" stroke="${colour}" stroke-width="${weight}"${dash}`;
-      const my = by + subH/2;
-      let shape, lx;
-      if (ev.year_min === ev.year_max && !over) {
-        shape = `<polygon points="${xa},${my-MARK} ${xa+MARK},${my} ${xa},${my+MARK} ${xa-MARK},${my}" ${style}/>`; lx = xa + MARK + 6;
-      } else { shape = `<rect x="${xa}" y="${by+1}" width="${w}" height="${subH-2}" ${style}/>`; lx = xb + 6; }
-      let src = `${ev.edge}  ${ev.source}`;
-      if (over) { shape += `<polygon points="${xb},${my-subH/2} ${xb+9},${my} ${xb},${my+subH/2}" fill="${TAN}"/>`; src = `to yr ${ev.year_max}   ${src}`; lx = xb + 14; }
-      const title = `${ev.edge}: ${ev.from} -> ${ev.to}, direction ${ev.direction_net}, yr ${ev.year_min} to ${ev.year_max}, ${ev.camp}, ${grade || ev.claim_type}, ${ev.source}`;
-      o.push(`<g class="ev" data-edge="${ev.edge}"><title>${esc(title)}</title>${shape}` +
-        `<text x="${LEFT-10}" y="${my+4}" text-anchor="end" font-size="11" font-weight="bold">${esc(ev.direction_net)}</text>` +
-        `<text x="${lx}" y="${my+4}" font-size="10" fill="${MUTED}">${esc(src)}</text></g>`);
+const wrapText = (s, n) => { const out = []; let cur = ""; for (const w of s.split(/\s+/)) { if ((cur + " " + w).trim().length > n) { out.push(cur); cur = w; } else cur = (cur + " " + w).trim(); } if (cur) out.push(cur); return out; };
+function renderEffects() {
+  const box = $("effects"), W = 1600, X0 = 250, X1 = 1500, YMIN = -10, YMAX = 30;
+  const X = y => X0 + (y - YMIN) / (YMAX - YMIN) * (X1 - X0);
+  const labels = Object.fromEntries(GRAPH.outcomes.map(o => [o.id, o.label]));
+  const chosen = Object.entries(state.sel);
+  const head = (t1, t2, h, col) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${h}" font-family="Helvetica, Arial, sans-serif" fill="${INK}"><defs><pattern id="hcor" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="${CORAL}" fill-opacity=".1"/><line x1="0" y1="0" x2="0" y2="6" stroke="${CORAL}" stroke-width="1.4"/></pattern><pattern id="hsl" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="${SLATE}" fill-opacity=".1"/><line x1="0" y1="0" x2="0" y2="6" stroke="${SLATE}" stroke-width="1.4"/></pattern></defs><rect width="${W}" height="${h}" fill="${BG}"/><text x="40" y="44" font-size="16" font-weight="bold">${esc(t1)}</text>${wrapText(t2, 170).map((ln, i) => `<text x="40" y="${68 + i * 18}" font-size="13" fill="${col || MUTED}">${esc(ln)}</text>`).join("")}`;
+  if (!chosen.length) { box.innerHTML = head("Who is affected, and when", "Choose one or more decisions on the sheet above. Each effect appears under the group it lands on, at the years the evidence says it lands.", 100) + "</svg>"; return; }
+  const title = chosen.map(([l, o]) => `${TRACKMAP.decision_timing[l].title.toLowerCase()}: ${optText(l, o)}`).join("  +  ");
+  const LANES = [["T", "TENANTS"], ["N", "NEIGHBOURHOOD"], ["C", "CITY AND OWNERS"], ["B", "BUILDINGS"]], RH = chosen.length > 1 ? 58 : 44, PAD = 10;
+  const lanes = LANES.map(([k, name]) => ({ k, name, evs: events.filter(e => TRACKMAP.outcome_who[e.to] === k).sort((a, b) => a.year_min - b.year_min || (labels[a.to] < labels[b.to] ? -1 : 1)) })).filter(l => l.evs.length);
+  const sub = `${nowLine()}${events.length} sourced effects, by who they land on.${chosen.length > 1 ? " Each decision's chain is drawn on its own; the sources do not say how decisions interact." : ""} A size is shown only where a source states one.`, TOP = 84 + 18 * wrapText(sub, 170).length, h = TOP + lanes.reduce((s, l) => s + l.evs.length * RH + 2 * PAD + 8, 0) + 90;
+  const multi = chosen.length > 1;
+  const o = [head(title, sub, h)];
+  let y = TOP;
+  for (const l of lanes) {
+    const bh = l.evs.length * RH + 2 * PAD;
+    o.push(`<rect x="40" y="${y}" width="${X1 + 60 - 40}" height="${bh}" fill="${SLATE}" fill-opacity="${l.k === "T" || l.k === "C" ? 0.07 : 0.03}"/><text x="52" y="${y + 26}" font-size="11" font-weight="bold" letter-spacing="1.5" fill="${SLATE}">${l.name}</text>`);
+    l.evs.forEach((e, i) => {
+      const cy = y + PAD + i * RH + RH / 2, net = e.net, col = net > 0 ? CORAL : net < 0 ? SLATE : MUTED;
+      const a0 = X(Math.max(YMIN, e.year_min)), b0 = X(Math.min(YMAX, e.year_max)), a = e.year_min === e.year_max ? a0 - 9 : a0, b = e.year_min === e.year_max ? a0 + 9 : Math.max(b0, a0 + 8);
+      const obs = e.claim === "observation", fill = net === 0 ? "none" : obs ? col : `url(#${net > 0 ? "hcor" : "hsl"})`;
+      const clash = events.some(x => x.to === e.to && x.net !== e.net);
+      o.push(`<rect x="${a}" y="${cy - 9}" width="${b - a}" height="18" rx="9" fill="${fill}" fill-opacity="${obs ? 0.85 : 1}" stroke="${col}" stroke-width="1.6"${net === 0 ? ' stroke-dasharray="4 3"' : ""}><title>${esc(`${e.edge}, ${e.source}, ${e.claim}, years ${e.year_min} to ${e.year_max}`)}</title></rect>`);
+      const q = QUOTES.quotes[e.edge], via = multi ? `   via ${TRACKMAP.decision_timing[e.lever].title.toLowerCase()} ${optText(e.lever, e.option)}` : "";
+      const l1 = `${GLYPH[String(net)]} ${labels[e.to]}`, l2 = (q ? `${q.size} (${q.where})` : "size not stated") + via;
+      const l2s = wrapText(l2, 64), w = Math.max(l1.length * 7.4 + 90, Math.max(...l2s.map(s => s.length)) * 6.3) + 24, right = b + 12, onRight = right + w <= X1 + 60, tx = onRight ? right : a - 12, anc = onRight ? "start" : "end";
+      const flag = e.fork || clash ? `<tspan fill="${CORAL}" font-style="italic">  disputed${e.fork ? ` (${e.fork})` : ""}</tspan>` : "";
+      o.push(`<text x="${tx}" y="${cy - (l2s.length > 1 ? 10 : 3)}" text-anchor="${anc}" font-size="13">${esc(l1)}${flag}</text>`);
+      l2s.forEach((ln, k) => o.push(`<text x="${tx}" y="${cy + (l2s.length > 1 ? 4 : 12) + k * 13}" text-anchor="${anc}" font-size="11.5" ${q ? `fill="${INK}"` : `fill="${MUTED}" font-style="italic"`}>${esc(ln)}</text>`));
     });
-  });
-  const xd = X(0);
-  o.push(`<line x1="${xd}" y1="${pt-14}" x2="${xd}" y2="${pb}" stroke="${INK}" stroke-width="1.5"/>`);
-  o.push(`<text x="${xd+5}" y="${pt-4}" font-size="11" font-weight="bold">decision</text>`);
-  let ly = pb + 60, lx = LEFT;
-  for (const [camp, c] of Object.entries(CAMP_COLOUR)) {
-    o.push(`<rect x="${lx}" y="${ly-9}" width="14" height="10" fill="${c}" fill-opacity="0.35" stroke="${c}" stroke-width="2"/><text x="${lx+18}" y="${ly}" font-size="11">${camp}</text>`);
-    lx += 100;
+    y += bh + 8;
   }
-  ly += 20; lx = LEFT;
-  for (const [g, wt] of Object.entries(GRADE_WEIGHT)) {
-    o.push(`<line x1="${lx}" y1="${ly-4}" x2="${lx+24}" y2="${ly-4}" stroke="${INK}" stroke-width="${wt}"/><text x="${lx+30}" y="${ly}" font-size="11">${g}</text>`);
-    lx += 100;
+  const pb = y;
+  for (let yr = YMIN; yr <= YMAX; yr += 5) {
+    o.push(`<line x1="${X(yr)}" y1="${TOP}" x2="${X(yr)}" y2="${pb - 8}" stroke="${SLATE}" stroke-opacity="${yr === 0 ? 0 : 0.14}"/><text x="${X(yr)}" y="${pb + 14}" text-anchor="middle" font-size="11" fill="${MUTED}">${yr}</text>`);
   }
-  o.push(`<line x1="${lx}" y1="${ly-4}" x2="${lx+24}" y2="${ly-4}" stroke="${INK}" stroke-width="1.2" stroke-dasharray="4 3"/><text x="${lx+30}" y="${ly}" font-size="11">mechanism or theory, no grade</text>`);
-  if (noteLines.length) {
-    ly += 26;
-    o.push(`<text x="${LEFT}" y="${ly}" font-size="10" font-weight="bold" fill="${MUTED}">direction 0: lands on the axis, passes nothing on</text>`);
-    for (const l of noteLines) { ly += 14; o.push(`<text x="${LEFT}" y="${ly}" font-size="10" fill="${MUTED}">${esc(l)}</text>`); }
-  }
+  o.push(`<text x="${(X0 + X1) / 2}" y="${pb + 32}" text-anchor="middle" font-size="11" fill="${MUTED}">years after the decision</text>`);
+  const x0 = X(0);
+  o.push(`<line x1="${x0}" y1="${TOP - 10}" x2="${x0}" y2="${pb - 8}" stroke="${INK}" stroke-width="1.5"/><text x="${x0 + 6}" y="${TOP - 14}" font-size="12" font-weight="bold">decision</text>`);
+  const ly = pb + 62;
+  o.push(`<g font-size="11.5"><rect x="${X0}" y="${ly - 10}" width="24" height="12" rx="6" fill="${CORAL}" fill-opacity=".85" stroke="${CORAL}"/><text x="${X0 + 32}" y="${ly}">rises, measured</text><rect x="${X0 + 170}" y="${ly - 10}" width="24" height="12" rx="6" fill="${SLATE}" fill-opacity=".85" stroke="${SLATE}"/><text x="${X0 + 202}" y="${ly}">falls, measured</text><rect x="${X0 + 340}" y="${ly - 10}" width="24" height="12" rx="6" fill="url(#hcor)" stroke="${CORAL}" stroke-width="1.4"/><text x="${X0 + 372}" y="${ly}">hatched: follows from the rule, or argued</text><rect x="${X0 + 650}" y="${ly - 10}" width="24" height="12" rx="6" fill="none" stroke="${MUTED}" stroke-dasharray="4 3"/><text x="${X0 + 682}" y="${ly}">held steady</text><text x="${X0}" y="${ly + 22}" fill="${MUTED}">Length is when it lands. A size is quoted from its source, never computed here.</text></g>`);
   o.push("</svg>");
-  return o.join("\n");
+  box.innerHTML = o.join("");
 }
 
-// ---- page
+// ---- the sheet: pressing a decision steps it through its settings
 const $ = id => document.getElementById(id);
-const state = {dec:GRAPH.decisions[0].id, opt:null, horizon:10, sel:null};
-let timeline = null;
+const SHORT = {conversion_permit:"permit", conversion_fee:"fee", unit_size_sf:"size", replacement_ratio:"replacement", tenure:"tenure", income_mix:"mix", rent_at_turnover:"rent"};
+const optText = (decId, opt) => decId === "unit_size_sf" ? opt + " sf" : decId === "income_mix" ? opt.replace("_", "/") : opt.replace(/_/g, " ");
+const hasEdges = (dec, opt) => GRAPH.edges.some(e => e.from === `${dec}=${opt}`);
+const state = { sel: {} };      // the chosen setting of each decision, any number at once
+let events = [];
 
-function hasEdges(dec, opt) { return GRAPH.edges.some(e => e.from === `${dec}=${opt}`); }
-
-function setup() {
-  $("dec").innerHTML = GRAPH.decisions.map(d => `<option value="${d.id}">${esc(d.label)}</option>`).join("");
-  $("tgt").innerHTML = `<option value="">choose an outcome</option>` + GRAPH.outcomes.map(o => `<option value="${o.id}">${esc(o.label)}</option>`).join("");
-  $("dec").onchange = () => { state.dec = $("dec").value; state.opt = null; state.sel = null; update(); };
-  $("hor").oninput = () => { state.horizon = +$("hor").value; update(); };
-  $("tgt").onchange = target;
-  $("chart").addEventListener("click", ev => { const g = ev.target.closest("g.ev"); if (g) { state.sel = g.dataset.edge; showDetail(); } });
-  update();
+function recompute() { events = Object.entries(state.sel).flatMap(([lev, opt]) => run(`${lev}=${opt}`)); }
+function pick(decId, opt) {
+  const dec = GRAPH.decisions.find(d => d.id === decId);
+  if (opt == null) { if (state.sel[decId]) return; opt = dec.options.find(o => hasEdges(decId, o)) || dec.options[0]; }
+  if (state.sel[decId] === opt) delete state.sel[decId]; else state.sel[decId] = opt;
+  recompute(); update();
 }
+
 function update() {
-  const dec = GRAPH.decisions.find(d => d.id === state.dec);
-  if (!state.opt || !dec.options.includes(state.opt)) state.opt = dec.options.find(o => hasEdges(dec.id, o)) || dec.options[0];
-  $("decnote").textContent = dec.note ? dec.note : "";
-  $("horv").textContent = state.horizon;
-  $("opts").innerHTML = dec.options.map(o => `<button class="${hasEdges(dec.id,o)?"":"empty"}" aria-pressed="${o===state.opt}" data-o="${o}" title="${hasEdges(dec.id,o)?"":"no sourced edge yet"}">${esc(o.replace(/_/g," "))}</button>`).join("");
-  $("opts").querySelectorAll("button").forEach(b => b.onclick = () => { state.opt = b.dataset.o; state.sel = null; update(); });
-  $("stopbox").innerHTML = "";
-  try {
-    timeline = run(`${dec.id}=${state.opt}`, state.horizon);
-    $("chart").innerHTML = render(timeline);
-    $("chart").hidden = false;
-  } catch (err) {
-    if (!(err instanceof Stop)) throw err;
-    timeline = null; $("chart").hidden = true;
-    $("stopbox").innerHTML = `<div class="stop"><b>Stopped.</b> ${esc(err.message)}<br><span class="note">The tool will not draw an option it has no source for. Options with a dashed outline in the left panel have no sourced edge yet.</span></div>`;
+  renderEffects();
+  const tr = $("track"), chosen = Object.keys(state.sel);
+  tr.querySelectorAll("g.callout").forEach(g => g.classList.toggle("on", chosen.includes(g.dataset.levers)));
+  tr.querySelectorAll("g.det").forEach(d => d.classList.toggle("sel", state.sel[d.dataset.lever] === d.dataset.opt));
+  const reached = new Map();   // stage -> distinct effects, an effect reached with the same direction by two decisions counts once
+  for (const ev of events) {
+    const st = TRACKMAP.outcome_stage[ev.to]; if (!st) continue;
+    if (!reached.has(st)) reached.set(st, new Map());
+    reached.get(st).set(ev.to + ":" + ev.net, ev);
   }
-  showDetail();
+  tr.classList.toggle("has-run", chosen.length > 0);
+  tr.querySelectorAll("g.stage").forEach(g => g.classList.toggle("lit", reached.has(g.dataset.stage)));
+  const timed = new Set(chosen.map(l => TRACKMAP.decision_timing[l].stage).filter(Boolean));
+  tr.querySelectorAll("text.axis").forEach(t => t.classList.toggle("on", timed.has(t.dataset.stage)));
+  tr.classList.toggle("bypass-on", state.sel.conversion_permit === "minor_repair_staff");
+  const readAt = new Set(chosen.map(l => TRACKMAP.lever_stage[l]));
+  tr.querySelectorAll("polygon.dia.read").forEach(d => d.classList.toggle("on", readAt.has(d.dataset.stage)));
+  tr.querySelectorAll("polygon.dia.effect").forEach(d => d.classList.toggle("on", reached.has(d.dataset.stage)));
+  // the exact effects, written beside the stage they sit at: direction glyph, plain label, a flag where sources disagree
+  tr.querySelectorAll("g.fx").forEach(t => t.remove());
+  const NS = "http://www.w3.org/2000/svg", labelOf = Object.fromEntries(GRAPH.outcomes.map(o => [o.id, o.label]));
+  tr.querySelectorAll("g.stage.lit").forEach(g => {
+    const c = g.querySelector("circle"), cx = +c.getAttribute("cx"), cy = +c.getAttribute("cy");
+    const evs = [...reached.get(g.dataset.stage).values()].sort((a, b) => a.year_min - b.year_min || (a.edge < b.edge ? -1 : 1));
+    const fx = document.createElementNS(NS, "g"); fx.setAttribute("class", "fx");
+    const n = evs.length, topY = cy - 36;
+    evs.forEach((ev, i) => {
+      const t = document.createElementNS(NS, "text");
+      t.setAttribute("x", cx); t.setAttribute("y", topY - 6 - (n - 1 - i) * 13); t.setAttribute("text-anchor", "middle");
+      t.setAttribute("font-size", "11"); t.setAttribute("fill", "#2B3A42");
+      const sp = (txt, attrs) => { const s = document.createElementNS(NS, "tspan"); s.textContent = txt; Object.entries(attrs || {}).forEach(([k, v]) => s.setAttribute(k, v)); t.appendChild(s); };
+      sp(GLYPH[String(ev.net)] + " ", { fill: "#E0724E", "font-weight": "bold" });
+      sp(labelOf[ev.to]);
+      if (ev.fork || events.some(x => x.to === ev.to && x.net !== ev.net)) sp("  disputed", { fill: "#E0724E", "font-style": "italic" });
+      fx.appendChild(t);
+    });
+    g.appendChild(fx);
+  });
 }
-function showDetail() {
-  const box = $("detail");
-  document.querySelectorAll("g.ev.sel").forEach(g => g.classList.remove("sel"));
-  const ev = timeline && timeline.events.find(e => e.edge === state.sel);
-  if (!ev) { box.innerHTML = `<h2>Evidence</h2><p class="hint">${timeline ? "Select a bar to see its claim, source and note." : "Nothing to show."}</p>`; return; }
-  document.querySelector(`g.ev[data-edge="${ev.edge}"]`)?.classList.add("sel");
-  const forkSides = ev.fork ? timeline.events.filter(e => e.fork === ev.fork && e.edge !== ev.edge) : [];
-  box.innerHTML = `<h2>Evidence</h2><h3>${esc(ev.edge)}: ${esc(ev.from.replace("="," = ").replace(/_/g," "))} to ${esc(ev.to_label)}</h3>
-    <dl><dt>Direction</dt><dd>edge reads ${esc(ev.direction)}, net ${esc(ev.direction_net)} along the chain</dd>
-    <dt>Lands</dt><dd>year ${ev.year_min} to ${ev.year_max}${ev.before_decision ? " (before the decision)" : ""}${ev.past_horizon ? " (past the horizon)" : ""}</dd>
-    <dt>Claim type</dt><dd>${esc(ev.claim_type)}</dd><dt>Evidence</dt><dd>${esc(ev.evidence || "no grade")}</dd>
-    <dt>Camp</dt><dd>${esc(ev.camp)}</dd><dt>Geography</dt><dd>${esc(ev.geography)}</dd>
-    <dt>Source</dt><dd>${esc(GRAPH.sources[ev.source])} <span class="hint">(${esc(ev.source)})</span></dd>
-    ${ev.note ? `<dt>Note</dt><dd>${esc(ev.note)}</dd>` : ""}
-    ${ev.fork ? `<dt>Fork ${esc(ev.fork)}</dt><dd>contradicted by ${forkSides.map(s => esc(s.edge) + " (" + esc(s.source) + ")").join(", ")}. Both are drawn; neither is chosen.</dd>` : ""}
-    <dt>Chain</dt><dd>${ev.path.join(" then ")}</dd></dl>`;
-}
-function target() {
-  const id = $("tgt").value, out = $("tgtout");
-  if (!id) { out.innerHTML = ""; return; }
-  const o = GRAPH.outcomes.find(x => x.id === id), edges = GRAPH.edges.filter(e => e.to === id);
-  out.innerHTML = edges.length
-    ? `Reached through:<ul class="edges">${edges.map(e => `<li>${esc(e.id)}: from ${esc(e.from.replace(/_/g," "))} (${esc(e.source)})</li>`).join("")}</ul>`
-    : `<div class="stop"><b>No sourced edge leads here.</b> ${esc(o.note || "")}</div>`;
-}
-setup();
+
+$("track").addEventListener("click", ev => {
+  const d = ev.target.closest("g.det");
+  if (d) { pick(d.dataset.lever, d.dataset.opt); return; }
+  const g = ev.target.closest("g.callout"); if (g && g.dataset.levers) pick(g.dataset.levers, null);
+});
+update();
 </script>
 </body>
 </html>
